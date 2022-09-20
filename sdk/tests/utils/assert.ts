@@ -93,12 +93,14 @@ export async function assertDevTokenAmount(
 
   if (swapToken.equals(NATIVE_MINT)) {
     const walletAmount = await ctx.provider.connection.getBalance(devWallet);
+    console.log(`devWallet - ${devWallet.toBase58()} expect - ${expectationQuote.devFeeAmount.toString()}, walletAmount - ${walletAmount.toString()}`)
     assert.equal(expectationQuote.devFeeAmount.toNumber(), walletAmount)
     return;
   }
 
   const tokenDevWalletAta = await deriveATA(devWallet, swapToken);
   const afterDevWalletAmount = await getTokenBalance(ctx.provider, tokenDevWalletAta);
+  console.log(`hello`)
   assert.equal(
     expectationQuote.devFeeAmount,
     afterDevWalletAmount,

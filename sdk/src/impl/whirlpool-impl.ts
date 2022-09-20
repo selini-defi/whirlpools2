@@ -5,13 +5,12 @@ import {
   resolveOrCreateATAs,
   TokenUtil,
   TransactionBuilder,
-  ZERO,
+  ZERO
 } from "@orca-so/common-sdk";
 import { Address, BN, translateAddress } from "@project-serum/anchor";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import invariant from "tiny-invariant";
 import { WhirlpoolContext } from "../context";
-import { SwapErrorCode, WhirlpoolsError } from "../errors/errors";
 import {
   closePositionIx,
   decreaseLiquidityIx,
@@ -22,7 +21,7 @@ import {
   openPositionIx,
   openPositionWithMetadataIx,
   SwapInput,
-  swapIx,
+  swapIx
 } from "../instructions";
 import { AccountFetcher } from "../network/public";
 import { decreaseLiquidityQuoteByLiquidityWithParams } from "../quotes/public";
@@ -191,12 +190,12 @@ export class WhirlpoolImpl implements Whirlpool {
       this.ctx.provider.wallet
     );
 
-    if (quote.devFeeAmount.gt(quote.amount)) {
-      throw new WhirlpoolsError(
-        "devFeeAmount cannot be more than 100% of the swap amount. ",
-        SwapErrorCode.InvalidDevFeePercentage
-      );
-    }
+    // if (quote.devFeeAmount.gte(quote.amount)) {
+    //   throw new WhirlpoolsError(
+    //     `devFeeAmount (${quote.devFeeAmount.toString()}) must be less than 100% of the swap amount (${quote.amount.toString()}).`,
+    //     SwapErrorCode.InvalidDevFeePercentage
+    //   );
+    // }
 
     if (!quote.devFeeAmount.eq(ZERO)) {
       const inputToken =
@@ -210,7 +209,7 @@ export class WhirlpoolImpl implements Whirlpool {
           inputToken.mint,
           inputToken.decimals,
           quote.devFeeAmount,
-          this.ctx.fetcher.getAccountRentExempt,
+          () => this.ctx.fetcher.getAccountRentExempt(),
           payerKey
         )
       );

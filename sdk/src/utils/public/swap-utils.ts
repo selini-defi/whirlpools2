@@ -16,6 +16,14 @@ import { PoolUtil } from "./pool-utils";
 import { TickUtil } from "./tick-utils";
 import { SwapDirection, TokenType } from "./types";
 
+// TODO: comment
+export interface TickArrayRequest {
+  whirlpoolAddress: PublicKey,
+  aToB: boolean,
+  tickCurrentIndex: number,
+  tickSpacing: number,
+}
+
 /**
  * @category Whirlpool Utils
  */
@@ -119,19 +127,50 @@ export class SwapUtils {
     fetcher: AccountFetcher,
     refresh: boolean
   ): Promise<TickArray[]> {
-    const addresses = SwapUtils.getTickArrayPublicKeys(
-      tickCurrentIndex,
-      tickSpacing,
-      aToB,
+    const data = await this.getBatchTickArrays(
       programId,
-      whirlpoolAddress
+      fetcher,
+      refresh,
+      [{ tickCurrentIndex, tickSpacing, aToB, whirlpoolAddress }],
     );
+    return data[0];
+  }
+
+  // TODO: comment
+  public static async getBatchTickArrays(
+    programId: PublicKey,
+    fetcher: AccountFetcher,
+    refresh: boolean,
+    tickArrayRequests: TickArrayRequest[],
+  ): Promise<TickArray[][]> {
+    let addresses: PublicKey[] = [];
+    let requestToIndices = [];
+
+    // Each individual tick array request may correspond to more than one tick array
+    // so we map each request to a slice of the batch request
+    for (let i = 0; i < tickArrayRequests.length; i++) {
+      const { tickCurrentIndex, tickSpacing, aToB, whirlpoolAddress } = tickArrayRequests[i];
+      const requestAddresses = SwapUtils.getTickArrayPublicKeys(
+        tickCurrentIndex,
+        tickSpacing,
+        aToB,
+        programId,
+        whirlpoolAddress
+      );
+      requestToIndices.push([addresses.length, addresses.length + requestAddresses.length]);
+      addresses.push(...requestAddresses);
+    }
     const data = await fetcher.listTickArrays(addresses, refresh);
-    return addresses.map((addr, index) => {
-      return {
+
+    // Re-map from flattened batch data to TickArray[] for request
+    return requestToIndices.map(indices => {
+      const [start, end] = indices;
+      const addressSlice = addresses.slice(start, end);
+      const dataSlice = data.slice(start, end);
+      return addressSlice.map((addr, index) => ({
         address: addr,
-        data: data[index],
-      };
+        data: dataSlice[index],
+      }));
     });
   }
 

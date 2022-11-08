@@ -5,7 +5,7 @@ import invariant from "tiny-invariant";
 import { SwapInput } from "../../instructions";
 import { AccountFetcher } from "../../network/public";
 import { TickArray, WhirlpoolData } from "../../types/public";
-import { PoolUtil, TokenType } from "../../utils/public";
+import { PoolUtil, SwapDirection } from "../../utils/public";
 import { SwapUtils } from "../../utils/public/swap-utils";
 import { Whirlpool } from "../../whirlpool-client";
 import { simulateSwap } from "../swap/swap-quote-impl";
@@ -84,7 +84,6 @@ export async function swapQuoteByInputToken(
     whirlpool,
     inputTokenMint,
     tokenAmount,
-    TokenType.TokenA,
     true,
     programId,
     fetcher,
@@ -122,7 +121,6 @@ export async function swapQuoteByOutputToken(
     whirlpool,
     outputTokenMint,
     tokenAmount,
-    TokenType.TokenB,
     false,
     programId,
     fetcher,
@@ -165,7 +163,6 @@ async function swapQuoteByToken(
   whirlpool: Whirlpool,
   inputTokenMint: Address,
   tokenAmount: u64,
-  amountSpecifiedTokenType: TokenType,
   amountSpecifiedIsInput: boolean,
   programId: Address,
   fetcher: AccountFetcher,
@@ -176,7 +173,7 @@ async function swapQuoteByToken(
   const swapTokenType = PoolUtil.getTokenType(whirlpoolData, swapMintKey);
   invariant(!!swapTokenType, "swapTokenMint does not match any tokens on this pool");
 
-  const aToB = swapTokenType === amountSpecifiedTokenType;
+  const aToB = SwapUtils.getSwapDirection(whirlpoolData, swapMintKey, amountSpecifiedIsInput) === SwapDirection.AtoB;
 
   const tickArrays = await SwapUtils.getTickArrays(
     whirlpoolData.tickCurrentIndex,
@@ -197,4 +194,59 @@ async function swapQuoteByToken(
     otherAmountThreshold: SwapUtils.getDefaultOtherAmountThreshold(amountSpecifiedIsInput),
     tickArrays,
   };
+}
+
+interface SwapQuoteRequest {
+  whirlpool: Address;
+  inputTokenMint: Address;
+  tokenAmount: u64;
+  amountSpecifiedIsInput: boolean;
+}
+
+export async function batchSwapQuoteByToken(
+  quoteRequests: SwapQuoteRequest[],
+  programId: Address,
+  fetcher: AccountFetcher,
+  refresh: boolean,
+): Promise<SwapQuoteParam[]> {
+  const whirlpools = await fetcher.listPools(quoteRequests.map(req => req.whirlpool), refresh);
+  const program = AddressUtil.toPubKey(programId);
+
+  const tickArrayRequests = quoteRequests.map((quoteReq, index) => {
+    const { whirlpool, tokenAmount, inputTokenMint, amountSpecifiedIsInput } = quoteReq;
+    const whirlpoolData = whirlpools[index]!;
+    const swapMintKey = AddressUtil.toPubKey(inputTokenMint);
+    const swapTokenType = PoolUtil.getTokenType(whirlpoolData, swapMintKey);
+    invariant(!!swapTokenType, "swapTokenMint does not match any tokens on this pool");
+    const aToB = SwapUtils.getSwapDirection(whirlpoolData, swapMintKey, amountSpecifiedIsInput) === SwapDirection.AtoB;
+    return {
+      whirlpoolData,
+      tokenAmount,
+      aToB,
+      tickCurrentIndex: whirlpoolData.tickCurrentIndex,
+      tickSpacing: whirlpoolData.tickSpacing,
+      whirlpoolAddress: AddressUtil.toPubKey(whirlpool),
+      amountSpecifiedIsInput,
+    };
+  });
+
+  const tickArrays = await SwapUtils.getBatchTickArrays(
+    program,
+    fetcher,
+    refresh,
+    tickArrayRequests,
+  );
+
+  return tickArrayRequests.map((req, index) => {
+    const { whirlpoolData, tokenAmount, aToB, amountSpecifiedIsInput } = req;
+    return {
+      whirlpoolData,
+      tokenAmount,
+      aToB,
+      amountSpecifiedIsInput,
+      sqrtPriceLimit: SwapUtils.getDefaultSqrtPriceLimit(aToB),
+      otherAmountThreshold: SwapUtils.getDefaultOtherAmountThreshold(amountSpecifiedIsInput),
+      tickArrays: tickArrays[index],
+    };
+  });
 }

@@ -170,11 +170,11 @@ export class WhirlpoolImpl implements Whirlpool {
     );
   }
 
-  async swap(quote: SwapInput, sourceWallet?: Address) {
+  async swap(quote: SwapInput, sourceWallet?: Address, initTxBuilder?: TransactionBuilder) {
     const sourceWalletKey = sourceWallet
       ? AddressUtil.toPubKey(sourceWallet)
       : this.ctx.wallet.publicKey;
-    return this.getSwapTx(quote, sourceWalletKey);
+    return this.getSwapTx(quote, sourceWalletKey, initTxBuilder);
   }
 
   async swapWithDevFees(

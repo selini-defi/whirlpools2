@@ -48,6 +48,9 @@
     "type": "git",
     "url": "git+https://github.com/orca-so/whirlpools.git"
   },
+  "resolutions": {
+    "@solana/web3.js": "^1.66.2"
+  },
   "keywords": [
     "orca_so",
     "orca",

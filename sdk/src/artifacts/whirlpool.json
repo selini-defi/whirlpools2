@@ -188,6 +188,47 @@
       ]
     },
     {
+      "name": "initializeLookupReference",
+      "accounts": [
+        {
+          "name": "whirlpoolsConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMintA",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenMintB",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "funder",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "lookupReference",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "rent",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initializeReward",
       "accounts": [
         {
@@ -265,6 +306,37 @@
         {
           "name": "emissionsPerSecondX64",
           "type": "u128"
+        }
+      ]
+    },
+    {
+      "name": "setLookupReference",
+      "accounts": [
+        {
+          "name": "whirlpoolsConfig",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "lookupReference",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "authority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "lookupTable",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "accIndex",
+          "type": "u8"
         }
       ]
     },
@@ -1121,6 +1193,35 @@
           {
             "name": "defaultFeeRate",
             "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LookupReference",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "whirlpoolsConfig",
+            "type": "publicKey"
+          },
+          {
+            "name": "tokenMintA",
+            "type": "publicKey"
+          },
+          {
+            "name": "tokenMintB",
+            "type": "publicKey"
+          },
+          {
+            "name": "lookupAccounts",
+            "type": {
+              "array": [
+                "publicKey",
+                3
+              ]
+            }
           }
         ]
       }

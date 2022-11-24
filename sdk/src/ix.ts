@@ -35,6 +35,11 @@ export class WhirlpoolIx {
     return ix.initializeFeeTierIx(program, params);
   }
 
+
+   public static initializeLookupReferenceIx(program: Program<Whirlpool>, params: ix.InitLookupReferenceParams) {
+    return ix.initializeLookupReferenceIx(program, params);
+  }
+
   /**
    * Initializes a tick_array account to represent a tick-range in a Whirlpool.
    *
@@ -399,6 +404,15 @@ export class WhirlpoolIx {
   ) {
     return ix.setRewardEmissionsIx(program, params);
   }
+
+
+  public static setLookupReference(
+    program: Program<Whirlpool>,
+    params: ix.SetLookupReferenceParams
+  ) {
+    return ix.setLookupReference(program, params);
+  }
+
 
   /**
    * Set the whirlpool reward super authority for a WhirlpoolsConfig

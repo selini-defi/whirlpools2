@@ -9,7 +9,6 @@ import { PoolUtil, SwapDirection } from "../../utils/public";
 import { SwapUtils } from "../../utils/public/swap-utils";
 import { Whirlpool } from "../../whirlpool-client";
 import { simulateSwap } from "../swap/swap-quote-impl";
-import { checkIfAllTickArraysInitialized } from "../swap/swap-quote-utils";
 import { DevFeeSwapQuote } from "./dev-fee-swap-quote";
 
 /**
@@ -141,8 +140,6 @@ export function swapQuoteWithParams(
   params: SwapQuoteParam,
   slippageTolerance: Percentage
 ): SwapQuote {
-  checkIfAllTickArraysInitialized(params.tickArrays);
-
   const quote = simulateSwap(params);
 
   const slippageAdjustedQuote: SwapQuote = {

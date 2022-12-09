@@ -9,7 +9,7 @@ import {
   DecreaseLiquidityInput,
   IncreaseLiquidityInput,
   PositionData,
-  WhirlpoolData,
+  WhirlpoolData
 } from "./types/public";
 import { TokenAccountInfo, TokenInfo, WhirlpoolRewardInfo } from "./types/public/client-types";
 
@@ -34,6 +34,7 @@ export interface WhirlpoolClient {
   /**
    * Get a Whirlpool object to interact with the Whirlpool account at the given address.
    * @param poolAddress the address of the Whirlpool account
+   * @param refresh true to always request newest data from chain with this request
    * @return a Whirlpool object to interact with
    */
   getPool: (poolAddress: Address, refresh?: boolean) => Promise<Whirlpool>;
@@ -41,6 +42,7 @@ export interface WhirlpoolClient {
   /**
    * Get a list of Whirlpool objects matching the provided list of addresses.
    * @param poolAddresses the addresses of the Whirlpool accounts
+   * @param refresh true to always request newest data from chain with this request
    * @return a list of Whirlpool objects to interact with
    */
   getPools: (poolAddresses: Address[], refresh?: boolean) => Promise<Whirlpool[]>;
@@ -48,9 +50,55 @@ export interface WhirlpoolClient {
   /**
    * Get a Position object to interact with the Position account at the given address.
    * @param positionAddress the address of the Position account
-   * @return a Position object to interact with
+   * @param refresh true to always request newest data from chain with this request
+   * @return a Position object to interact with.
+   * @throws error when address does not return a Position account.
    */
   getPosition: (positionAddress: Address, refresh?: boolean) => Promise<Position>;
+
+  /**
+   * Get a list of Position objects to interact with the Position account at the given addresses.
+   * @param positionAddress the addresses of the Position accounts
+   * @param refresh true to always request newest data from chain with this request
+   * @return a Record object between account address and Position. If an address is not a Position account, it will be null.
+   */
+  getPositions: (
+    positionAddresses: Address[],
+    refresh?: boolean
+  ) => Promise<Record<string, Position | null>>;
+
+  /**
+   * Collect all fees and rewards from a list of positions.
+   * @experimental
+   * @param positionAddress the addresses of the Position accounts to collect fee & rewards from.
+   * @param refresh true to always request newest data from chain with this request
+   * @returns A set of transaction-builders to resolve ATA for affliated tokens, collect fee & rewards for all positions.
+   *          The first transaction should always be processed as it contains all the resolve ATA instructions to receive tokens.
+   */
+  collectFeesAndRewardsForPositions: (
+    positionAddresses: Address[],
+    refresh?: boolean
+  ) => Promise<TransactionBuilder[]>;
+
+  /**
+   * Create a Whirlpool account for a group of token A, token B and tick spacing
+   * @param whirlpoolConfig the address of the whirlpool config
+   * @param tokenMintA the address of the token A
+   * @param tokenMintB the address of the token B
+   * @param tickSpacing the space between two ticks in the tick array
+   * @param initialTick the initial tick that the pool is set to (derived from initial price)
+   * @param funder the account to debit SOL from to fund the creation of the account(s)
+   * @return `poolKey`: The public key of the newly created whirlpool account. `tx`: The transaction containing instructions for the on-chain operations.
+   * @throws error when the tokens are not in the canonical byte-based ordering. To resolve this, invert the token order and the initialTick (see `TickUtil.invertTick()`, `PriceMath.invertSqrtPriceX64()`, or `PriceMath.invertPrice()`).
+   */
+  createPool: (
+    whirlpoolsConfig: Address,
+    tokenMintA: Address,
+    tokenMintB: Address,
+    tickSpacing: number,
+    initialTick: number,
+    funder: Address
+  ) => Promise<{ poolKey: PublicKey; tx: TransactionBuilder }>;
 }
 
 /**

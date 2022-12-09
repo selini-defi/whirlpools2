@@ -12,7 +12,16 @@ import {
   ParsableWhirlpoolsConfig,
 } from "./parsing";
 import { Address } from "@project-serum/anchor";
-import { PositionData, TickArrayData, WhirlpoolsConfigData, WhirlpoolData, ParsableLookupReference } from "../..";
+import {
+  PositionData,
+  TickArrayData,
+  ParsableLookupReference,
+  WhirlpoolsConfigData,
+  WhirlpoolData,
+  WHIRLPOOL_ACCOUNT_SIZE,
+  WHIRLPOOL_CODER,
+  AccountName,
+} from "../..";
 import { FeeTierData } from "../../types/public";
 import { AddressUtil } from "@orca-so/common-sdk";
 
@@ -45,6 +54,19 @@ type GetMultipleAccountsResponse = {
     value?: ({ data: [string, string] } | null)[];
   };
 };
+
+/**
+ * Filter params for Whirlpools when invoking getProgramAccounts.
+ */
+type ListWhirlpoolParams = {
+  programId: Address;
+  configId: Address;
+};
+
+/**
+ * Tuple containing Whirlpool address and parsed account data.
+ */
+type WhirlpoolAccount = [Address, WhirlpoolData];
 
 /**
  * Data access layer to access Whirlpool related accounts
@@ -181,6 +203,42 @@ export class AccountFetcher {
     refresh: boolean
   ): Promise<(WhirlpoolData | null)[]> {
     return this.list(AddressUtil.toPubKeys(addresses), ParsableWhirlpool, refresh);
+  }
+
+  /**
+   * Retrieve a list of cached whirlpool addresses and accounts filtered by the given params using
+   * getProgramAccounts.
+   *
+   * @param params whirlpool filter params
+   * @returns tuple of whirlpool addresses and accounts
+   */
+  public async listPoolsWithParams({
+    programId,
+    configId,
+  }: ListWhirlpoolParams): Promise<WhirlpoolAccount[]> {
+    const filters = [
+      { dataSize: WHIRLPOOL_ACCOUNT_SIZE },
+      {
+        memcmp: WHIRLPOOL_CODER.memcmp(
+          AccountName.Whirlpool,
+          AddressUtil.toPubKey(configId).toBuffer()
+        ),
+      },
+    ];
+
+    const accounts = await this.connection.getProgramAccounts(AddressUtil.toPubKey(programId), {
+      filters,
+    });
+
+    const parsedAccounts: WhirlpoolAccount[] = [];
+    accounts.forEach(({ pubkey, account }) => {
+      const parsedAccount = ParsableWhirlpool.parse(account.data);
+      invariant(!!parsedAccount, `could not parse whirlpool: ${pubkey.toBase58()}`);
+      parsedAccounts.push([pubkey, parsedAccount]);
+      this._cache[pubkey.toBase58()] = { entity: ParsableWhirlpool, value: parsedAccount };
+    });
+
+    return parsedAccounts;
   }
 
   /**

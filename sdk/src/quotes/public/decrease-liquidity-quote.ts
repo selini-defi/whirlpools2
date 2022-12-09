@@ -3,11 +3,11 @@ import { BN } from "@project-serum/anchor";
 import invariant from "tiny-invariant";
 import { DecreaseLiquidityInput } from "../../instructions";
 import {
-  PositionUtil,
-  PositionStatus,
   adjustForSlippage,
   getTokenAFromLiquidity,
   getTokenBFromLiquidity,
+  PositionStatus,
+  PositionUtil,
 } from "../../utils/position-util";
 import { PriceMath, TickUtil } from "../../utils/public";
 import { Position, Whirlpool } from "../../whirlpool-client";
@@ -46,7 +46,7 @@ export type DecreaseLiquidityQuote = DecreaseLiquidityInput & { tokenEstA: BN; t
  * @param whirlpool - A Whirlpool helper class to help interact with the Whirlpool account.
  * @returns An DecreaseLiquidityQuote object detailing the tokenMin & liquidity values to use when calling decrease-liquidity-ix.
  */
-export async function decreaseLiquidityQuoteByLiquidity(
+export function decreaseLiquidityQuoteByLiquidity(
   liquidity: BN,
   slippageTolerance: Percentage,
   position: Position,

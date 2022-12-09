@@ -1,10 +1,15 @@
-import { AddressUtil } from "@orca-so/common-sdk";
+import { AddressUtil, TransactionBuilder } from "@orca-so/common-sdk";
 import { Address } from "@project-serum/anchor";
+import { Keypair, PublicKey } from "@solana/web3.js";
+import invariant from "tiny-invariant";
 import { WhirlpoolContext } from "../context";
+import { initTickArrayIx } from "../instructions";
+import { collectAllForPositionAddressesTxns } from "../instructions/composites";
+import { WhirlpoolIx } from "../ix";
 import { AccountFetcher } from "../network/public";
 import { WhirlpoolData } from "../types/public";
-import { PoolUtil } from "../utils/public";
-import { WhirlpoolClient, Whirlpool, Position } from "../whirlpool-client";
+import { PDAUtil, PoolUtil, PriceMath, TickUtil } from "../utils/public";
+import { Position, Whirlpool, WhirlpoolClient } from "../whirlpool-client";
 import { PositionImpl } from "./position-impl";
 import { getRewardInfos, getTokenMintInfos, getTokenVaultAccountInfos } from "./util";
 import { WhirlpoolImpl } from "./whirlpool-impl";
@@ -30,7 +35,6 @@ export class WhirlpoolClientImpl implements WhirlpoolClient {
     const rewardInfos = await getRewardInfos(this.ctx.fetcher, account, refresh);
     return new WhirlpoolImpl(
       this.ctx,
-      this.ctx.fetcher,
       AddressUtil.toPubKey(poolAddress),
       tokenInfos[0],
       tokenInfos[1],
@@ -74,7 +78,6 @@ export class WhirlpoolClientImpl implements WhirlpoolClient {
       whirlpools.push(
         new WhirlpoolImpl(
           this.ctx,
-          this.ctx.fetcher,
           AddressUtil.toPubKey(poolAddress),
           tokenInfos[0],
           tokenInfos[1],
@@ -93,11 +96,129 @@ export class WhirlpoolClientImpl implements WhirlpoolClient {
     if (!account) {
       throw new Error(`Unable to fetch Position at address at ${positionAddress}`);
     }
-    return new PositionImpl(
+    return new PositionImpl(this.ctx, AddressUtil.toPubKey(positionAddress), account);
+  }
+
+  public async getPositions(
+    positionAddresses: Address[],
+    refresh = false
+  ): Promise<Record<string, Position | null>> {
+    const accounts = await this.ctx.fetcher.listPositions(positionAddresses, refresh);
+    const results = accounts.map((positionAccount, index) => {
+      const address = positionAddresses[index];
+      if (!positionAccount) {
+        return [address, null];
+      }
+
+      return [address, new PositionImpl(this.ctx, AddressUtil.toPubKey(address), positionAccount)];
+    });
+
+    return Object.fromEntries(results);
+  }
+
+  public async createPool(
+    whirlpoolsConfig: Address,
+    tokenMintA: Address,
+    tokenMintB: Address,
+    tickSpacing: number,
+    initialTick: number,
+    funder: Address,
+    refresh = false
+  ): Promise<{ poolKey: PublicKey; tx: TransactionBuilder }> {
+    invariant(TickUtil.checkTickInBounds(initialTick), "initialTick is out of bounds.");
+    invariant(
+      TickUtil.isTickInitializable(initialTick, tickSpacing),
+      `initial tick ${initialTick} is not an initializable tick for tick-spacing ${tickSpacing}`
+    );
+
+    const correctTokenOrder = PoolUtil.orderMints(tokenMintA, tokenMintB).map((addr) =>
+      addr.toString()
+    );
+
+    invariant(
+      correctTokenOrder[0] === tokenMintA.toString(),
+      "Token order needs to be flipped to match the canonical ordering (i.e. sorted on the byte repr. of the mint pubkeys)"
+    );
+
+    whirlpoolsConfig = AddressUtil.toPubKey(whirlpoolsConfig);
+
+    const feeTierKey = PDAUtil.getFeeTier(
+      this.ctx.program.programId,
+      whirlpoolsConfig,
+      tickSpacing
+    ).publicKey;
+
+    const initSqrtPrice = PriceMath.tickIndexToSqrtPriceX64(initialTick);
+    const tokenVaultAKeypair = Keypair.generate();
+    const tokenVaultBKeypair = Keypair.generate();
+
+    const whirlpoolPda = PDAUtil.getWhirlpool(
+      this.ctx.program.programId,
+      whirlpoolsConfig,
+      new PublicKey(tokenMintA),
+      new PublicKey(tokenMintB),
+      tickSpacing
+    );
+
+    const feeTier = await this.ctx.fetcher.getFeeTier(feeTierKey, refresh);
+    invariant(!!feeTier, `Fee tier for ${tickSpacing} doesn't exist`);
+
+    const txBuilder = new TransactionBuilder(
+      this.ctx.provider.connection,
+      this.ctx.provider.wallet
+    );
+
+    const initPoolIx = WhirlpoolIx.initializePoolIx(this.ctx.program, {
+      initSqrtPrice,
+      whirlpoolsConfig,
+      whirlpoolPda,
+      tokenMintA: new PublicKey(tokenMintA),
+      tokenMintB: new PublicKey(tokenMintB),
+      tokenVaultAKeypair,
+      tokenVaultBKeypair,
+      feeTierKey,
+      tickSpacing,
+      funder: new PublicKey(funder),
+    });
+
+    const initialTickArrayStartTick = TickUtil.getStartTickIndex(initialTick, tickSpacing);
+    const initialTickArrayPda = PDAUtil.getTickArray(
+      this.ctx.program.programId,
+      whirlpoolPda.publicKey,
+      initialTickArrayStartTick
+    );
+
+    txBuilder.addInstruction(initPoolIx);
+    txBuilder.addInstruction(
+      initTickArrayIx(this.ctx.program, {
+        startTick: initialTickArrayStartTick,
+        tickArrayPda: initialTickArrayPda,
+        whirlpool: whirlpoolPda.publicKey,
+        funder: AddressUtil.toPubKey(funder),
+      })
+    );
+
+    return {
+      poolKey: whirlpoolPda.publicKey,
+      tx: txBuilder,
+    };
+  }
+
+  public async collectFeesAndRewardsForPositions(
+    positionAddresses: Address[],
+    refresh?: boolean | undefined
+  ): Promise<TransactionBuilder[]> {
+    const walletKey = this.ctx.wallet.publicKey;
+    return collectAllForPositionAddressesTxns(
       this.ctx,
-      this.ctx.fetcher,
-      AddressUtil.toPubKey(positionAddress),
-      account
+      {
+        positions: positionAddresses,
+        receiver: walletKey,
+        positionAuthority: walletKey,
+        positionOwner: walletKey,
+        payer: walletKey,
+      },
+      refresh
     );
   }
 }

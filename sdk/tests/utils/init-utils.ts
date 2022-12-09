@@ -8,11 +8,22 @@ import {
   createMint,
   mintToByAuthority,
   TickSpacing,
-  ZERO_BN
+  ZERO_BN,
 } from ".";
 import {
-  InitConfigParams, InitializeRewardParams, InitPoolParams, InitTickArrayParams,
-  OpenPositionParams, PDAUtil, PriceMath, TickUtil, TICK_ARRAY_SIZE, toTx, WhirlpoolClient, WhirlpoolContext, WhirlpoolIx
+  InitConfigParams,
+  InitializeRewardParams,
+  InitPoolParams,
+  InitTickArrayParams,
+  OpenPositionParams,
+  PDAUtil,
+  PriceMath,
+  TickUtil,
+  TICK_ARRAY_SIZE,
+  toTx,
+  WhirlpoolClient,
+  WhirlpoolContext,
+  WhirlpoolIx,
 } from "../../src";
 import { PoolUtil } from "../../src/utils/public/pool-utils";
 import {
@@ -21,7 +32,7 @@ import {
   generateDefaultInitLookupRefParams,
   generateDefaultInitPoolParams,
   generateDefaultInitTickArrayParams,
-  generateDefaultOpenPositionParams
+  generateDefaultOpenPositionParams,
 } from "./test-builders";
 
 const defaultInitSqrtPrice = MathUtil.toX64_BN(new anchor.BN(5));
@@ -351,7 +362,7 @@ export async function initTestPoolWithTokens(
 
   // Airdrop SOL into provider's wallet for SOL native token testing.
   const connection = ctx.provider.connection;
-  await connection.requestAirdrop(ctx.provider.wallet.publicKey, 100_000_000_000_000)
+  await connection.requestAirdrop(ctx.provider.wallet.publicKey, 100_000_000_000_000);
 
   const tokenAccountA = await createAndMintToAssociatedTokenAccount(
     provider,
@@ -504,22 +515,24 @@ export async function fundPositionsWithClient(
 ) {
   const whirlpool = await client.getPool(whirlpoolKey, true);
   const whirlpoolData = whirlpool.getData();
-  await Promise.all(fundParams.map(async (param, idx) => {
-    const { tokenA, tokenB } = PoolUtil.getTokenAmountsFromLiquidity(
-      param.liquidityAmount,
-      whirlpoolData.sqrtPrice,
-      PriceMath.tickIndexToSqrtPriceX64(param.tickLowerIndex),
-      PriceMath.tickIndexToSqrtPriceX64(param.tickUpperIndex),
-      true
-    );
+  await Promise.all(
+    fundParams.map(async (param, idx) => {
+      const { tokenA, tokenB } = PoolUtil.getTokenAmountsFromLiquidity(
+        param.liquidityAmount,
+        whirlpoolData.sqrtPrice,
+        PriceMath.tickIndexToSqrtPriceX64(param.tickLowerIndex),
+        PriceMath.tickIndexToSqrtPriceX64(param.tickUpperIndex),
+        true
+      );
 
-    const { tx } = await whirlpool.openPosition(param.tickLowerIndex, param.tickUpperIndex, {
-      liquidityAmount: param.liquidityAmount,
-      tokenMaxA: tokenA,
-      tokenMaxB: tokenB
-    });
-    await tx.buildAndExecute();
-  }));
+      const { tx } = await whirlpool.openPosition(param.tickLowerIndex, param.tickUpperIndex, {
+        liquidityAmount: param.liquidityAmount,
+        tokenMaxA: tokenA,
+        tokenMaxB: tokenB,
+      });
+      await tx.buildAndExecute();
+    })
+  );
 }
 
 export async function fundPositions(

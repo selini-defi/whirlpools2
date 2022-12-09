@@ -9,7 +9,8 @@ import {
   DecreaseLiquidityInput,
   IncreaseLiquidityInput,
   PositionData,
-  WhirlpoolData
+  TickData,
+  WhirlpoolData,
 } from "./types/public";
 import { TokenAccountInfo, TokenInfo, WhirlpoolRewardInfo } from "./types/public/client-types";
 
@@ -244,7 +245,7 @@ export interface Whirlpool {
     destinationWallet?: Address,
     positionWallet?: Address,
     payer?: Address
-  ) => Promise<TransactionBuilder>;
+  ) => Promise<TransactionBuilder[]>;
 
   /**
    * Perform a swap between tokenA and tokenB on this pool.
@@ -289,6 +290,24 @@ export interface Position {
    * @return most recently fetched PositionData for this address.
    */
   getData: () => PositionData;
+
+  /**
+   * Return the most recently fetched Whirlpool account data for this position.
+   * @return most recently fetched WhirlpoolData for this position.
+   */
+  getWhirlpoolData: () => WhirlpoolData;
+
+  /**
+   * Return the most recently fetched TickData account data for this position's lower tick.
+   * @return most recently fetched TickData for this position's lower tick.
+   */
+  getLowerTickData: () => TickData;
+
+  /**
+   * Return the most recently fetched TickData account data for this position's upper tick.
+   * @return most recently fetched TickData for this position's upper tick.
+   */
+  getUpperTickData: () => TickData;
 
   /**
    * Fetch and return the most recently fetched Position account data.
@@ -336,5 +355,49 @@ export interface Position {
     ataPayer?: Address
   ) => Promise<TransactionBuilder>;
 
-  // TODO: Implement Collect fees
+  /**
+   * Collect fees from this position
+   *
+   * If `positionWallet` is provided, the wallet owners have to sign this transaction.
+   *
+   * @param resolveATA -  if true, add instructions to create associated token accounts for tokenA,B for the destinationWallet if necessary. (RPC call required)
+   * @param updateFeesAndRewards -  if true, add instructions to refresh the accumulated fees and rewards data (default to true unless you know that the collect fees quote and on-chain data match for the "feeOwedA" and "feeOwedB" fields in the Position account)
+   * @param destinationWallet - the wallet to deposit tokens into when withdrawing from the position. If null, the WhirlpoolContext wallet is used.
+   * @param positionWallet - the wallet to that houses the position token. If null, the WhirlpoolContext wallet is used.
+   * @param ataPayer - wallet that will fund the creation of the new associated token accounts
+   * @param refresh - set to true to bypass cached on-chain data
+   * @return the transaction that will collect fees from the position
+   */
+  collectFees: (
+    updateFeesAndRewards?: boolean,
+    resolveATA?: boolean,
+    destinationWallet?: Address,
+    positionWallet?: Address,
+    ataPayer?: Address,
+    refresh?: boolean
+  ) => Promise<TransactionBuilder>;
+
+  /**
+   * Collect rewards from this position
+   *
+   * If `positionWallet` is provided, the wallet owners have to sign this transaction.
+   *
+   * @param rewardsToCollect - reward mints to collect (omitting this parameter means all rewards will be collected)
+   * @param updateFeesAndRewards -  if true, add instructions to refresh the accumulated fees and rewards data (default to true unless you know that the collect fees quote and on-chain data match for the "feeOwedA" and "feeOwedB" fields in the Position account)
+   * @param resolveATA -  if true, add instructions to create associated token accounts for the reward mints for the destinationWallet if necessary. (RPC call required)
+   * @param destinationWallet - the wallet to deposit tokens into when withdrawing from the position. If null, the WhirlpoolContext wallet is used.
+   * @param positionWallet - the wallet to that houses the position token. If null, the WhirlpoolContext wallet is used.
+   * @param ataPayer - wallet that will fund the creation of the new associated token accounts
+   * @param refresh - set to true to bypass cached on-chain data
+   * @return the transaction that will collect fees from the position
+   */
+  collectRewards: (
+    rewardsToCollect?: Address[],
+    updateFeesAndRewards?: boolean,
+    resolveATA?: boolean,
+    destinationWallet?: Address,
+    positionWallet?: Address,
+    ataPayer?: Address,
+    refresh?: boolean
+  ) => Promise<TransactionBuilder>;
 }

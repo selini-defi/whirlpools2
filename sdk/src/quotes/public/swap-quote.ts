@@ -2,7 +2,7 @@ import { AddressUtil, Percentage } from "@orca-so/common-sdk";
 import { Address, BN } from "@project-serum/anchor";
 import { u64 } from "@solana/spl-token";
 import invariant from "tiny-invariant";
-import { SwapInput } from "../../instructions";
+import { MultiSwapInput } from "../../instructions";
 import { AccountFetcher } from "../../network/public";
 import { TickArray, WhirlpoolData } from "../../types/public";
 import { PoolUtil, SwapDirection } from "../../utils/public";
@@ -55,7 +55,7 @@ export type NormalSwapQuote = {
   estimatedEndTickIndex: number;
   estimatedEndSqrtPrice: BN;
   estimatedFeeAmount: u64;
-} & SwapInput;
+} & MultiSwapInput;
 
 /**
  * Get an estimated swap quote using input token amount.

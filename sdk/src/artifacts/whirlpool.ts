@@ -897,6 +897,136 @@ export type Whirlpool = {
       ]
     },
     {
+      "name": "multiSwap",
+      "accounts": [
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "whirlpoolOne",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "whirlpoolTwo",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenOwnerAccountA",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVaultA",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenOwnerAccountB",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVaultB",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenOwnerAccountC",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVaultC",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenOwnerAccountD",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVaultD",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickArray0",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickArray1",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickArray2",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickArray3",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickArray4",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickArray5",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "oracle",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "otherAmountThreshold",
+          "type": "u64"
+        },
+        {
+          "name": "amountSpecifiedIsInput",
+          "type": "bool"
+        },
+        {
+          "name": "aToBOne",
+          "type": "bool"
+        },
+        {
+          "name": "aToBTwo",
+          "type": "bool"
+        },
+        {
+          "name": "sqrtPriceLimitOne",
+          "type": "u128"
+        },
+        {
+          "name": "sqrtPriceLimitTwo",
+          "type": "u128"
+        }
+      ]
+    },
+    {
       "name": "closePosition",
       "accounts": [
         {
@@ -2682,6 +2812,136 @@ export const IDL: Whirlpool = {
         {
           "name": "aToB",
           "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "multiSwap",
+      "accounts": [
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenAuthority",
+          "isMut": false,
+          "isSigner": true
+        },
+        {
+          "name": "whirlpoolOne",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "whirlpoolTwo",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenOwnerAccountA",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVaultA",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenOwnerAccountB",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVaultB",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenOwnerAccountC",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVaultC",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenOwnerAccountD",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenVaultD",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickArray0",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickArray1",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickArray2",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickArray3",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickArray4",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tickArray5",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "oracle",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "otherAmountThreshold",
+          "type": "u64"
+        },
+        {
+          "name": "amountSpecifiedIsInput",
+          "type": "bool"
+        },
+        {
+          "name": "aToBOne",
+          "type": "bool"
+        },
+        {
+          "name": "aToBTwo",
+          "type": "bool"
+        },
+        {
+          "name": "sqrtPriceLimitOne",
+          "type": "u128"
+        },
+        {
+          "name": "sqrtPriceLimitTwo",
+          "type": "u128"
         }
       ]
     },

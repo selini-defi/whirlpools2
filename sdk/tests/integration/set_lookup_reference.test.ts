@@ -10,7 +10,7 @@ describe("set_lookup_reference", () => {
   const ctx = WhirlpoolContext.fromWorkspace(provider, program);
   const fetcher = ctx.fetcher;
 
-  it.only("successfully set_lookup_reference", async () => {
+  it("successfully set_lookup_reference", async () => {
     const { configInitInfo, configKeypairs } = generateDefaultConfigParams(ctx);
 
     await toTx(ctx, WhirlpoolIx.initializeConfigIx(ctx.program, configInitInfo)).buildAndExecute();

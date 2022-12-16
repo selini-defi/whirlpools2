@@ -21,6 +21,7 @@ import {
   WHIRLPOOL_ACCOUNT_SIZE,
   WHIRLPOOL_CODER,
   AccountName,
+  LookupReferenceData,
 } from "../..";
 import { FeeTierData } from "../../types/public";
 import { AddressUtil } from "@orca-so/common-sdk";
@@ -34,6 +35,7 @@ type CachedValue =
   | PositionData
   | TickArrayData
   | FeeTierData
+  | LookupReferenceData
   | AccountInfo
   | MintInfo;
 

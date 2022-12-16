@@ -351,6 +351,50 @@ pub mod whirlpool {
         );
     }
 
+
+    /// Perform a swap in this Whirlpool
+    ///
+    /// ### Authority
+    /// - "token_authority" - The authority to withdraw tokens from the input token account.
+    ///
+    /// ### Parameters
+    /// - `amount` - The amount of input or output token to swap from (depending on exact_input).
+    /// - `other_amount_threshold` - The maximum/minimum of input/output token to swap into (depending on exact_input).
+    /// - `sqrt_price_limit` - The maximum/minimum price the swap will swap to.
+    /// - `exact_input` - Specifies the token the parameter `amount`represents. If true, the amount represents the input token of the swap.
+    /// - `a_to_b` - The direction of the swap. True if swapping from A to B. False if swapping from B to A.
+    ///
+    /// #### Special Errors
+    /// - `ZeroTradableAmount` - User provided parameter `amount` is 0.
+    /// - `InvalidSqrtPriceLimitDirection` - User provided parameter `sqrt_price_limit` does not match the direction of the trade.
+    /// - `SqrtPriceOutOfBounds` - User provided parameter `sqrt_price_limit` is over Whirlppool's max/min bounds for sqrt-price.
+    /// - `InvalidTickArraySequence` - User provided tick-arrays are not in sequential order required to proceed in this trade direction.
+    /// - `TickArraySequenceInvalidIndex` - The swap loop attempted to access an invalid array index during the query of the next initialized tick.
+    /// - `TickArrayIndexOutofBounds` - The swap loop attempted to access an invalid array index during tick crossing.
+    /// - `LiquidityOverflow` - Liquidity value overflowed 128bits during tick crossing.
+    /// - `InvalidTickSpacing` - The swap pool was initialized with tick-spacing of 0.
+    pub fn multi_swap(
+        ctx: Context<TwoHopSwap>,
+        amount: u64,
+        other_amount_threshold: u64,
+        amount_specified_is_input: bool,
+        a_to_b_one: bool,
+        a_to_b_two: bool,
+        sqrt_price_limit_one: u128,
+        sqrt_price_limit_two: u128,
+    ) -> ProgramResult {
+        return instructions::multi_swap::handler(
+            ctx,
+            amount,
+            other_amount_threshold,
+            amount_specified_is_input,
+            a_to_b_one,
+            a_to_b_two,
+            sqrt_price_limit_one,
+            sqrt_price_limit_two,
+        );
+    }
+
     /// Close a position in a Whirlpool. Burns the position token in the owner's wallet.
     ///
     /// ### Authority

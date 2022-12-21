@@ -2,7 +2,7 @@ import { Percentage, U64_MAX, ZERO } from "@orca-so/common-sdk";
 import { BN } from "@project-serum/anchor";
 import { u64 } from "@solana/spl-token";
 import { MathErrorCode, TokenErrorCode, WhirlpoolsError } from "../../errors/errors";
-import { MAX_SQRT_PRICE, MIN_SQRT_PRICE, SwapInput } from "../../types/public";
+import { MAX_SQRT_PRICE, MIN_SQRT_PRICE } from "../../types/public";
 import { BitMath } from "./bit-math";
 
 export function getAmountDeltaA(

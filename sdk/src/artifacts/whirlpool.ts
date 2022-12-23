@@ -188,47 +188,6 @@ export type Whirlpool = {
       ]
     },
     {
-      "name": "initializeLookupReference",
-      "accounts": [
-        {
-          "name": "whirlpoolsConfig",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenMintA",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenMintB",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "funder",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "lookupReference",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "initializeReward",
       "accounts": [
         {
@@ -306,37 +265,6 @@ export type Whirlpool = {
         {
           "name": "emissionsPerSecondX64",
           "type": "u128"
-        }
-      ]
-    },
-    {
-      "name": "setLookupReference",
-      "accounts": [
-        {
-          "name": "whirlpoolsConfig",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "lookupReference",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "lookupTable",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "accIndex",
-          "type": "u8"
         }
       ]
     },
@@ -1318,35 +1246,6 @@ export type Whirlpool = {
           {
             "name": "defaultFeeRate",
             "type": "u16"
-          }
-        ]
-      }
-    },
-    {
-      "name": "lookupReference",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "whirlpoolsConfig",
-            "type": "publicKey"
-          },
-          {
-            "name": "tokenMintA",
-            "type": "publicKey"
-          },
-          {
-            "name": "tokenMintB",
-            "type": "publicKey"
-          },
-          {
-            "name": "lookupAccounts",
-            "type": {
-              "array": [
-                "publicKey",
-                3
-              ]
-            }
           }
         ]
       }
@@ -2107,47 +2006,6 @@ export const IDL: Whirlpool = {
       ]
     },
     {
-      "name": "initializeLookupReference",
-      "accounts": [
-        {
-          "name": "whirlpoolsConfig",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenMintA",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenMintB",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "funder",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "lookupReference",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "rent",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "initializeReward",
       "accounts": [
         {
@@ -2225,37 +2083,6 @@ export const IDL: Whirlpool = {
         {
           "name": "emissionsPerSecondX64",
           "type": "u128"
-        }
-      ]
-    },
-    {
-      "name": "setLookupReference",
-      "accounts": [
-        {
-          "name": "whirlpoolsConfig",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "lookupReference",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "authority",
-          "isMut": false,
-          "isSigner": true
-        },
-        {
-          "name": "lookupTable",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "accIndex",
-          "type": "u8"
         }
       ]
     },
@@ -3237,35 +3064,6 @@ export const IDL: Whirlpool = {
           {
             "name": "defaultFeeRate",
             "type": "u16"
-          }
-        ]
-      }
-    },
-    {
-      "name": "lookupReference",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "whirlpoolsConfig",
-            "type": "publicKey"
-          },
-          {
-            "name": "tokenMintA",
-            "type": "publicKey"
-          },
-          {
-            "name": "tokenMintB",
-            "type": "publicKey"
-          },
-          {
-            "name": "lookupAccounts",
-            "type": {
-              "array": [
-                "publicKey",
-                3
-              ]
-            }
           }
         ]
       }

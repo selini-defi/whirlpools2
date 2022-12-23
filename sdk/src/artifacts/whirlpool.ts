@@ -897,7 +897,7 @@ export type Whirlpool = {
       ]
     },
     {
-      "name": "multiSwap",
+      "name": "twoHopSwap",
       "accounts": [
         {
           "name": "tokenProgram",
@@ -987,11 +987,6 @@ export type Whirlpool = {
         {
           "name": "tickArray5",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "oracle",
-          "isMut": false,
           "isSigner": false
         }
       ],
@@ -1913,6 +1908,11 @@ export type Whirlpool = {
       "code": 6040,
       "name": "AmountRemainingOverflow",
       "msg": "Amount remaining overflows"
+    },
+    {
+      "code": 6041,
+      "name": "InvalidIntermediaryMint",
+      "msg": "Invalid intermediary mint"
     }
   ]
 };
@@ -2816,7 +2816,7 @@ export const IDL: Whirlpool = {
       ]
     },
     {
-      "name": "multiSwap",
+      "name": "twoHopSwap",
       "accounts": [
         {
           "name": "tokenProgram",
@@ -2906,11 +2906,6 @@ export const IDL: Whirlpool = {
         {
           "name": "tickArray5",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "oracle",
-          "isMut": false,
           "isSigner": false
         }
       ],
@@ -3832,6 +3827,11 @@ export const IDL: Whirlpool = {
       "code": 6040,
       "name": "AmountRemainingOverflow",
       "msg": "Amount remaining overflows"
+    },
+    {
+      "code": 6041,
+      "name": "InvalidIntermediaryMint",
+      "msg": "Invalid intermediary mint"
     }
   ]
 };

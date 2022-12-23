@@ -897,7 +897,7 @@
       ]
     },
     {
-      "name": "multiSwap",
+      "name": "twoHopSwap",
       "accounts": [
         {
           "name": "tokenProgram",
@@ -987,11 +987,6 @@
         {
           "name": "tickArray5",
           "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "oracle",
-          "isMut": false,
           "isSigner": false
         }
       ],
@@ -1913,6 +1908,11 @@
       "code": 6040,
       "name": "AmountRemainingOverflow",
       "msg": "Amount remaining overflows"
+    },
+    {
+      "code": 6041,
+      "name": "InvalidIntermediaryMint",
+      "msg": "Invalid intermediary mint"
     }
   ]
 }

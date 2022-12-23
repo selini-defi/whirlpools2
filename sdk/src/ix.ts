@@ -212,8 +212,8 @@ export class WhirlpoolIx {
    * @param params - SwapParams object
    * @returns - Instruction to perform the action.
    */
-  public static multiSwapIx(program: Program<Whirlpool>, params: ix.MultiSwapParams) {
-    return ix.multiSwapIx(program, params);
+  public static multiSwapIx(program: Program<Whirlpool>, params: ix.TwoHopSwapParams) {
+    return ix.twoHopSwapIx(program, params);
   }
 
 

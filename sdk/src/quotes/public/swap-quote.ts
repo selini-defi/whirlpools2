@@ -2,9 +2,8 @@ import { AddressUtil, Percentage } from "@orca-so/common-sdk";
 import { Address, BN } from "@project-serum/anchor";
 import { u64 } from "@solana/spl-token";
 import invariant from "tiny-invariant";
-import { MultiSwapInput } from "../../instructions";
 import { AccountFetcher } from "../../network/public";
-import { TickArray, WhirlpoolData } from "../../types/public";
+import { SwapInput, TickArray, WhirlpoolData } from "../../types/public";
 import { PoolUtil, SwapDirection } from "../../utils/public";
 import { SwapUtils } from "../../utils/public/swap-utils";
 import { Whirlpool } from "../../whirlpool-client";
@@ -49,13 +48,15 @@ export type SwapQuote = NormalSwapQuote | DevFeeSwapQuote;
  * @param estimatedEndSqrtPrice - Approximate sqrtPrice the Whirlpool will land on after this swap
  * @param estimatedFeeAmount - Approximate feeAmount (all fees) charged on this swap
  */
-export type NormalSwapQuote = {
+export type NormalSwapQuote = SwapInput & SwapEstimates;
+
+export type SwapEstimates = {
   estimatedAmountIn: u64;
   estimatedAmountOut: u64;
   estimatedEndTickIndex: number;
   estimatedEndSqrtPrice: BN;
   estimatedFeeAmount: u64;
-} & MultiSwapInput;
+}
 
 /**
  * Get an estimated swap quote using input token amount.

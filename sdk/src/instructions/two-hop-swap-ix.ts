@@ -25,7 +25,7 @@ import { Whirlpool } from "../artifacts/whirlpool";
  * @param oracle - PublicKey for the oracle account for this Whirlpool.
  * @param tokenAuthority - authority to withdraw tokens from the input token account
  */
-export type MultiSwapParams = MultiSwapInput & {
+export type TwoHopSwapParams = TwoHopSwapInput & {
   whirlpoolOne: PublicKey;
   whirlpoolTwo: PublicKey;
   tokenOwnerAccountA: PublicKey;
@@ -36,7 +36,6 @@ export type MultiSwapParams = MultiSwapInput & {
   tokenVaultB: PublicKey;
   tokenVaultC: PublicKey;
   tokenVaultD: PublicKey;
-  oracle: PublicKey;
   tokenAuthority: PublicKey;
 };
 
@@ -54,7 +53,7 @@ export type MultiSwapParams = MultiSwapInput & {
  * @param tickArray1 - The next tick-array in the swap direction. If the swap will not reach the next tick-aray, input the same array as tickArray0.
  * @param tickArray2 - The next tick-array in the swap direction after tickArray2. If the swap will not reach the next tick-aray, input the same array as tickArray1.
  */
-export type MultiSwapInput = {
+export type TwoHopSwapInput = {
   amount: u64;
   otherAmountThreshold: u64;
   amountSpecifiedIsInput: boolean;
@@ -85,7 +84,7 @@ export type MultiSwapInput = {
  * @param tickArray2 - The next tick-array in the swap direction after tickArray2. If the swap will not reach the next tick-aray, input the same array as tickArray1.
  * @param devFeeAmount -  FeeAmount (developer fees) charged on this swap
  */
-export type DevFeeMultiSwapInput = MultiSwapInput & {
+export type DevFeeTwoHopSwapInput = TwoHopSwapInput & {
   devFeeAmount: u64;
 };
 
@@ -108,7 +107,7 @@ export type DevFeeMultiSwapInput = MultiSwapInput & {
  * @param params - SwapParams object
  * @returns - Instruction to perform the action.
  */
-export function multiSwapIx(program: Program<Whirlpool>, params: MultiSwapParams): Instruction {
+export function twoHopSwapIx(program: Program<Whirlpool>, params: TwoHopSwapParams): Instruction {
   const {
     amount,
     otherAmountThreshold,
@@ -134,10 +133,9 @@ export function multiSwapIx(program: Program<Whirlpool>, params: MultiSwapParams
     tickArray3,
     tickArray4,
     tickArray5,
-    oracle,
   } = params;
 
-  const ix = program.instruction.multiSwap(
+  const ix = program.instruction.twoHopSwap(
     amount,
     otherAmountThreshold,
     amountSpecifiedIsInput,
@@ -165,7 +163,6 @@ export function multiSwapIx(program: Program<Whirlpool>, params: MultiSwapParams
         tickArray3,
         tickArray4,
         tickArray5,
-        oracle,
       },
     }
   );

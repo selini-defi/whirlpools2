@@ -685,7 +685,7 @@ describe("swap", () => {
       sqrtPriceLimit: MathUtil.toX64(new Decimal(4294886578)),
       amountSpecifiedIsInput: true,
       aToB: true,
-      whirlpoolOne: whirlpool,
+      whirlpool,
       tokenAuthority: ctx.wallet.publicKey,
       tokenOwnerAccountA: tokenAccountA,
       tokenVaultA: poolInitInfo.tokenVaultAKeypair.publicKey,
@@ -828,7 +828,7 @@ describe("swap", () => {
       sqrtPriceLimit: new anchor.BN(MAX_SQRT_PRICE).add(new anchor.BN(1)),
       amountSpecifiedIsInput: true,
       aToB: true,
-      whirlpoolOne: whirlpool,
+      whirlpool,
       tokenAuthority: ctx.wallet.publicKey,
       tokenOwnerAccountA: tokenAccountA,
       tokenVaultA: poolInitInfo.tokenVaultAKeypair.publicKey,
@@ -862,7 +862,7 @@ describe("swap", () => {
       sqrtPriceLimit: new anchor.BN(MIN_SQRT_PRICE).sub(new anchor.BN(1)),
       amountSpecifiedIsInput: true,
       aToB: true,
-      whirlpoolOne: whirlpool,
+      whirlpool,
       tokenAuthority: ctx.wallet.publicKey,
       tokenOwnerAccountA: tokenAccountA,
       tokenVaultA: poolInitInfo.tokenVaultAKeypair.publicKey,
@@ -2026,7 +2026,7 @@ describe("swap", () => {
         ...btx2.transaction.instructions,
         ...btx4.transaction.instructions,
         // ...btx5.transaction.instructions,
-        ...btx7.transaction.instructions,
+        // ...btx7.transaction.instructions,
       ],
     }).compileToV0Message([]);
     const swapTx = new VersionedTransaction(swapV0);
@@ -2035,7 +2035,7 @@ describe("swap", () => {
       ...btx2.signers,
       ...btx4.signers,
       // ...btx5.signers,
-      ...btx7.signers,
+      // ...btx7.signers,
       (ctx.provider.wallet as NodeWallet).payer,
     ]);
     console.log("SS", swapTx, swapTx.serialize(), swapTx.serialize().length);

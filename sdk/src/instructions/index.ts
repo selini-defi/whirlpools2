@@ -11,7 +11,7 @@ export * from "./initialize-lookup-reference-ix";
 export * from "./initialize-pool-ix";
 export * from "./initialize-reward-ix";
 export * from "./initialize-tick-array-ix";
-export * from "./multi-swap-ix";
+export * from "./two-hop-swap-ix";
 export * from "./open-position-ix";
 export * from "./set-collect-protocol-fees-authority-ix";
 export * from "./set-default-fee-rate-ix";

@@ -68,7 +68,19 @@ interface InitTestTokenAccParams {
   mintAmount?: anchor.BN;
 }
 
-interface InitAquariumParams {
+interface InitTestTickArrayRangeParams {
+  poolIndex: number;
+  startTickIndex: number;
+  arrayCount: number;
+  aToB: boolean;
+}
+
+interface InitTestPositionParams {
+  poolIndex: number;
+  fundParams: FundedPositionParams[];
+}
+
+export interface InitAquariumParams {
   // Single-ton per aquarium
   configParams?: TestConfigParams;
 
@@ -79,14 +91,19 @@ interface InitAquariumParams {
   initTokenAccParams: InitTestTokenAccParams[];
 
   initPoolParams: InitTestPoolParams[];
+
+  initTickArrayRangeParams: InitTestTickArrayRangeParams[];
+
+  initPositionParams: InitTestPositionParams[];
 }
 
-interface TestAquarium {
+export interface TestAquarium {
   configParams: TestConfigParams;
   feeTierParams: InitFeeTierParams[];
   mintKeys: PublicKey[];
   tokenAccounts: { mint: PublicKey, account: PublicKey }[];
   pools: InitPoolParams[];
+  tickArrays: { params: InitTestTickArrayRangeParams, pdas: PDA[] }[];
 }
 
 const DEFAULT_FEE_RATE = 3000;
@@ -97,13 +114,17 @@ const DEFAULT_INIT_FEE_TIER = [{ tickSpacing: TickSpacing.Standard }];
 const DEFAULT_INIT_MINT = [{}, {}];
 const DEFAULT_INIT_TOKEN = [{ mintIndex: 0 }, { mintIndex: 1 }];
 const DEFAULT_INIT_POOL: InitTestPoolParams[] = [{ mintIndices: [0, 1], tickSpacing: TickSpacing.Standard }];
+const DEFAULT_INIT_TICK_ARR: InitTestTickArrayRangeParams[] = [];
+const DEFAULT_INIT_POSITION: InitTestPositionParams[] = [];
 
-export function getDefaultAquarium() {
+export function getDefaultAquarium(): InitAquariumParams {
   return {
     initFeeTierParams: [...DEFAULT_INIT_FEE_TIER],
     initMintParams: [...DEFAULT_INIT_MINT],
     initTokenAccParams: [...DEFAULT_INIT_TOKEN],
     initPoolParams: [...DEFAULT_INIT_POOL],
+    initTickArrayRangeParams: [...DEFAULT_INIT_TICK_ARR],
+    initPositionParams: [...DEFAULT_INIT_POSITION],
   };
 }
 
@@ -128,6 +149,8 @@ export async function buildTestAquariums(
       initMintParams,
       initTokenAccParams,
       initPoolParams,
+      initTickArrayRangeParams,
+      initPositionParams,
     } = initParam;
 
     const feeTierParams: InitFeeTierParams[] = [];
@@ -200,15 +223,44 @@ export async function buildTestAquariums(
       return poolParam;
     }));
 
+    const tickArrays = await Promise.all(initTickArrayRangeParams.map(async initTickArrayRangeParam => {
+      const { poolIndex, startTickIndex, arrayCount, aToB } = initTickArrayRangeParam;
+      const pool = pools[poolIndex];
+      const pdas = await initTickArrayRange(ctx, pool.whirlpoolPda.publicKey, startTickIndex, arrayCount, pool.tickSpacing, aToB);
+      return {
+        params: initTickArrayRangeParam,
+        pdas,
+      };
+    }));
+
+    await Promise.all(initPositionParams.map(async initPositionParam => {
+      const { poolIndex, fundParams } = initPositionParam;
+      const pool = pools[poolIndex];
+      const tokenAccKeys = getTokenAccsForPools([pool], tokenAccounts);
+      await fundPositions(ctx, pool, tokenAccKeys[0], tokenAccKeys[1], fundParams);
+    }));
+
     aquariums.push({
       configParams,
       feeTierParams,
       mintKeys,
       tokenAccounts,
       pools,
+      tickArrays,
     });
   }
   return aquariums;
+}
+
+export function getTokenAccsForPools(pools: InitPoolParams[], tokenAccounts: { mint: PublicKey, account: PublicKey }[]) {
+  const mints = [];
+  for (const pool of pools) {
+    mints.push(pool.tokenMintA);
+    mints.push(pool.tokenMintB);
+  }
+  return mints.map(mint => 
+    tokenAccounts.find(acc => acc.mint === mint)!.account
+  );
 }
 
 /**
@@ -245,7 +297,6 @@ export async function buildTestPoolParams(
     funder,
     tokenAIsNative
   );
-  console.log(poolInitInfo);
   return {
     configInitInfo,
     configKeypairs,

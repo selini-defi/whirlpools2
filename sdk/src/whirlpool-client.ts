@@ -3,7 +3,7 @@ import { Address } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import { WhirlpoolContext } from "./context";
 import { WhirlpoolClientImpl } from "./impl/whirlpool-client-impl";
-import { DevFeeMultiSwapInput, MultiSwapInput } from "./instructions";
+import { DevFeeTwoHopSwapInput, DevFeeSwapInput, TwoHopSwapInput, SwapInput } from "./instructions";
 import { AccountFetcher } from "./network/public";
 import {
   DecreaseLiquidityInput,
@@ -255,7 +255,7 @@ export interface Whirlpool {
    * @param initTxBuilder - An optional transaction builder to append instructions
    * @return a transaction that will perform the swap once executed.
    */
-  swap: (input: MultiSwapInput, wallet?: PublicKey, initTxBuilder?: TransactionBuilder) => Promise<TransactionBuilder>;
+  swap: (input: SwapInput, wallet?: PublicKey, initTxBuilder?: TransactionBuilder) => Promise<TransactionBuilder>;
 
   /**
    * Collect a developer fee and perform a swap between tokenA and tokenB on this pool.
@@ -267,7 +267,7 @@ export interface Whirlpool {
    * @return a transaction that will perform the swap once executed.
    */
   swapWithDevFees: (
-    input: DevFeeMultiSwapInput,
+    input: DevFeeSwapInput,
     devFeeWallet: PublicKey,
     wallet?: PublicKey,
     payer?: PublicKey

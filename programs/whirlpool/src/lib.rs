@@ -373,7 +373,7 @@ pub mod whirlpool {
     /// - `TickArrayIndexOutofBounds` - The swap loop attempted to access an invalid array index during tick crossing.
     /// - `LiquidityOverflow` - Liquidity value overflowed 128bits during tick crossing.
     /// - `InvalidTickSpacing` - The swap pool was initialized with tick-spacing of 0.
-    pub fn multi_swap(
+    pub fn two_hop_swap(
         ctx: Context<TwoHopSwap>,
         amount: u64,
         other_amount_threshold: u64,
@@ -383,7 +383,7 @@ pub mod whirlpool {
         sqrt_price_limit_one: u128,
         sqrt_price_limit_two: u128,
     ) -> ProgramResult {
-        return instructions::multi_swap::handler(
+        return instructions::two_hop_swap::handler(
             ctx,
             amount,
             other_amount_threshold,

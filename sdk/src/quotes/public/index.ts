@@ -6,4 +6,5 @@ export * from "./pool-graph";
 export * from "./rank-route-sets";
 export * from "./smart-swap";
 export * from "./swap-quote";
+export * from "./two-hop-swap-quote";
 export * from "./dev-fee-swap-quote";

@@ -6,8 +6,9 @@ use crate::{
     manager::swap_manager::*,
     state::{TickArray, Whirlpool},
     util::{
-        to_timestamp_u64, transfer_from_owner_to_vault, transfer_from_vault_to_owner,
+        to_timestamp_u64,
         SwapTickSequence,
+        update_and_swap_whirlpool,
     },
 };
 
@@ -61,10 +62,6 @@ pub struct TwoHopSwap<'info> {
 
     #[account(mut, constraint = tick_array_5.load()?.whirlpool == whirlpool_two.key())]
     pub tick_array_5: AccountLoader<'info, TickArray>,
-
-    #[account(seeds = [b"oracle", whirlpool_one.key().as_ref()],bump)]
-    /// Oracle is currently unused and will be enabled on subsequent updates
-    pub oracle: UncheckedAccount<'info>,
 }
 
 pub fn handler(
@@ -91,6 +88,20 @@ pub fn handler(
 
     // TODO: We don't actually validate that the pools share a mint (intermediary token)
     // i.e. swap_one_output_mint == swap_two_input_mint
+    let swap_one_output_mint = if a_to_b_one {
+        whirlpool_one.token_mint_b
+    } else {
+        whirlpool_one.token_mint_a
+    };
+
+    let swap_two_input_mint = if a_to_b_two {
+        whirlpool_two.token_mint_a
+    } else {
+        whirlpool_two.token_mint_b
+    };
+    if swap_one_output_mint != swap_two_input_mint {
+        return Err(ErrorCode::InvalidIntermediaryMint.into());
+    }
 
     let mut swap_tick_sequence_one = SwapTickSequence::new(
         ctx.accounts.tick_array_0.load_mut().unwrap(),
@@ -189,117 +200,36 @@ pub fn handler(
         let input_amount = if a_to_b_one {
             swap_update_one.amount_a
         } else {
-            swap_update_two.amount_b
+            swap_update_one.amount_b
         };
         if other_amount_threshold < input_amount {
             return Err(ErrorCode::AmountInAboveMaximum.into());
         }
     }
 
-    whirlpool_one.update_after_swap(
-        swap_update_one.next_liquidity,
-        swap_update_one.next_tick_index,
-        swap_update_one.next_sqrt_price,
-        swap_update_one.next_fee_growth_global,
-        swap_update_one.next_reward_infos,
-        swap_update_one.next_protocol_fee,
-        a_to_b_one,
-        timestamp,
-    );
-
-    perform_swap(
-        &ctx.accounts.whirlpool_one,
+    update_and_swap_whirlpool(
+        whirlpool_one,
         &ctx.accounts.token_authority,
         &ctx.accounts.token_owner_account_a,
         &ctx.accounts.token_owner_account_b,
         &ctx.accounts.token_vault_a,
         &ctx.accounts.token_vault_b,
         &ctx.accounts.token_program,
-        swap_update_one.amount_a,
-        swap_update_one.amount_b,
+        swap_update_one,
         a_to_b_one,
+        timestamp,
     )?;
 
-    whirlpool_two.update_after_swap(
-        swap_update_two.next_liquidity,
-        swap_update_two.next_tick_index,
-        swap_update_two.next_sqrt_price,
-        swap_update_two.next_fee_growth_global,
-        swap_update_two.next_reward_infos,
-        swap_update_two.next_protocol_fee,
-        a_to_b_two,
-        timestamp,
-    );
-
-    perform_swap(
-        &ctx.accounts.whirlpool_two,
+    update_and_swap_whirlpool(
+        whirlpool_two,
         &ctx.accounts.token_authority,
         &ctx.accounts.token_owner_account_c,
         &ctx.accounts.token_owner_account_d,
         &ctx.accounts.token_vault_c,
         &ctx.accounts.token_vault_d,
         &ctx.accounts.token_program,
-        swap_update_two.amount_a,
-        swap_update_two.amount_b,
+        swap_update_two,
         a_to_b_two,
+        timestamp,
     )
-}
-
-fn perform_swap<'info>(
-    whirlpool: &Account<'info, Whirlpool>,
-    token_authority: &Signer<'info>,
-    token_owner_account_a: &Account<'info, TokenAccount>,
-    token_owner_account_b: &Account<'info, TokenAccount>,
-    token_vault_a: &Account<'info, TokenAccount>,
-    token_vault_b: &Account<'info, TokenAccount>,
-    token_program: &Program<'info, Token>,
-    amount_a: u64,
-    amount_b: u64,
-    a_to_b: bool,
-) -> ProgramResult {
-    // Transfer from user to pool
-    let deposit_account_user;
-    let deposit_account_pool;
-    let deposit_amount;
-
-    // Transfer from pool to user
-    let withdrawal_account_user;
-    let withdrawal_account_pool;
-    let withdrawal_amount;
-
-    if a_to_b {
-        deposit_account_user = token_owner_account_a;
-        deposit_account_pool = token_vault_a;
-        deposit_amount = amount_a;
-
-        withdrawal_account_user = token_owner_account_b;
-        withdrawal_account_pool = token_vault_b;
-        withdrawal_amount = amount_b;
-    } else {
-        deposit_account_user = token_owner_account_b;
-        deposit_account_pool = token_vault_b;
-        deposit_amount = amount_b;
-
-        withdrawal_account_user = token_owner_account_a;
-        withdrawal_account_pool = token_vault_a;
-        withdrawal_amount = amount_a;
-    }
-
-    transfer_from_owner_to_vault(
-        token_authority,
-        deposit_account_user,
-        deposit_account_pool,
-        token_program,
-        deposit_amount,
-    )?;
-
-    transfer_from_vault_to_owner(
-        whirlpool,
-        withdrawal_account_pool,
-        withdrawal_account_user,
-        token_program,
-        withdrawal_amount,
-    )?;
-
-    Ok(())
 }

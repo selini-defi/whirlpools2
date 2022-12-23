@@ -42,7 +42,7 @@ describe("open_position", () => {
   let whirlpoolPda: PDA;
   const funderKeypair = anchor.web3.Keypair.generate();
 
-  beforeAll(async () => {
+  before(async () => {
     poolInitInfo = (await initTestPool(ctx, TickSpacing.Standard)).poolInitInfo;
     whirlpoolPda = poolInitInfo.whirlpoolPda;
 

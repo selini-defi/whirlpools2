@@ -6,7 +6,6 @@ import { PriceMath } from "./price-math";
 import { TickUtil } from "./tick-utils";
 
 const PDA_WHIRLPOOL_SEED = "whirlpool";
-const PDA_LOOKUP_REF = "wp_lookup";
 const PDA_POSITION_SEED = "position";
 const PDA_METADATA_SEED = "metadata";
 const PDA_TICK_ARRAY_SEED = "tick_array";
@@ -44,32 +43,6 @@ export class PDAUtil {
       programId
     );
   }
-
-    /**
-   *
-   * @param programId
-   * @param whirlpoolsConfigKey
-   * @param tokenMintAKey
-   * @param tokenMintBKey
-   * @returns
-   */
-     public static getLookupRef(
-      programId: PublicKey,
-      whirlpoolsConfigKey: PublicKey,
-      tokenMintAKey: PublicKey,
-      tokenMintBKey: PublicKey,
-    ) {
-      return AddressUtil.findProgramAddress(
-        [
-          Buffer.from(PDA_LOOKUP_REF),
-          whirlpoolsConfigKey.toBuffer(),
-          tokenMintAKey.toBuffer(),
-          tokenMintBKey.toBuffer(),
-        ],
-        programId
-      );
-    }
-
 
   /**
    * @category Program Derived Addresses

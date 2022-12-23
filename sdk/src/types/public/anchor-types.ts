@@ -20,7 +20,6 @@ export enum AccountName {
   TickArray = "TickArray",
   Whirlpool = "Whirlpool",
   FeeTier = "FeeTier",
-  LookupReference = "LookupReference",
 }
 
 const IDL = WhirlpoolIDL as Idl;
@@ -152,10 +151,3 @@ export type FeeTierData = {
   tickSpacing: number;
   defaultFeeRate: number;
 };
-
-export type LookupReferenceData = {
-  whirlpoolsConfig: PublicKey;
-  tokenMintA: PublicKey;
-  tokenMintB: PublicKey;
-  lookupAccounts: PublicKey[];
-}

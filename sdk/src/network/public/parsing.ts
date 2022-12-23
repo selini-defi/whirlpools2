@@ -7,7 +7,6 @@ import {
   TickArrayData,
   AccountName,
   FeeTierData,
-  LookupReferenceData,
 } from "../../types/public";
 import { BorshAccountsCoder, Idl } from "@project-serum/anchor";
 import * as WhirlpoolIDL from "../../artifacts/whirlpool.json";
@@ -131,28 +130,6 @@ export class ParsableFeeTier {
     }
   }
 }
-
-/**
- * @category Parsables
- */
-@staticImplements<ParsableEntity<LookupReferenceData>>()
-export class ParsableLookupReference {
-  private constructor() {}
-
-  public static parse(data: Buffer | undefined | null): LookupReferenceData | null {
-    if (!data) {
-      return null;
-    }
-
-    try {
-      return parseAnchorAccount(AccountName.LookupReference, data);
-    } catch (e) {
-      console.error(`error while parsing LookupReference: ${e}`);
-      return null;
-    }
-  }
- }
-
 
 /**
  * @category Parsables

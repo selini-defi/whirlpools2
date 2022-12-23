@@ -15,13 +15,11 @@ import { Address } from "@project-serum/anchor";
 import {
   PositionData,
   TickArrayData,
-  ParsableLookupReference,
   WhirlpoolsConfigData,
   WhirlpoolData,
   WHIRLPOOL_ACCOUNT_SIZE,
   WHIRLPOOL_CODER,
   AccountName,
-  LookupReferenceData,
 } from "../..";
 import { FeeTierData } from "../../types/public";
 import { AddressUtil } from "@orca-so/common-sdk";
@@ -35,7 +33,6 @@ type CachedValue =
   | PositionData
   | TickArrayData
   | FeeTierData
-  | LookupReferenceData
   | AccountInfo
   | MintInfo;
 
@@ -147,17 +144,6 @@ export class AccountFetcher {
    */
   public async getFeeTier(address: Address, refresh = false): Promise<FeeTierData | null> {
     return this.get(AddressUtil.toPubKey(address), ParsableFeeTier, refresh);
-  }
-
-  /**
-   * Retrieve a cached fee tier account. Fetch from rpc on cache miss.
-   *
-   * @param address fee tier address
-   * @param refresh force cache refresh
-   * @returns fee tier account
-   */
-   public async getLookupReference(address: Address, refresh = false): Promise<LookupReferenceData | null> {
-    return this.get(AddressUtil.toPubKey(address), ParsableLookupReference, refresh);
   }
 
   /**

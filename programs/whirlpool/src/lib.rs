@@ -111,13 +111,6 @@ pub mod whirlpool {
         return instructions::initialize_fee_tier::handler(ctx, tick_spacing, default_fee_rate);
     }
 
-    pub fn initialize_lookup_reference(
-        ctx: Context<InitializeLookupReference>,
-    ) -> ProgramResult {
-        return instructions::initialize_lookup_reference::handler(ctx);
-    }
-
-
     /// Initialize reward for a Whirlpool. A pool can only support up to a set number of rewards.
     ///
     /// ### Authority
@@ -161,16 +154,6 @@ pub mod whirlpool {
             ctx,
             reward_index,
             emissions_per_second_x64,
-        );
-    }
-
-    pub fn set_lookup_reference(
-        ctx: Context<SetLookupReference>,
-        acc_index: u8,
-    ) -> ProgramResult {
-        return instructions::set_lookup_reference::handler(
-            ctx,
-            acc_index,
         );
     }
 

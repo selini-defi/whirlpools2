@@ -15,13 +15,11 @@ import { WhirlpoolContext } from "../context";
 import {
   closePositionIx,
   decreaseLiquidityIx,
-  DevFeeTwoHopSwapInput,
   IncreaseLiquidityInput,
   increaseLiquidityIx,
   initTickArrayIx,
   openPositionIx,
   openPositionWithMetadataIx,
-  TwoHopSwapInput,
   swapIx,
   DevFeeSwapInput,
   SwapInput,

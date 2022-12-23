@@ -17,7 +17,6 @@ import {
   Whirlpool
 } from "../../src";
 import { WhirlpoolContext } from "../../src/context";
-import { InitLookupReferenceParams } from "../../src/instructions";
 
 export interface TestWhirlpoolsConfigKeypairs {
   feeAuthorityKeypair: Keypair;
@@ -86,31 +85,6 @@ export const generateDefaultInitPoolParams = async (
     tokenVaultBKeypair: Keypair.generate(),
     feeTierKey,
     tickSpacing,
-    funder: funder || context.wallet.publicKey,
-  };
-};
-
-
-export const generateDefaultInitLookupRefParams = async (
-  context: WhirlpoolContext,
-  configKey: PublicKey,
-  funder?: PublicKey,
-  tokenAIsNative = false
-): Promise<InitLookupReferenceParams> => {
-  const [tokenAMintPubKey, tokenBMintPubKey] = await createInOrderMints(context, tokenAIsNative);
-
-  const lookupPda = PDAUtil.getLookupRef(
-    context.program.programId,
-    configKey,
-    tokenAMintPubKey,
-    tokenBMintPubKey,
-  );
-
-  return {
-    whirlpoolsConfig: configKey,
-    tokenMintA: tokenAMintPubKey,
-    tokenMintB: tokenBMintPubKey,
-    lookupPda,
     funder: funder || context.wallet.publicKey,
   };
 };

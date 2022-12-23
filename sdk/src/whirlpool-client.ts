@@ -3,7 +3,7 @@ import { Address } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import { WhirlpoolContext } from "./context";
 import { WhirlpoolClientImpl } from "./impl/whirlpool-client-impl";
-import { DevFeeTwoHopSwapInput, DevFeeSwapInput, TwoHopSwapInput, SwapInput } from "./instructions";
+import { DevFeeSwapInput, SwapInput } from "./instructions";
 import { AccountFetcher } from "./network/public";
 import {
   DecreaseLiquidityInput,

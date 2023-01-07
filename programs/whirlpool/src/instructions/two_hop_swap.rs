@@ -86,8 +86,6 @@ pub fn handler(
         return Err(ErrorCode::AmountOutBelowMinimum.into());
     }
 
-    // TODO: We don't actually validate that the pools share a mint (intermediary token)
-    // i.e. swap_one_output_mint == swap_two_input_mint
     let swap_one_output_mint = if a_to_b_one {
         whirlpool_one.token_mint_b
     } else {

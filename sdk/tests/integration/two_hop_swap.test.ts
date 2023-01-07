@@ -106,7 +106,7 @@ describe("multi-swap", () => {
   
     await toTx(
       ctx,
-      WhirlpoolIx.multiSwapIx(ctx.program, {
+      WhirlpoolIx.twoHopSwapIx(ctx.program, {
         ...twoHopQuote,
         ...getParamsFromPools([pools[0], pools[1]], tokenAccounts),
         tokenAuthority: ctx.wallet.publicKey,
@@ -175,7 +175,7 @@ describe("multi-swap", () => {
     await assert.rejects(
       toTx(
         ctx,
-        WhirlpoolIx.multiSwapIx(ctx.program, {
+        WhirlpoolIx.twoHopSwapIx(ctx.program, {
           ...twoHopQuote,
           ...getParamsFromPools([pools[0], pools[1]], tokenAccounts),
           otherAmountThreshold: new u64(613309),
@@ -228,7 +228,7 @@ describe("multi-swap", () => {
 
     await toTx(
       ctx,
-      WhirlpoolIx.multiSwapIx(ctx.program, {
+      WhirlpoolIx.twoHopSwapIx(ctx.program, {
         ...twoHopQuote,
         ...getParamsFromPools([pools[0], pools[1]], tokenAccounts),
         tokenAuthority: ctx.wallet.publicKey,
@@ -297,7 +297,7 @@ describe("multi-swap", () => {
     await assert.rejects(
       toTx(
         ctx,
-        WhirlpoolIx.multiSwapIx(ctx.program, {
+        WhirlpoolIx.twoHopSwapIx(ctx.program, {
           ...twoHopQuote,
           ...getParamsFromPools([pools[0], pools[1]], tokenAccounts),
           otherAmountThreshold: new u64(2),
@@ -351,7 +351,7 @@ describe("multi-swap", () => {
     await assert.rejects(
       toTx(
         ctx,
-        WhirlpoolIx.multiSwapIx(ctx.program, {
+        WhirlpoolIx.twoHopSwapIx(ctx.program, {
           ...twoHopQuote,
           ...getParamsFromPools([pools[0], pools[1]], tokenAccounts),
           tokenAuthority: ctx.wallet.publicKey,

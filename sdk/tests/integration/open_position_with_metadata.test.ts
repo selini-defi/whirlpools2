@@ -16,7 +16,7 @@ import {
   PositionData,
   toTx,
   WhirlpoolContext,
-  WhirlpoolIx,
+  WhirlpoolIx
 } from "../../src";
 import { openPositionAccounts } from "../../src/utils/instructions-util";
 import {
@@ -26,7 +26,7 @@ import {
   ONE_SOL,
   systemTransferTx,
   TickSpacing,
-  ZERO_BN,
+  ZERO_BN
 } from "../utils";
 import { initTestPool, openPositionWithMetadata } from "../utils/init-utils";
 import { generateDefaultOpenPositionParams } from "../utils/test-builders";

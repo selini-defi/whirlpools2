@@ -104,6 +104,9 @@ pub enum ErrorCode {
 
     #[msg("Invalid intermediary mint")]
     InvalidIntermediaryMint, //0x1799
+    #[msg("Duplicate two hop pool")]
+    DuplicateTwoHopPool, //0x179a
+
 }
 
 impl From<TryFromIntError> for ErrorCode {

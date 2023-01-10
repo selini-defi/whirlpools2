@@ -22,7 +22,7 @@ import {
   InitAquariumParams,
 } from "../utils/init-utils";
 
-describe("multi-swap", () => {
+describe.only("two-hop-swap", () => {
   const provider = anchor.AnchorProvider.local();
   anchor.setProvider(anchor.AnchorProvider.env());
   const program = anchor.workspace.Whirlpool;

@@ -83,7 +83,7 @@ pub fn handler(
 
     // Don't allow swaps on the same whirlpool
     if whirlpool_one.key() == whirlpool_two.key() {
-        return Err(ErrorCode::AmountOutBelowMinimum.into());
+        return Err(ErrorCode::DuplicateTwoHotPool.into());
     }
 
     let swap_one_output_mint = if a_to_b_one {

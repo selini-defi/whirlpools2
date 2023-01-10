@@ -31,7 +31,7 @@ import {
   withdrawPositions,
 } from "../utils/init-utils";
 
-describe.only("swap", () => {
+describe("swap", () => {
   const provider = anchor.AnchorProvider.local();
   anchor.setProvider(anchor.AnchorProvider.env());
   const program = anchor.workspace.Whirlpool;

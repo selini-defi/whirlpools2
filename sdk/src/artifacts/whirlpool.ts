@@ -848,72 +848,72 @@ export type Whirlpool = {
           "isSigner": false
         },
         {
-          "name": "tokenOwnerAccountA",
+          "name": "tokenOwnerAccountOneA",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenVaultA",
+          "name": "tokenVaultOneA",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenOwnerAccountB",
+          "name": "tokenOwnerAccountOneB",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenVaultB",
+          "name": "tokenVaultOneB",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenOwnerAccountC",
+          "name": "tokenOwnerAccountTwoA",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenVaultC",
+          "name": "tokenVaultTwoA",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenOwnerAccountD",
+          "name": "tokenOwnerAccountTwoB",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenVaultD",
+          "name": "tokenVaultTwoB",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tickArray0",
+          "name": "tickArrayOne0",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tickArray1",
+          "name": "tickArrayOne1",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tickArray2",
+          "name": "tickArrayOne2",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tickArray3",
+          "name": "tickArrayTwo0",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tickArray4",
+          "name": "tickArrayTwo1",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tickArray5",
+          "name": "tickArrayTwo2",
           "isMut": true,
           "isSigner": false
         }
@@ -1812,6 +1812,11 @@ export type Whirlpool = {
       "code": 6041,
       "name": "InvalidIntermediaryMint",
       "msg": "Invalid intermediary mint"
+    },
+    {
+      "code": 6042,
+      "name": "DuplicateTwoHopPool",
+      "msg": "Duplicate two hop pool"
     }
   ]
 };
@@ -2666,72 +2671,72 @@ export const IDL: Whirlpool = {
           "isSigner": false
         },
         {
-          "name": "tokenOwnerAccountA",
+          "name": "tokenOwnerAccountOneA",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenVaultA",
+          "name": "tokenVaultOneA",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenOwnerAccountB",
+          "name": "tokenOwnerAccountOneB",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenVaultB",
+          "name": "tokenVaultOneB",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenOwnerAccountC",
+          "name": "tokenOwnerAccountTwoA",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenVaultC",
+          "name": "tokenVaultTwoA",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenOwnerAccountD",
+          "name": "tokenOwnerAccountTwoB",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tokenVaultD",
+          "name": "tokenVaultTwoB",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tickArray0",
+          "name": "tickArrayOne0",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tickArray1",
+          "name": "tickArrayOne1",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tickArray2",
+          "name": "tickArrayOne2",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tickArray3",
+          "name": "tickArrayTwo0",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tickArray4",
+          "name": "tickArrayTwo1",
           "isMut": true,
           "isSigner": false
         },
         {
-          "name": "tickArray5",
+          "name": "tickArrayTwo2",
           "isMut": true,
           "isSigner": false
         }
@@ -3630,6 +3635,11 @@ export const IDL: Whirlpool = {
       "code": 6041,
       "name": "InvalidIntermediaryMint",
       "msg": "Invalid intermediary mint"
+    },
+    {
+      "code": 6042,
+      "name": "DuplicateTwoHopPool",
+      "msg": "Duplicate two hop pool"
     }
   ]
 };

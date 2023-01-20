@@ -366,14 +366,14 @@ describe.only("two-hop-swap", () => {
     return {
       whirlpoolOne: pools[0].whirlpoolPda.publicKey,
       whirlpoolTwo: pools[1].whirlpoolPda.publicKey,
-      tokenOwnerAccountA: tokenAccKeys[0],
-      tokenVaultA: pools[0].tokenVaultAKeypair.publicKey,
-      tokenOwnerAccountB: tokenAccKeys[1],
-      tokenVaultB: pools[0].tokenVaultBKeypair.publicKey,
-      tokenOwnerAccountC: tokenAccKeys[2],
-      tokenVaultC: pools[1].tokenVaultAKeypair.publicKey,
-      tokenOwnerAccountD: tokenAccKeys[3],
-      tokenVaultD: pools[1].tokenVaultBKeypair.publicKey,
+      tokenOwnerAccountOneA: tokenAccKeys[0],
+      tokenVaultOneA: pools[0].tokenVaultAKeypair.publicKey,
+      tokenOwnerAccountOneB: tokenAccKeys[1],
+      tokenVaultOneB: pools[0].tokenVaultBKeypair.publicKey,
+      tokenOwnerAccountTwoA: tokenAccKeys[2],
+      tokenVaultTwoA: pools[1].tokenVaultAKeypair.publicKey,
+      tokenOwnerAccountTwoB: tokenAccKeys[3],
+      tokenVaultTwoB: pools[1].tokenVaultBKeypair.publicKey,
     };
   }
 

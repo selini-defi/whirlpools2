@@ -25,43 +25,43 @@ pub struct TwoHopSwap<'info> {
     #[account(mut)]
     pub whirlpool_two: Box<Account<'info, Whirlpool>>,
 
-    #[account(mut, constraint = token_owner_account_a.mint == whirlpool_one.token_mint_a)]
-    pub token_owner_account_a: Box<Account<'info, TokenAccount>>,
+    #[account(mut, constraint = token_owner_account_one_a.mint == whirlpool_one.token_mint_a)]
+    pub token_owner_account_one_a: Box<Account<'info, TokenAccount>>,
     #[account(mut, address = whirlpool_one.token_vault_a)]
-    pub token_vault_a: Box<Account<'info, TokenAccount>>,
+    pub token_vault_one_a: Box<Account<'info, TokenAccount>>,
 
-    #[account(mut, constraint = token_owner_account_b.mint == whirlpool_one.token_mint_b)]
-    pub token_owner_account_b: Box<Account<'info, TokenAccount>>,
+    #[account(mut, constraint = token_owner_account_one_b.mint == whirlpool_one.token_mint_b)]
+    pub token_owner_account_one_b: Box<Account<'info, TokenAccount>>,
     #[account(mut, address = whirlpool_one.token_vault_b)]
-    pub token_vault_b: Box<Account<'info, TokenAccount>>,
+    pub token_vault_one_b: Box<Account<'info, TokenAccount>>,
 
-    #[account(mut, constraint = token_owner_account_c.mint == whirlpool_two.token_mint_a)]
-    pub token_owner_account_c: Box<Account<'info, TokenAccount>>,
+    #[account(mut, constraint = token_owner_account_two_a.mint == whirlpool_two.token_mint_a)]
+    pub token_owner_account_two_a: Box<Account<'info, TokenAccount>>,
     #[account(mut, address = whirlpool_two.token_vault_a)]
-    pub token_vault_c: Box<Account<'info, TokenAccount>>,
+    pub token_vault_two_a: Box<Account<'info, TokenAccount>>,
 
-    #[account(mut, constraint = token_owner_account_d.mint == whirlpool_two.token_mint_b)]
-    pub token_owner_account_d: Box<Account<'info, TokenAccount>>,
+    #[account(mut, constraint = token_owner_account_two_b.mint == whirlpool_two.token_mint_b)]
+    pub token_owner_account_two_b: Box<Account<'info, TokenAccount>>,
     #[account(mut, address = whirlpool_two.token_vault_b)]
-    pub token_vault_d: Box<Account<'info, TokenAccount>>,
+    pub token_vault_two_b: Box<Account<'info, TokenAccount>>,
 
-    #[account(mut, constraint = tick_array_0.load()?.whirlpool == whirlpool_one.key())]
-    pub tick_array_0: AccountLoader<'info, TickArray>,
+    #[account(mut, constraint = tick_array_one_0.load()?.whirlpool == whirlpool_one.key())]
+    pub tick_array_one_0: AccountLoader<'info, TickArray>,
 
-    #[account(mut, constraint = tick_array_1.load()?.whirlpool == whirlpool_one.key())]
-    pub tick_array_1: AccountLoader<'info, TickArray>,
+    #[account(mut, constraint = tick_array_one_1.load()?.whirlpool == whirlpool_one.key())]
+    pub tick_array_one_1: AccountLoader<'info, TickArray>,
 
-    #[account(mut, constraint = tick_array_2.load()?.whirlpool == whirlpool_one.key())]
-    pub tick_array_2: AccountLoader<'info, TickArray>,
+    #[account(mut, constraint = tick_array_one_2.load()?.whirlpool == whirlpool_one.key())]
+    pub tick_array_one_2: AccountLoader<'info, TickArray>,
 
-    #[account(mut, constraint = tick_array_3.load()?.whirlpool == whirlpool_two.key())]
-    pub tick_array_3: AccountLoader<'info, TickArray>,
+    #[account(mut, constraint = tick_array_two_0.load()?.whirlpool == whirlpool_two.key())]
+    pub tick_array_two_0: AccountLoader<'info, TickArray>,
 
-    #[account(mut, constraint = tick_array_4.load()?.whirlpool == whirlpool_two.key())]
-    pub tick_array_4: AccountLoader<'info, TickArray>,
+    #[account(mut, constraint = tick_array_two_1.load()?.whirlpool == whirlpool_two.key())]
+    pub tick_array_two_1: AccountLoader<'info, TickArray>,
 
-    #[account(mut, constraint = tick_array_5.load()?.whirlpool == whirlpool_two.key())]
-    pub tick_array_5: AccountLoader<'info, TickArray>,
+    #[account(mut, constraint = tick_array_two_2.load()?.whirlpool == whirlpool_two.key())]
+    pub tick_array_two_2: AccountLoader<'info, TickArray>,
 }
 
 pub fn handler(
@@ -102,15 +102,15 @@ pub fn handler(
     }
 
     let mut swap_tick_sequence_one = SwapTickSequence::new(
-        ctx.accounts.tick_array_0.load_mut().unwrap(),
-        ctx.accounts.tick_array_1.load_mut().ok(),
-        ctx.accounts.tick_array_2.load_mut().ok(),
+        ctx.accounts.tick_array_one_0.load_mut().unwrap(),
+        ctx.accounts.tick_array_one_1.load_mut().ok(),
+        ctx.accounts.tick_array_one_2.load_mut().ok(),
     );
 
     let mut swap_tick_sequence_two= SwapTickSequence::new(
-        ctx.accounts.tick_array_3.load_mut().unwrap(),
-        ctx.accounts.tick_array_4.load_mut().ok(),
-        ctx.accounts.tick_array_5.load_mut().ok(),
+        ctx.accounts.tick_array_two_0.load_mut().unwrap(),
+        ctx.accounts.tick_array_two_1.load_mut().ok(),
+        ctx.accounts.tick_array_two_2.load_mut().ok(),
     );
 
     // TODO: WLOG, we could extend this to N-swaps, but the account inputs to the instruction would 
@@ -208,10 +208,10 @@ pub fn handler(
     update_and_swap_whirlpool(
         whirlpool_one,
         &ctx.accounts.token_authority,
-        &ctx.accounts.token_owner_account_a,
-        &ctx.accounts.token_owner_account_b,
-        &ctx.accounts.token_vault_a,
-        &ctx.accounts.token_vault_b,
+        &ctx.accounts.token_owner_account_one_a,
+        &ctx.accounts.token_owner_account_one_b,
+        &ctx.accounts.token_vault_one_a,
+        &ctx.accounts.token_vault_one_b,
         &ctx.accounts.token_program,
         swap_update_one,
         a_to_b_one,
@@ -221,10 +221,10 @@ pub fn handler(
     update_and_swap_whirlpool(
         whirlpool_two,
         &ctx.accounts.token_authority,
-        &ctx.accounts.token_owner_account_c,
-        &ctx.accounts.token_owner_account_d,
-        &ctx.accounts.token_vault_c,
-        &ctx.accounts.token_vault_d,
+        &ctx.accounts.token_owner_account_two_a,
+        &ctx.accounts.token_owner_account_two_b,
+        &ctx.accounts.token_vault_two_a,
+        &ctx.accounts.token_vault_two_b,
         &ctx.accounts.token_program,
         swap_update_two,
         a_to_b_two,

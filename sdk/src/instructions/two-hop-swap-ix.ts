@@ -8,14 +8,14 @@ import { Whirlpool } from "../artifacts/whirlpool";
 export type TwoHopSwapParams = TwoHopSwapInput & {
   whirlpoolOne: PublicKey;
   whirlpoolTwo: PublicKey;
-  tokenOwnerAccountA: PublicKey;
-  tokenOwnerAccountB: PublicKey;
-  tokenOwnerAccountC: PublicKey;
-  tokenOwnerAccountD: PublicKey;
-  tokenVaultA: PublicKey;
-  tokenVaultB: PublicKey;
-  tokenVaultC: PublicKey;
-  tokenVaultD: PublicKey;
+  tokenOwnerAccountOneA: PublicKey;
+  tokenOwnerAccountOneB: PublicKey;
+  tokenOwnerAccountTwoA: PublicKey;
+  tokenOwnerAccountTwoB: PublicKey;
+  tokenVaultOneA: PublicKey;
+  tokenVaultOneB: PublicKey;
+  tokenVaultTwoA: PublicKey;
+  tokenVaultTwoB: PublicKey;
   tokenAuthority: PublicKey;
 };
 
@@ -41,12 +41,12 @@ export type TwoHopSwapInput = {
   aToBTwo: boolean;
   sqrtPriceLimitOne: BN;
   sqrtPriceLimitTwo: BN;
-  tickArray0: PublicKey;
-  tickArray1: PublicKey;
-  tickArray2: PublicKey;
-  tickArray3: PublicKey;
-  tickArray4: PublicKey;
-  tickArray5: PublicKey;
+  tickArrayOne0: PublicKey;
+  tickArrayOne1: PublicKey;
+  tickArrayOne2: PublicKey;
+  tickArrayTwo0: PublicKey;
+  tickArrayTwo1: PublicKey;
+  tickArrayTwo2: PublicKey;
 };
 
 /**
@@ -99,20 +99,20 @@ export function twoHopSwapIx(program: Program<Whirlpool>, params: TwoHopSwapPara
     whirlpoolOne,
     whirlpoolTwo,
     tokenAuthority,
-    tokenOwnerAccountA,
-    tokenVaultA,
-    tokenOwnerAccountB,
-    tokenVaultB,
-    tokenOwnerAccountC,
-    tokenVaultC,
-    tokenOwnerAccountD,
-    tokenVaultD,
-    tickArray0,
-    tickArray1,
-    tickArray2,
-    tickArray3,
-    tickArray4,
-    tickArray5,
+    tokenOwnerAccountOneA,
+    tokenVaultOneA,
+    tokenOwnerAccountOneB,
+    tokenVaultOneB,
+    tokenOwnerAccountTwoA,
+    tokenVaultTwoA,
+    tokenOwnerAccountTwoB,
+    tokenVaultTwoB,
+    tickArrayOne0,
+    tickArrayOne1,
+    tickArrayOne2,
+    tickArrayTwo0,
+    tickArrayTwo1,
+    tickArrayTwo2,
   } = params;
 
   const ix = program.instruction.twoHopSwap(
@@ -129,20 +129,20 @@ export function twoHopSwapIx(program: Program<Whirlpool>, params: TwoHopSwapPara
         tokenAuthority,
         whirlpoolOne,
         whirlpoolTwo,
-        tokenOwnerAccountA,
-        tokenVaultA,
-        tokenOwnerAccountB,
-        tokenVaultB,
-        tokenOwnerAccountC,
-        tokenVaultC,
-        tokenOwnerAccountD,
-        tokenVaultD,
-        tickArray0,
-        tickArray1,
-        tickArray2,
-        tickArray3,
-        tickArray4,
-        tickArray5,
+        tokenOwnerAccountOneA,
+        tokenVaultOneA,
+        tokenOwnerAccountOneB,
+        tokenVaultOneB,
+        tokenOwnerAccountTwoA,
+        tokenVaultTwoA,
+        tokenOwnerAccountTwoB,
+        tokenVaultTwoB,
+        tickArrayOne0,
+        tickArrayOne1,
+        tickArrayOne2,
+        tickArrayTwo0,
+        tickArrayTwo1,
+        tickArrayTwo2,
       },
     }
   );

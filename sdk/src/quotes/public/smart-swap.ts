@@ -15,8 +15,10 @@ export async function findBestRoutes(
   programId: Address,
   fetcher: AccountFetcher,
   percentIncrement: number = 10,
+  topN: number = 5,
 ) {
   const pairRoutes = walks[getRouteId(inputTokenMint, outputTokenMint)];
+  console.log("PAIR ROUTES", pairRoutes, inputAmount.isZero());
   if (!pairRoutes || inputAmount.isZero()) {
     return [];
   }
@@ -25,6 +27,8 @@ export async function findBestRoutes(
   const { percents, amounts } = generatePercentageAmounts(inputAmount, percentIncrement);
   // The max route length is the number of iterations of quoting that we need to do
   const maxRouteLength = Math.max(...pairRoutes.map((route) => route.length));
+
+  console.log(maxRouteLength);
 
   // For hop 0 of all routes, get swap quotes using [inputAmount, inputTokenMint]
   // For hop 1..n of all routes, get swap quotes using [outputAmount, outputTokenMint] of hop n-1 as input
@@ -132,6 +136,7 @@ export async function findBestRoutes(
   }
 
   const cleanedQuoteMap = cleanQuoteMap(inputAmount, quoteMap);
+  console.log("CLEANED QUOTES", cleanedQuoteMap);
   return getRankedRouteSets(cleanedQuoteMap);
 }
 

@@ -33,13 +33,11 @@ export interface QuotePercentMap {
 
 export function getRankedRouteSets(
   percentMap: QuotePercentMap,
-  topN: number = 5,
 ) {
   let routeSets = generateRouteSets(percentMap);
 
   // Sort by route sets with the most values
-  routeSets = routeSets.sort((a, b) => b.totalOut.cmp(a.totalOut));
-  return routeSets.slice(0, topN);
+  return routeSets.sort((a, b) => b.totalOut.cmp(a.totalOut));
 }
 
 export function generateRouteSets(percentMap: QuotePercentMap) {

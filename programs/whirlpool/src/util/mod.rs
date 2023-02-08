@@ -1,10 +1,10 @@
 pub mod swap_tick_sequence;
-pub mod swap;
+pub mod swap_utils;
 pub mod token;
 pub mod util;
 
 pub use swap_tick_sequence::*;
-pub use swap::*;
+pub use swap_utils::*;
 pub use token::*;
 pub use util::*;
 

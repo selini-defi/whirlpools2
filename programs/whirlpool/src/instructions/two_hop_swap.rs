@@ -62,6 +62,14 @@ pub struct TwoHopSwap<'info> {
 
     #[account(mut, constraint = tick_array_two_2.load()?.whirlpool == whirlpool_two.key())]
     pub tick_array_two_2: AccountLoader<'info, TickArray>,
+
+    #[account(seeds = [b"oracle", whirlpool_one.key().as_ref()],bump)]
+    /// Oracle is currently unused and will be enabled on subsequent updates
+    pub oracle_one: UncheckedAccount<'info>,
+
+    #[account(seeds = [b"oracle", whirlpool_two.key().as_ref()],bump)]
+    /// Oracle is currently unused and will be enabled on subsequent updates
+    pub oracle_two: UncheckedAccount<'info>,
 }
 
 pub fn handler(
@@ -113,7 +121,7 @@ pub fn handler(
         ctx.accounts.tick_array_two_2.load_mut().ok(),
     );
 
-    // TODO: WLOG, we could extend this to N-swaps, but the account inputs to the instruction would 
+    // TODO: WLOG, we could extend this to N-swaps, but the account inputs to the instruction would
     // need to be jankier and we may need to programatically map/verify rather than using anchor constraints
     let (swap_update_one, swap_update_two) = if amount_specified_is_input {
         // If the amount specified is input, this means we are doing exact-in
@@ -184,8 +192,8 @@ pub fn handler(
         // The slippage we care about is the output of the second swap.
         let output_amount = if a_to_b_two {
             swap_update_two.amount_b
-        } else { 
-            swap_update_two.amount_a 
+        } else {
+            swap_update_two.amount_a
         };
 
         // If we have received less than the minimum out, throw an error

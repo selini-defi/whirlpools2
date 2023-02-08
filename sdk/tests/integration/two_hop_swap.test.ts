@@ -6,6 +6,7 @@ import * as assert from "assert";
 import {
   buildWhirlpoolClient,
   InitPoolParams,
+  PDAUtil,
   swapQuoteByInputToken,
   swapQuoteByOutputToken,
   toTx,
@@ -363,6 +364,11 @@ describe.only("two-hop-swap", () => {
 
   function getParamsFromPools(pools: [InitPoolParams, InitPoolParams], tokenAccounts: { mint: PublicKey, account: PublicKey }[]) {
     const tokenAccKeys = getTokenAccsForPools(pools, tokenAccounts);
+
+    const whirlpoolOne = pools[0].whirlpoolPda.publicKey;
+    const whirlpoolTwo = pools[1].whirlpoolPda.publicKey;
+    const oracleOne = PDAUtil.getOracle(ctx.program.programId, whirlpoolOne).publicKey;
+    const oracleTwo = PDAUtil.getOracle(ctx.program.programId, whirlpoolTwo).publicKey;
     return {
       whirlpoolOne: pools[0].whirlpoolPda.publicKey,
       whirlpoolTwo: pools[1].whirlpoolPda.publicKey,
@@ -374,6 +380,8 @@ describe.only("two-hop-swap", () => {
       tokenVaultTwoA: pools[1].tokenVaultAKeypair.publicKey,
       tokenOwnerAccountTwoB: tokenAccKeys[3],
       tokenVaultTwoB: pools[1].tokenVaultBKeypair.publicKey,
+      oracleOne,
+      oracleTwo,
     };
   }
 
@@ -390,4 +398,3 @@ describe.only("two-hop-swap", () => {
     return Promise.all(keys.map(async key => new anchor.BN((await getTokenBalance(provider, key)))));
   }
 });
-

@@ -1,8 +1,9 @@
+
+
 import { AddressUtil, MathUtil, PDA } from "@orca-so/common-sdk";
 import * as anchor from "@project-serum/anchor";
-import NodeWallet from "@project-serum/anchor/dist/cjs/nodewallet";
 import { NATIVE_MINT, u64 } from "@solana/spl-token";
-import { AddressLookupTableAccount, AddressLookupTableProgram, Keypair, PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 import Decimal from "decimal.js";
 import {
   createAndMintToAssociatedTokenAccount,
@@ -31,7 +32,6 @@ import { PoolUtil } from "../../src/utils/public/pool-utils";
 import {
   generateDefaultConfigParams,
   generateDefaultInitFeeTierParams,
-  generateDefaultInitLookupRefParams,
   generateDefaultInitPoolParams,
   generateDefaultInitTickArrayParams,
   generateDefaultOpenPositionParams,
@@ -348,56 +348,6 @@ export async function initTestPoolFromParams(
     poolInitInfo,
     feeTierParams,
   }; 
-}
-
-/**
- * Initialize a brand new WhirlpoolsConfig account and construct a set of InitPoolParams
- * that can be used to initialize a pool with.
- * @param client - an instance of whirlpool client containing the program & provider
- * @param initSqrtPrice - the initial sqrt-price for this newly generated pool
- * @returns An object containing the params used to init the config account & the param that can be used to init the pool account.
- */
- export async function buildLookupRefParams(
-  ctx: WhirlpoolContext,
-  funder?: PublicKey,
-  tokenAIsNative = false
-) {
-  const { configInitInfo, configKeypairs } = generateDefaultConfigParams(ctx);
-  await toTx(ctx, WhirlpoolIx.initializeConfigIx(ctx.program, configInitInfo)).buildAndExecute();
-
-  const lookupInitInfo = await generateDefaultInitLookupRefParams(
-    ctx,
-    configInitInfo.whirlpoolsConfigKeypair.publicKey,
-    funder,
-    tokenAIsNative
-  );
-  return {
-    configInitInfo,
-    configKeypairs,
-    lookupInitInfo,
-  };
-}
-
-export async function initLookupRef(
-  ctx: WhirlpoolContext,
-  configsKey: PublicKey,
-  funder?: Keypair,
-  tokenAIsNative = false
-) {
-  const params = await generateDefaultInitLookupRefParams(
-    ctx,
-    configsKey,
-    funder?.publicKey,
-    tokenAIsNative,
-  );
-  const tx = toTx(ctx, WhirlpoolIx.initializeLookupReferenceIx(ctx.program, params));
-  if (funder) {
-    tx.addSigner(funder);
-  }
-  return {
-    txId: await tx.buildAndExecute(),
-    params,
-  };
 }
 
 export async function initFeeTier(
@@ -896,45 +846,4 @@ export async function initTestPoolWithLiquidity(ctx: WhirlpoolContext) {
     tokenAccountB,
     tickArrays,
   };
-}
-
-export async function initLookupTable(
-  ctx: WhirlpoolContext,
-  addresses: PublicKey[],
-): Promise<{ lookupTableAddress: PublicKey, lookupTable: AddressLookupTableAccount }> {
-
-  let {
-    context: { slot: minContextSlot },
-    value: { blockhash, lastValidBlockHeight },
-  } = await ctx.connection.getLatestBlockhashAndContext("finalized");
-
-  const payer = ctx.provider.wallet.publicKey;
-  const authority = payer;
-  const [lookupTableInst, lookupTableAddress] = AddressLookupTableProgram.createLookupTable({
-    authority,
-    payer,
-    recentSlot: minContextSlot,
-  });
-
-  // TODO: this will fail if there are too many addresses to extend
-  const extendInstruction = AddressLookupTableProgram.extendLookupTable({
-    payer,
-    authority,
-    lookupTable: lookupTableAddress,
-    addresses,
-  });
-
-  const lutV0 = new TransactionMessage({
-    payerKey: payer,
-    recentBlockhash: blockhash,
-    instructions: [lookupTableInst, extendInstruction],
-  }).compileToV0Message();
-  const lutTx = new VersionedTransaction(lutV0);
-  lutTx.sign([(ctx.provider.wallet as NodeWallet).payer])
-  const lutTxId = await ctx.connection.sendTransaction(lutTx);
-  await ctx.connection.confirmTransaction({ signature: lutTxId, blockhash, lastValidBlockHeight }, "finalized");
-  const { value: lookupTable } = await ctx.connection.getAddressLookupTable(
-    new PublicKey(lookupTableAddress)
-  );
-  return { lookupTableAddress, lookupTable: lookupTable! };
 }

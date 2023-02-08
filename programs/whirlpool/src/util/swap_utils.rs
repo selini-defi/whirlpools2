@@ -7,7 +7,6 @@ use crate::{
 
 use super::{transfer_from_owner_to_vault, transfer_from_vault_to_owner};
 
-// TODO: Can also use this in swap, depending on whether we want to change the swap code
 pub fn update_and_swap_whirlpool<'info>(
     whirlpool: &mut Account<'info, Whirlpool>,
     token_authority: &Signer<'info>,

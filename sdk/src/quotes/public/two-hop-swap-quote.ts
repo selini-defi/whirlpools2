@@ -4,25 +4,28 @@ import { SwapEstimates, SwapQuote } from "./swap-quote";
 /**
  * A collection of estimated values from quoting a swap.
  * @category Quotes
- * @link {BaseSwapQuote}
- * @link {DevFeeSwapQuote}
+ * @link {NormalTwoHopSwapQuote}
+ * @experimental Not yet ready for use
  */
 export type TwoHopSwapQuote = NormalTwoHopSwapQuote; // TODO dev swap
 
 /**
- * A collection of estimated values from quoting a swap.
+ * A collection of estimated values from quoting a two-hop-swap.
  * @category Quotes
- * @param estimatedAmountIn - Approximate number of input token swapped in the swap
- * @param estimatedAmountOut - Approximate number of output token swapped in the swap
- * @param estimatedEndTickIndex - Approximate tick-index the Whirlpool will land on after this swap
- * @param estimatedEndSqrtPrice - Approximate sqrtPrice the Whirlpool will land on after this swap
- * @param estimatedFeeAmount - Approximate feeAmount (all fees) charged on this swap
+ * @param swapOneEstimates - Estimates for the first leg of the two-hop-swap
+ * @param swapTwoEstimates - Estimates for the second leg of the two-hop-swap
+ * @experimental Not yet ready for use
  */
 export type NormalTwoHopSwapQuote = {
   swapOneEstimates: SwapEstimates,
   swapTwoEstimates: SwapEstimates,
 } & TwoHopSwapInput;
 
+/**
+ * Convert two individual swaps into a quote estimate
+ * @category Quotes
+ * @experimental Not yet ready for use
+ */
 export function twoHopSwapQuoteFromSwapQuotes(
   swapQuoteOne: SwapQuote,
   swapQuoteTwo: SwapQuote,

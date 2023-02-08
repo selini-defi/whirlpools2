@@ -190,7 +190,7 @@ export class WhirlpoolIx {
   }
 
   /**
-   * Perform a multi-swap in this Whirlpool
+   * Perform a two-hop-swap in this Whirlpool
    *
    * #### Special Errors
    * - `ZeroTradableAmount` - User provided parameter `amount` is 0.
@@ -201,16 +201,17 @@ export class WhirlpoolIx {
    * - `TickArrayIndexOutofBounds` - The swap loop attempted to access an invalid array index during tick crossing.
    * - `LiquidityOverflow` - Liquidity value overflowed 128bits during tick crossing.
    * - `InvalidTickSpacing` - The swap pool was initialized with tick-spacing of 0.
+   * - `DuplicateTwoHopPool` - Swaps on the same pool are not allowed.
+   * - `InvalidIntermediaryMint` - The first and second leg of the hops do not share a common token.
    *
    * ### Parameters
    * @param program - program object containing services required to generate the instruction
-   * @param params - SwapParams object
+   * @param params - TwoHopSwapParams object
    * @returns - Instruction to perform the action.
    */
-  public static twoHopSwapIx(program: Program<Whirlpool>, params: ix.TwoHopSwapParams) {
-    return ix.twoHopSwapIx(program, params);
-  }
-
+    public static twoHopSwapIx(program: Program<Whirlpool>, params: ix.TwoHopSwapParams) {
+      return ix.twoHopSwapIx(program, params);
+    }
 
   /**
    * Update the accrued fees and rewards for a position.

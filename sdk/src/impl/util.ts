@@ -1,9 +1,9 @@
+import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { AccountFetcher, PoolUtil, TokenInfo } from "..";
 import {
   WhirlpoolData,
   WhirlpoolRewardInfo,
-  WhirlpoolRewardInfoData,
   TokenAccountInfo,
 } from "../types/public";
 
@@ -13,12 +13,11 @@ export async function getTokenMintInfos(
   refresh: boolean
 ): Promise<TokenInfo[]> {
   const mintA = data.tokenMintA;
-  const infoA = await fetcher.getMintInfo(mintA, refresh);
+  const mintB = data.tokenMintB;
+  const [infoA, infoB] = await fetcher.listMintInfos([mintA, mintB], refresh);
   if (!infoA) {
     throw new Error(`Unable to fetch MintInfo for mint - ${mintA}`);
   }
-  const mintB = data.tokenMintB;
-  const infoB = await fetcher.getMintInfo(mintB, refresh);
   if (!infoB) {
     throw new Error(`Unable to fetch MintInfo for mint - ${mintB}`);
   }
@@ -33,28 +32,38 @@ export async function getRewardInfos(
   data: WhirlpoolData,
   refresh: boolean
 ): Promise<WhirlpoolRewardInfo[]> {
-  const rewardInfos: WhirlpoolRewardInfo[] = [];
-  for (const rewardInfo of data.rewardInfos) {
-    rewardInfos.push(await getRewardInfo(fetcher, rewardInfo, refresh));
-  }
-  return rewardInfos;
-}
+  const rewardInfos: (WhirlpoolRewardInfo | undefined) [] = [];
 
-async function getRewardInfo(
-  fetcher: AccountFetcher,
-  data: WhirlpoolRewardInfoData,
-  refresh: boolean
-): Promise<WhirlpoolRewardInfo> {
-  const rewardInfo = { ...data, initialized: false, vaultAmount: new BN(0) };
-  if (PoolUtil.isRewardInitialized(data)) {
-    const vaultInfo = await fetcher.getTokenInfo(data.vault, refresh);
-    if (!vaultInfo) {
-      throw new Error(`Unable to fetch TokenAccountInfo for vault - ${data.vault}`);
+  const fetchIndices: number[] = [];
+  const fetchVaults: PublicKey[] = [];
+
+  for (let i = 0; i < data.rewardInfos.length; i++) {
+    const rewardInfo = data.rewardInfos[i];
+    if (!PoolUtil.isRewardInitialized(rewardInfo)) {
+      rewardInfos.push({ ...rewardInfo, initialized: false, vaultAmount: new BN(0) });
+    } else {
+      rewardInfos.push(undefined);
+      fetchIndices.push(i);
+      fetchVaults.push(rewardInfo.vault);
     }
-    rewardInfo.initialized = true;
-    rewardInfo.vaultAmount = vaultInfo.amount;
   }
-  return rewardInfo;
+
+  const vaults = await fetcher.listTokenInfos(fetchVaults, refresh);
+  for (let i = 0; i < vaults.length; i++) {
+    const vault = vaults[i];
+    const actualIndex = fetchIndices[i];
+    const rewardInfo = data.rewardInfos[actualIndex];
+    if (!vault) {
+      throw new Error(`Unable to fetch TokenAccountInfo for vault - ${rewardInfo.vault}`);
+    }
+    rewardInfos[actualIndex] = {
+      ...rewardInfo,
+      initialized: true,
+      vaultAmount: vault.amount,
+    };
+  }
+
+  return rewardInfos as WhirlpoolRewardInfo[];
 }
 
 export async function getTokenVaultAccountInfos(
@@ -63,12 +72,11 @@ export async function getTokenVaultAccountInfos(
   refresh: boolean
 ): Promise<TokenAccountInfo[]> {
   const vaultA = data.tokenVaultA;
-  const vaultInfoA = await fetcher.getTokenInfo(vaultA, refresh);
+  const vaultB = data.tokenVaultB;
+  const [vaultInfoA, vaultInfoB] = await fetcher.listTokenInfos([vaultA, vaultB], refresh);
   if (!vaultInfoA) {
     throw new Error(`Unable to fetch TokenAccountInfo for vault - ${vaultA}`);
   }
-  const vaultB = data.tokenVaultB;
-  const vaultInfoB = await fetcher.getTokenInfo(vaultB, refresh);
   if (!vaultInfoB) {
     throw new Error(`Unable to fetch TokenAccountInfo for vault - ${vaultB}`);
   }

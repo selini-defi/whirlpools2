@@ -18,6 +18,10 @@ export interface RouteHop {
   whirlpool: Address;
   inputMint: Address;
   outputMint: Address;
+  mintA: Address;
+  mintB: Address;
+  vaultA: Address;
+  vaultB: Address;
   quote: SwapQuote;
 }
 
@@ -33,11 +37,19 @@ export interface QuotePercentMap {
 
 export function getRankedRouteSets(
   percentMap: QuotePercentMap,
+  n: number = 100,
 ) {
+  const tA = performance.now();
   let routeSets = generateRouteSets(percentMap);
+  console.log("GENERATE ROUTE SETS", performance.now() - tA, routeSets.length);
 
-  // Sort by route sets with the most values
-  return routeSets.sort((a, b) => b.totalOut.cmp(a.totalOut));
+  // Run quick select algorithm to partition the topN results, mutating inplace
+  partitionTopN(routeSets, n);
+  return routeSets.slice(0, n).sort((a, b) => b.totalOut.cmp(a.totalOut));
+}
+
+export function partitionTopN(routeSets: RouteSet[], n: number = 100) {
+  return quickselect(routeSets, n, 0, routeSets.length - 1, (a: RouteSet, b: RouteSet) => b.totalOut.cmp(a.totalOut));
 }
 
 export function generateRouteSets(percentMap: QuotePercentMap) {
@@ -116,4 +128,59 @@ function buildRouteSet(
       }
     }
   }
+}
+
+// 
+function quickselect(arr: any, k:any , left:any , right:any , compare: any) {
+  quickselectStep(arr, k, left || 0, right || (arr.length - 1), compare || defaultCompare);
+}
+
+function quickselectStep(arr: any, k: any, left: any, right: any, compare: any ) {
+
+  while (right > left) {
+      if (right - left > 600) {
+          var n = right - left + 1;
+          var m = k - left + 1;
+          var z = Math.log(n);
+          var s = 0.5 * Math.exp(2 * z / 3);
+          var sd = 0.5 * Math.sqrt(z * s * (n - s) / n) * (m - n / 2 < 0 ? -1 : 1);
+          var newLeft = Math.max(left, Math.floor(k - m * s / n + sd));
+          var newRight = Math.min(right, Math.floor(k + (n - m) * s / n + sd));
+          quickselectStep(arr, k, newLeft, newRight, compare);
+      }
+
+      var t = arr[k];
+      var i = left;
+      var j = right;
+
+      swap(arr, left, k);
+      if (compare(arr[right], t) > 0) swap(arr, left, right);
+
+      while (i < j) {
+          swap(arr, i, j);
+          i++;
+          j--;
+          while (compare(arr[i], t) < 0) i++;
+          while (compare(arr[j], t) > 0) j--;
+      }
+
+      if (compare(arr[left], t) === 0) swap(arr, left, j);
+      else {
+          j++;
+          swap(arr, j, right);
+      }
+
+      if (j <= k) left = j + 1;
+      if (k <= j) right = j - 1;
+  }
+}
+
+function swap(arr: any, i: any, j: any) {
+  var tmp = arr[i];
+  arr[i] = arr[j];
+  arr[j] = tmp;
+}
+
+function defaultCompare(a: any, b: any) {
+  return a < b ? -1 : a > b ? 1 : 0;
 }

@@ -10,6 +10,7 @@ import {
   IncreaseLiquidityInput,
   PositionData,
   TickData,
+  TwoHopSwapInput,
   WhirlpoolData,
 } from "./types/public";
 import { TokenAccountInfo, TokenInfo, WhirlpoolRewardInfo } from "./types/public/client-types";
@@ -106,6 +107,15 @@ export interface WhirlpoolClient {
    * @returns A transaction builder to resolve ATA for tokenA and tokenB if needed, and collect protocol fees for all pools
    */
   collectProtocolFeesForPools: (poolAddresses: Address[]) => Promise<TransactionBuilder>;
+
+
+  twoHopSwap: (
+    input: TwoHopSwapInput,
+    whirlpoolOne: Whirlpool,
+    whirlpoolTwo: Whirlpool,
+    sourceWallet?: PublicKey | undefined,
+    initTxBuilder?: TransactionBuilder | undefined
+  ) => Promise<TransactionBuilder>;
 }
 
 /**

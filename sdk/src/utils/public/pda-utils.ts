@@ -16,6 +16,8 @@ const PDA_ORACLE_SEED = "oracle";
  * @category Whirlpool Utils
  */
 export class PDAUtil {
+  private static TICK_ARRAY_CACHE: any = {};
+  private static ORACLE_CACHE: any = {};
   /**
    *
    * @param programId
@@ -81,7 +83,16 @@ export class PDAUtil {
    * @returns
    */
   public static getTickArray(programId: PublicKey, whirlpoolAddress: PublicKey, startTick: number) {
-    return AddressUtil.findProgramAddress(
+    const wpStr = whirlpoolAddress.toBase58();
+    let tas = this.TICK_ARRAY_CACHE[wpStr];
+    if (!tas) {
+      this.TICK_ARRAY_CACHE[wpStr] = {};
+    }
+    tas = this.TICK_ARRAY_CACHE[wpStr];
+    if (tas[startTick]) {
+      return tas[startTick];
+    }
+    const pda = AddressUtil.findProgramAddress(
       [
         Buffer.from(PDA_TICK_ARRAY_SEED),
         whirlpoolAddress.toBuffer(),
@@ -89,6 +100,8 @@ export class PDAUtil {
       ],
       programId
     );
+    this.TICK_ARRAY_CACHE[wpStr][startTick] = pda;
+    return pda;
   }
 
   /**
@@ -163,9 +176,18 @@ export class PDAUtil {
    * @returns
    */
   public static getOracle(programId: PublicKey, whirlpoolAddress: PublicKey) {
-    return AddressUtil.findProgramAddress(
+    const wpStr = whirlpoolAddress.toBase58();
+    let oc = this.ORACLE_CACHE[wpStr];
+    if (oc) {
+      return oc;
+    }
+
+    const pda = AddressUtil.findProgramAddress(
       [Buffer.from(PDA_ORACLE_SEED), whirlpoolAddress.toBuffer()],
       programId
     );
+
+    this.ORACLE_CACHE[wpStr] = pda;
+    return pda;
   }
 }

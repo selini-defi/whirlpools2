@@ -196,7 +196,7 @@ export class WhirlpoolImpl implements Whirlpool {
         whirlpool: this,
         wallet: sourceWalletKey,
       },
-      true,
+      false,
       initTxBuilder,
     );
   }

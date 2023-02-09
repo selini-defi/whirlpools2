@@ -156,6 +156,7 @@ export class SwapUtils {
     // so we map each request to a slice of the batch request
     for (let i = 0; i < tickArrayRequests.length; i++) {
       const { tickCurrentIndex, tickSpacing, aToB, whirlpoolAddress } = tickArrayRequests[i];
+      const a = performance.now();
       const requestAddresses = SwapUtils.getTickArrayPublicKeys(
         tickCurrentIndex,
         tickSpacing,
@@ -244,6 +245,35 @@ export class SwapUtils {
       tokenOwnerAccountB: aToB ? outputTokenATA : inputTokenATA,
       tokenVaultA: data.tokenVaultA,
       tokenVaultB: data.tokenVaultB,
+      oracle: oraclePda.publicKey,
+      tokenAuthority: wallet,
+      ...quote,
+    };
+    return params;
+  }
+
+  public static getSwapParamsFromQuote2(
+    quote: SwapInput,
+    ctx: WhirlpoolContext,
+    whirlpool: PublicKey,
+    tokenVaultA: PublicKey,
+    tokenVaultB: PublicKey,
+    inputTokenAssociatedAddress: Address,
+    outputTokenAssociatedAddress: Address,
+    wallet: PublicKey
+  ) {
+    const aToB = quote.aToB;
+    const [inputTokenATA, outputTokenATA] = AddressUtil.toPubKeys([
+      inputTokenAssociatedAddress,
+      outputTokenAssociatedAddress,
+    ]);
+    const oraclePda = PDAUtil.getOracle(ctx.program.programId, whirlpool);
+    const params: SwapParams = {
+      whirlpool,
+      tokenOwnerAccountA: aToB ? inputTokenATA : outputTokenATA,
+      tokenOwnerAccountB: aToB ? outputTokenATA : inputTokenATA,
+      tokenVaultA,
+      tokenVaultB,
       oracle: oraclePda.publicKey,
       tokenAuthority: wallet,
       ...quote,

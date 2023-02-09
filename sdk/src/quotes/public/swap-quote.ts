@@ -210,6 +210,7 @@ export async function batchSwapQuoteByToken(
   const whirlpools = await fetcher.listPools(quoteRequests.map(req => req.whirlpool), refresh);
   const program = AddressUtil.toPubKey(programId);
 
+  const mr = performance.now();
   const tickArrayRequests = quoteRequests.map((quoteReq, index) => {
     const { whirlpool, tokenAmount, inputTokenMint, amountSpecifiedIsInput } = quoteReq;
     const whirlpoolData = whirlpools[index]!;

@@ -1,24 +1,24 @@
 import { AddressUtil, Percentage } from "@orca-so/common-sdk";
-import { Address } from "@project-serum/anchor";
+import { Address, BN } from "@project-serum/anchor";
 import { u64 } from "@solana/spl-token";
 import { AccountFetcher, SwapUtils } from "../..";
-import { batchSwapQuoteByToken, swapQuoteWithParams } from "./swap-quote";
+import { batchSwapQuoteByToken, SwapQuoteParam, swapQuoteWithParams } from "./swap-quote";
 import { PoolWalks, TokenPairPool, getRouteId } from "./pool-graph";
 import { getRankedRouteSets, RouteQuote } from "./rank-route-sets";
 
 export interface RoutingOptions {
   /**
-   * 
+   * Allowed % increment for route, i.e. 10%, 20%, etc
    */
   percentIncrement: number;
 
   /**
-   * 
+   * Number of routes to return from the calculated routes
    */
   numTopRoutes: number;
 
   /**
-   * 
+   * Number of quotes to prune to after calculating quotes
    */
   numTopPartialQuotes: number;
 }
@@ -29,26 +29,12 @@ export const DEFAULT_ROUTING_OPTIONS = {
   numTopPartialQuotes: 10,
 };
 
-export async function findBestRoutes(
-  inputTokenMint: string,
-  outputTokenMint: string,
-  inputAmount: u64,
-  walks: PoolWalks,
-  pools: Record<string, TokenPairPool>,
+async function prefetchRoutes(
+  pairRoutes: string[][],
   programId: Address,
   fetcher: AccountFetcher,
-  userRoutingOptions: Partial<RoutingOptions> = DEFAULT_ROUTING_OPTIONS,
 ) {
-  const routingOptions = { ...DEFAULT_ROUTING_OPTIONS, ...userRoutingOptions };
-  const { percentIncrement, numTopRoutes, numTopPartialQuotes } = routingOptions;
-  const pairRoutes = walks[getRouteId(inputTokenMint, outputTokenMint)];
-  console.log("PAIR ROUTES", pairRoutes, inputAmount.isZero());
-  if (!pairRoutes || inputAmount.isZero()) {
-    return [];
-  }
-
   // Pre-fetch
-  const pf = performance.now();
   const poolSet = new Set<string>();
   for (let i = 0; i < pairRoutes.length; i++) {
     const route = pairRoutes[i];
@@ -66,7 +52,6 @@ export async function findBestRoutes(
     if (wp == null) {
       continue;
     }
-    const taa = new Set<string>();
     const addr1 = SwapUtils.getTickArrayPublicKeys(
       wp.tickCurrentIndex,
       wp.tickSpacing,
@@ -84,24 +69,117 @@ export async function findBestRoutes(
     const allAddrs = [...addr1, ...addr2].map(k => k.toBase58());
     const unique = Array.from(new Set(allAddrs));
     tickArrayAddresses.push(...unique);
-  }
+  } 
 
   await fetcher.listTickArrays(tickArrayAddresses, false);
-  console.log("PF", performance.now() - pf);
-  console.log("TA", tickArrayAddresses.length);
+}
 
-  const quoteMap: Record<number, Array<Pick<RouteQuote, "route" | "percent" | "calculatedHops">>> = {};
+export async function findBestRoutes(
+  inputTokenMint: string,
+  outputTokenMint: string,
+  inputAmount: u64,
+  walks: PoolWalks,
+  pools: Record<string, TokenPairPool>,
+  programId: Address,
+  fetcher: AccountFetcher,
+  userRoutingOptions: Partial<RoutingOptions> = DEFAULT_ROUTING_OPTIONS,
+) {
+  const pairRoutes = walks[getRouteId(inputTokenMint, outputTokenMint)];
+  if (!pairRoutes || inputAmount.isZero()) {
+    return [];
+  }
+
+  const routingOptions = { ...DEFAULT_ROUTING_OPTIONS, ...userRoutingOptions };
+  const { percentIncrement, numTopRoutes, numTopPartialQuotes } = routingOptions;
+
+  // Pre-fetch
+  await prefetchRoutes(pairRoutes, programId, fetcher);
+
   const { percents, amounts } = generatePercentageAmounts(inputAmount, percentIncrement);
   // The max route length is the number of iterations of quoting that we need to do
   const maxRouteLength = Math.max(...pairRoutes.map((route) => route.length));
 
-  // console.log("MAX RoutmaxRouteLength);
-
-  const tA = performance.now();
 
   // For hop 0 of all routes, get swap quotes using [inputAmount, inputTokenMint]
   // For hop 1..n of all routes, get swap quotes using [outputAmount, outputTokenMint] of hop n-1 as input
+  const quoteMap: Record<number, Array<Pick<RouteQuote, "route" | "percent" | "calculatedHops">>> = {};
   for (let hop = 0; hop < maxRouteLength; hop++) {
+    // Each batch of quotes needs to be iterative
+    const quoteUpdates = buildQuoteUpdateRequests(
+      inputTokenMint,
+      pools,
+      pairRoutes,
+      percents,
+      amounts,
+      hop,
+      quoteMap,
+    );
+
+    const quoteParams = await batchSwapQuoteByToken(
+      quoteUpdates.map(update => update.request),
+      AddressUtil.toPubKey(programId),
+      fetcher,
+      false
+    );
+
+    updateQuoteMap(quoteUpdates, quoteParams, quoteMap);
+  }
+
+  const cleanedQuoteMap = cleanQuoteMap(inputAmount, quoteMap);
+  const prunedQuoteMap = pruneQuoteMap(cleanedQuoteMap, numTopPartialQuotes);
+  return getRankedRouteSets(prunedQuoteMap, numTopRoutes);
+}
+
+function updateQuoteMap(
+  quoteUpdates: ReturnType<typeof buildQuoteUpdateRequests>,
+  quoteParams: SwapQuoteParam[],
+  quoteMap: Record<number, Array<Pick<RouteQuote, "route" | "percent" | "calculatedHops">>>,
+) {
+  for (const { address, percent, routeIndex, quoteIndex } of quoteUpdates) {
+    const swapParam = quoteParams[quoteIndex];
+    const route = quoteMap[percent][routeIndex];
+    try {
+      const quote = swapQuoteWithParams(swapParam, Percentage.fromFraction(0, 1000));
+      const { whirlpoolData, tokenAmount, aToB, amountSpecifiedIsInput } = swapParam;
+      const [mintA, mintB, vaultA, vaultB] = [
+        whirlpoolData.tokenMintA.toBase58(),
+        whirlpoolData.tokenMintB.toBase58(),
+        whirlpoolData.tokenVaultA.toBase58(),
+        whirlpoolData.tokenVaultB.toBase58(),
+      ];
+      const [
+        inputMint,
+        outputMint,
+      ] =
+        aToB && amountSpecifiedIsInput ? [mintA, mintB] : [mintB, mintA];
+      route.calculatedHops.push({
+        percent,
+        amountIn: tokenAmount,
+        amountOut: quote.otherAmountThreshold,
+        whirlpool: address,
+        inputMint,
+        outputMint,
+        mintA,
+        mintB,
+        vaultA,
+        vaultB,
+        quote,
+      });
+    } catch (e) {
+      continue;
+    }
+  } 
+}
+
+function buildQuoteUpdateRequests(
+  inputTokenMint: string,
+  pools: Record<string, TokenPairPool>,
+  pairRoutes: string[][],
+  percents: number[],
+  amounts: BN[],
+  hop: number,
+  quoteMap: Record<number, Array<Pick<RouteQuote, "route" | "percent" | "calculatedHops">>>,
+) {
     // Each batch of quotes needs to be iterative
     const quoteUpdates = [];
     for (let amountIndex = 0; amountIndex < amounts.length; amountIndex++) {
@@ -169,77 +247,30 @@ export async function findBestRoutes(
         });
       }
     }
-
-    const tB = performance.now();
-    const params = await batchSwapQuoteByToken(
-      quoteUpdates.map(update => update.request),
-      AddressUtil.toPubKey(programId),
-      fetcher,
-      false
-    );
-    console.log("BATCH SWAP QUOTE", performance.now() - tB);
-
-    for (const { address, percent, routeIndex, quoteIndex } of quoteUpdates) {
-      const param = params[quoteIndex];
-      const route = quoteMap[percent][routeIndex];
-    try {
-        const quote = swapQuoteWithParams(param, Percentage.fromFraction(0, 1000));
-        const { whirlpoolData, tokenAmount, aToB, amountSpecifiedIsInput } = param;
-        const [mintA, mintB, vaultA, vaultB] = [
-          whirlpoolData.tokenMintA.toBase58(),
-          whirlpoolData.tokenMintB.toBase58(),
-          whirlpoolData.tokenVaultA.toBase58(),
-          whirlpoolData.tokenVaultB.toBase58(),
-        ];
-        const [
-          inputMint,
-          outputMint,
-        ] =
-          aToB && amountSpecifiedIsInput ? [mintA, mintB] : [mintB, mintA];
-        route.calculatedHops.push({
-          percent,
-          amountIn: tokenAmount,
-          amountOut: quote.otherAmountThreshold,
-          whirlpool: address,
-          inputMint,
-          outputMint,
-          mintA,
-          mintB,
-          vaultA,
-          vaultB,
-          quote,
-        });
-      } catch (e) {
-        continue;
-      }
-    }
-  }
-
-
-  const cleanedQuoteMap = cleanQuoteMap(inputAmount, quoteMap);
-  const prunedPercentMap: { [key: number]: RouteQuote[] } = {};
-  for (let i = 0; i < percents.length; i++) {
-    const sortedQuotes = cleanedQuoteMap[percents[i]].sort((a, b) => b.amountOut.cmp(a.amountOut));
-    const slicedSorted = sortedQuotes.slice(0, numTopPartialQuotes);
-    prunedPercentMap[percents[i]] = slicedSorted;
-  }
-
-  return getRankedRouteSets(prunedPercentMap, numTopRoutes);
+    return quoteUpdates;
 }
 
+
+/**
+ * Annotate amountIn/amountOut for calculations
+ * @param inputAmount 
+ * @param quoteMap 
+ * @returns 
+ */
 function cleanQuoteMap(
   inputAmount: u64,
   quoteMap: Record<number, Array<Pick<RouteQuote, "route" | "percent" | "calculatedHops">>>,
 ) {
   const percents = Object.keys(quoteMap).map(percent => Number(percent));
-  const cleanedPercentMap: { [key: number]: RouteQuote[] } = {};
+  const cleanedQuoteMap: { [key: number]: RouteQuote[] } = {};
   for (let i = 0; i < percents.length; i++) {
     const percent = percents[i];
     const uncleanedQuotes = quoteMap[percent];
-    cleanedPercentMap[percent] = [];
+    cleanedQuoteMap[percent] = [];
     for (const { route, calculatedHops } of uncleanedQuotes) {
+      // If we finished the route, add it to the cleaned quote map with final data
       if (calculatedHops.length === route.length) {
-        cleanedPercentMap[percent].push({
+        cleanedQuoteMap[percent].push({
           percent,
           route,
           amountIn: inputAmount,
@@ -249,7 +280,21 @@ function cleanQuoteMap(
       }
     }
   }
-  return cleanedPercentMap;
+  return cleanedQuoteMap;
+}
+
+function pruneQuoteMap(
+  quoteMap:  { [key: number]: RouteQuote[] },
+  pruneN: number,
+) {
+  const percents = Object.keys(quoteMap).map(percent => Number(percent));
+  const prunedQuoteMap: { [key: number]: RouteQuote[] } = {};
+  for (let i = 0; i < percents.length; i++) {
+    const sortedQuotes = quoteMap[percents[i]].sort((a, b) => b.amountOut.cmp(a.amountOut));
+    const slicedSorted = sortedQuotes.slice(0, pruneN);
+    prunedQuoteMap[percents[i]] = slicedSorted;
+  } 
+  return prunedQuoteMap;
 }
 
 function generatePercentageAmounts(inputAmount: u64, minPercent: number = 5) {

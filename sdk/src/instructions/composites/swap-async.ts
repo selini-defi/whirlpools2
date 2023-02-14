@@ -1,7 +1,7 @@
-import { EMPTY_INSTRUCTION, TokenUtil, TransactionBuilder, ZERO } from "@orca-so/common-sdk";
+import { EMPTY_INSTRUCTION, TransactionBuilder, ZERO } from "@orca-so/common-sdk";
 import { ResolvedTokenAddressInstruction } from "@orca-so/common-sdk/dist/helpers/token-instructions";
 import { NATIVE_MINT, ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, u64, Token, AccountInfo } from "@solana/spl-token";
-import { Connection, PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
+import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
 import { SwapUtils, TickArrayUtil, Whirlpool, WhirlpoolContext } from "../..";
 import { createWSOLAccountInstructions } from "../../utils/spl-token-utils";
 import { SwapInput, swapIx } from "../swap-ix";
@@ -26,56 +26,22 @@ export async function swapAsync(
   txBuilder: TransactionBuilder = new TransactionBuilder(ctx.connection, ctx.wallet),
 ): Promise<TransactionBuilder> {
   const { wallet, whirlpool, swapInput } = params;
-  const { aToB, amount } = swapInput;
-  const tickArrayAddresses = [swapInput.tickArray0, swapInput.tickArray1, swapInput.tickArray2];
-
-  const ta = performance.now();
-  let uninitializedArrays = await TickArrayUtil.getUninitializedArraysString(
-    tickArrayAddresses,
-    ctx.fetcher,
-    refresh
-  );
-  console.log("UAS", performance.now() - ta);
-  if (uninitializedArrays) {
-    throw new Error(`TickArray addresses - [${uninitializedArrays}] need to be initialized.`);
-  }
-
   const data = whirlpool.getData();
-  const tb = performance.now();
-  const [resolvedAtaA, resolvedAtaB] = await resolveOrCreateATAs(
-    ctx.connection,
+  return swapAsyncFromKeys(
+    ctx,
     wallet,
-    [
-      { tokenMint: data.tokenMintA, wrappedSolAmountIn: aToB ? amount : ZERO },
-      { tokenMint: data.tokenMintB, wrappedSolAmountIn: !aToB ? amount : ZERO },
-    ],
-    () => ctx.fetcher.getAccountRentExempt(),
-    (keys) => ctx.fetcher.listTokenInfos(keys, false),
-  );
-  console.log("rOCATA", performance.now() - tb);
-  const { address: ataAKey, ...tokenOwnerAccountAIx } = resolvedAtaA;
-  const { address: ataBKey, ...tokenOwnerAccountBIx } = resolvedAtaB;
-  txBuilder.addInstructions([tokenOwnerAccountAIx, tokenOwnerAccountBIx]);
-  const inputTokenAccount = aToB ? ataAKey : ataBKey;
-  const outputTokenAccount = aToB ? ataBKey : ataAKey;
-
-  return txBuilder.addInstruction(
-    swapIx(
-      ctx.program,
-      SwapUtils.getSwapParamsFromQuote(
-        swapInput,
-        ctx,
-        whirlpool,
-        inputTokenAccount,
-        outputTokenAccount,
-        wallet
-      )
-    )
+    swapInput,
+    whirlpool.getAddress(),
+    data.tokenMintA,
+    data.tokenMintB,
+    data.tokenVaultA,
+    data.tokenVaultB,
+    refresh,
+    txBuilder
   );
 }
 
-
-export async function swapAsync2(
+export async function swapAsyncFromKeys(
   ctx: WhirlpoolContext,
   wallet: PublicKey,
   swapInput: SwapInput,
@@ -96,14 +62,12 @@ export async function swapAsync2(
     ctx.fetcher,
     refresh
   );
-  console.log("GUAS", performance.now() - ta);
   if (uninitializedArrays) {
     throw new Error(`TickArray addresses - [${uninitializedArrays}] need to be initialized.`);
   }
 
   const tb = performance.now();
-  const [resolvedAtaA, resolvedAtaB] = await resolveOrCreateATAs(
-    ctx.connection,
+  const [resolvedAtaA, resolvedAtaB] = await cachedResolveOrCreateATAs(
     wallet,
     [
       { tokenMint: tokenMintA, wrappedSolAmountIn: aToB ? amount : ZERO },
@@ -112,7 +76,6 @@ export async function swapAsync2(
     () => ctx.fetcher.getAccountRentExempt(),
     (keys) => ctx.fetcher.listTokenInfos(keys, false),
   );
-  console.log("rOZCATA", performance.now() - tb);
   const { address: ataAKey, ...tokenOwnerAccountAIx } = resolvedAtaA;
   const { address: ataBKey, ...tokenOwnerAccountBIx } = resolvedAtaB;
   txBuilder.addInstructions([tokenOwnerAccountAIx, tokenOwnerAccountBIx]);
@@ -138,22 +101,22 @@ export async function swapAsync2(
 
 
 /**
+ * Internal duplicate of resolveOrCreateAta
+ * This could be ported over to common-sdk?
+ * 
  * IMPORTANT: wrappedSolAmountIn should only be used for input/source token that
  *            could be SOL. This is because when SOL is the output, it is the end
  *            destination, and thus does not need to be wrapped with an amount.
  *
- * @param connection Solana connection class
  * @param ownerAddress The user's public key
  * @param tokenMint Token mint address
- * @param wrappedSolAmountIn Optional. Only use for input/source token that could be SOL
  * @param payer Payer that would pay the rent for the creation of the ATAs
  * @param modeIdempotent Optional. Use CreateIdempotent instruction instead of Create instruction
  * @returns
  */
-export async function resolveOrCreateATAs(
-  connection: Connection,
+export async function cachedResolveOrCreateATAs(
   ownerAddress: PublicKey,
-  requests: any[],
+  requests: any[], /* This type needs to be exported from common-sdk */
   getAccountRentExempt: () => Promise<number>,
   getTokenAccounts: (keys: PublicKey[]) => Promise<Array<AccountInfo | null>>,
   payer = ownerAddress,
@@ -172,14 +135,9 @@ export async function resolveOrCreateATAs(
     const nonNativeAddresses = await Promise.all(
       nonNativeMints.map(({ tokenMint }) => deriveATA(ownerAddress, tokenMint))
     );
-    console.log("DERIVE ATAs", performance.now() - tz);
 
     const tm = performance.now();
     const tokenAccounts = await getTokenAccounts(nonNativeAddresses);
-    console.log("GMA", performance.now() - tm);
-    // const tokenAccounts = tokenAccountInfos.map((tai) =>
-    //   TokenUtil.deserializeTokenAccount(tai?.data as Buffer)
-    // );
     tokenAccounts.forEach((tokenAccount, index) => {
       const ataAddress = nonNativeAddresses[index]!;
       let resolvedInstruction;

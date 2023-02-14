@@ -36,6 +36,7 @@ export async function swapAsync(
     data.tokenMintB,
     data.tokenVaultA,
     data.tokenVaultB,
+    null,
     refresh,
     txBuilder
   );
@@ -50,6 +51,7 @@ export async function swapAsyncFromKeys(
   tokenMintB: PublicKey,
   tokenVaultA: PublicKey,
   tokenVaultB: PublicKey,
+  atas: AccountInfo[] | null,
   refresh: boolean,
   txBuilder: TransactionBuilder = new TransactionBuilder(ctx.connection, ctx.wallet),
 ): Promise<TransactionBuilder> {
@@ -74,7 +76,13 @@ export async function swapAsyncFromKeys(
       { tokenMint: tokenMintB, wrappedSolAmountIn: !aToB ? amount : ZERO },
     ],
     () => ctx.fetcher.getAccountRentExempt(),
-    (keys) => ctx.fetcher.listTokenInfos(keys, false),
+    (keys) => {
+      if (atas != null) {
+        return Promise.resolve(keys.map(key => atas.find(ata => ata.address?.toBase58() === key.toBase58())) as AccountInfo[]);
+      } else {
+        return ctx.fetcher.listTokenInfos(keys, false)
+      }
+    },
   );
   const { address: ataAKey, ...tokenOwnerAccountAIx } = resolvedAtaA;
   const { address: ataBKey, ...tokenOwnerAccountBIx } = resolvedAtaB;
@@ -85,7 +93,7 @@ export async function swapAsyncFromKeys(
   return txBuilder.addInstruction(
     swapIx(
       ctx.program,
-      SwapUtils.getSwapParamsFromQuote2(
+      SwapUtils.getSwapParamsFromQuoteKeys(
         swapInput,
         ctx,
         whirlpool,
@@ -131,12 +139,10 @@ export async function cachedResolveOrCreateATAs(
 
   let instructionMap: { [tokenMint: string]: ResolvedTokenAddressInstruction } = {};
   if (nonNativeMints.length > 0) {
-    const tz = performance.now();
     const nonNativeAddresses = await Promise.all(
       nonNativeMints.map(({ tokenMint }) => deriveATA(ownerAddress, tokenMint))
     );
 
-    const tm = performance.now();
     const tokenAccounts = await getTokenAccounts(nonNativeAddresses);
     tokenAccounts.forEach((tokenAccount, index) => {
       const ataAddress = nonNativeAddresses[index]!;

@@ -231,28 +231,20 @@ export class SwapUtils {
     outputTokenAssociatedAddress: Address,
     wallet: PublicKey
   ) {
-    const addr = whirlpool.getAddress();
     const data = whirlpool.getData();
-    const aToB = quote.aToB;
-    const [inputTokenATA, outputTokenATA] = AddressUtil.toPubKeys([
+    return this.getSwapParamsFromQuoteKeys(
+      quote,
+      ctx,
+      whirlpool.getAddress(),
+      data.tokenVaultA,
+      data.tokenVaultB,
       inputTokenAssociatedAddress,
       outputTokenAssociatedAddress,
-    ]);
-    const oraclePda = PDAUtil.getOracle(ctx.program.programId, addr);
-    const params: SwapParams = {
-      whirlpool: whirlpool.getAddress(),
-      tokenOwnerAccountA: aToB ? inputTokenATA : outputTokenATA,
-      tokenOwnerAccountB: aToB ? outputTokenATA : inputTokenATA,
-      tokenVaultA: data.tokenVaultA,
-      tokenVaultB: data.tokenVaultB,
-      oracle: oraclePda.publicKey,
-      tokenAuthority: wallet,
-      ...quote,
-    };
-    return params;
+      wallet,
+    );
   }
 
-  public static getSwapParamsFromQuote2(
+  public static getSwapParamsFromQuoteKeys(
     quote: SwapInput,
     ctx: WhirlpoolContext,
     whirlpool: PublicKey,

@@ -55,9 +55,7 @@ export class PoolUtil {
   }
 
   public static orderMints(mintX: Address, mintY: Address): [Address, Address] {
-    return this.compareMints(mintX, mintY) < 0
-      ? [mintX, mintY]
-      : [mintY, mintX];
+    return this.compareMints(mintX, mintY) < 0 ? [mintX, mintY] : [mintY, mintX];
   }
 
   public static compareMints(mintX: Address, mintY: Address): number {

@@ -615,7 +615,8 @@ describe("swap", () => {
       {
         liquidityAmount: initialLiquidity,
         tickLowerIndex: startingTickArrayStartIndex + tickSpacing,
-        tickUpperIndex: startingTickArrayStartIndex + TICK_ARRAY_SIZE * tickSpacing * 2 - tickSpacing,
+        tickUpperIndex:
+          startingTickArrayStartIndex + TICK_ARRAY_SIZE * tickSpacing * 2 - tickSpacing,
       },
     ];
 
@@ -675,7 +676,7 @@ describe("swap", () => {
 
     // After the above swap, since the amount is so low, it is completely taken by fees
     // thus, the sqrt price will remain the same, the starting tick will decrement since it
-    // is an aToB swap ending on initialized tick, and since the tick is crossed, 
+    // is an aToB swap ending on initialized tick, and since the tick is crossed,
     // the liquidity will be added
     assert.equal(whirlpoolData.tickCurrentIndex, startingTick - 1);
     assert.ok(whirlpoolData.sqrtPrice.eq(startSqrtPrice));
@@ -716,7 +717,6 @@ describe("swap", () => {
     assert.ok(whirlpoolData.liquidity.eq(initialLiquidity.add(additionalLiquidity)));
   });
 
-
   it("swaps aToB with small remainder across initialized tick", async () => {
     const startingTick = 91728;
     const tickSpacing = TickSpacing.Stable;
@@ -742,7 +742,8 @@ describe("swap", () => {
       {
         liquidityAmount: initialLiquidity,
         tickLowerIndex: startingTickArrayStartIndex + tickSpacing,
-        tickUpperIndex: startingTickArrayStartIndex + TICK_ARRAY_SIZE * tickSpacing * 2 - tickSpacing,
+        tickUpperIndex:
+          startingTickArrayStartIndex + TICK_ARRAY_SIZE * tickSpacing * 2 - tickSpacing,
       },
     ];
 
@@ -837,7 +838,9 @@ describe("swap", () => {
     // After the above swap, there will be a small amount remaining that crosses
     // an initialized tick index, but isn't enough to move the sqrt price.
     assert.equal(whirlpoolData.tickCurrentIndex, startingTick - tickSpacing - 1);
-    assert.ok(whirlpoolData.sqrtPrice.eq(PriceMath.tickIndexToSqrtPriceX64(startingTick - tickSpacing)));
+    assert.ok(
+      whirlpoolData.sqrtPrice.eq(PriceMath.tickIndexToSqrtPriceX64(startingTick - tickSpacing))
+    );
     assert.ok(whirlpoolData.liquidity.eq(initialLiquidity.add(additionalLiquidity)));
   });
 

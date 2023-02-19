@@ -2,10 +2,9 @@ import { AddressUtil, Percentage } from "@orca-so/common-sdk";
 import { Address, BN } from "@project-serum/anchor";
 import { u64 } from "@solana/spl-token";
 import invariant from "tiny-invariant";
-import { SwapInput } from "../../instructions";
 import { AccountFetcher } from "../../network/public";
-import { TickArray, WhirlpoolData } from "../../types/public";
-import { PoolUtil, SwapDirection, TokenType } from "../../utils/public";
+import { SwapInput, TickArray, WhirlpoolData } from "../../types/public";
+import { PoolUtil, SwapDirection } from "../../utils/public";
 import { SwapUtils } from "../../utils/public/swap-utils";
 import { Whirlpool } from "../../whirlpool-client";
 import { simulateSwap } from "../swap/swap-quote-impl";
@@ -193,4 +192,60 @@ async function swapQuoteByToken(
     otherAmountThreshold: SwapUtils.getDefaultOtherAmountThreshold(amountSpecifiedIsInput),
     tickArrays,
   };
+}
+
+interface SwapQuoteRequest {
+  whirlpool: Address;
+  inputTokenMint: Address;
+  tokenAmount: u64;
+  amountSpecifiedIsInput: boolean;
+}
+
+export async function batchSwapQuoteByToken(
+  quoteRequests: SwapQuoteRequest[],
+  programId: Address,
+  fetcher: AccountFetcher,
+  refresh: boolean,
+): Promise<SwapQuoteParam[]> {
+  const whirlpools = await fetcher.listPools(quoteRequests.map(req => req.whirlpool), refresh);
+  const program = AddressUtil.toPubKey(programId);
+
+  const mr = performance.now();
+  const tickArrayRequests = quoteRequests.map((quoteReq, index) => {
+    const { whirlpool, tokenAmount, inputTokenMint, amountSpecifiedIsInput } = quoteReq;
+    const whirlpoolData = whirlpools[index]!;
+    const swapMintKey = AddressUtil.toPubKey(inputTokenMint);
+    const swapTokenType = PoolUtil.getTokenType(whirlpoolData, swapMintKey);
+    invariant(!!swapTokenType, "swapTokenMint does not match any tokens on this pool");
+    const aToB = SwapUtils.getSwapDirection(whirlpoolData, swapMintKey, amountSpecifiedIsInput) === SwapDirection.AtoB;
+    return {
+      whirlpoolData,
+      tokenAmount,
+      aToB,
+      tickCurrentIndex: whirlpoolData.tickCurrentIndex,
+      tickSpacing: whirlpoolData.tickSpacing,
+      whirlpoolAddress: AddressUtil.toPubKey(whirlpool),
+      amountSpecifiedIsInput,
+    };
+  });
+
+  const tickArrays = await SwapUtils.getBatchTickArrays(
+    program,
+    fetcher,
+    refresh,
+    tickArrayRequests,
+  );
+
+  return tickArrayRequests.map((req, index) => {
+    const { whirlpoolData, tokenAmount, aToB, amountSpecifiedIsInput } = req;
+    return {
+      whirlpoolData,
+      tokenAmount,
+      aToB,
+      amountSpecifiedIsInput,
+      sqrtPriceLimit: SwapUtils.getDefaultSqrtPriceLimit(aToB),
+      otherAmountThreshold: SwapUtils.getDefaultOtherAmountThreshold(amountSpecifiedIsInput),
+      tickArrays: tickArrays[index],
+    };
+  });
 }

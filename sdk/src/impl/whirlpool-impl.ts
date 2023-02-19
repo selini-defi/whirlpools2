@@ -15,12 +15,12 @@ import { WhirlpoolContext } from "../context";
 import {
   closePositionIx,
   decreaseLiquidityIx,
-  DevFeeSwapInput,
   IncreaseLiquidityInput,
   increaseLiquidityIx,
   initTickArrayIx,
   openPositionIx,
   openPositionWithMetadataIx,
+  DevFeeSwapInput,
   swapAsync,
   SwapInput,
 } from "../instructions";
@@ -181,7 +181,11 @@ export class WhirlpoolImpl implements Whirlpool {
     );
   }
 
-  async swap(quote: SwapInput, sourceWallet?: Address): Promise<TransactionBuilder> {
+  async swap(
+    quote: SwapInput,
+    sourceWallet?: Address,
+    initTxBuilder?: TransactionBuilder,
+  ): Promise<TransactionBuilder> {
     const sourceWalletKey = sourceWallet
       ? AddressUtil.toPubKey(sourceWallet)
       : this.ctx.wallet.publicKey;
@@ -192,7 +196,8 @@ export class WhirlpoolImpl implements Whirlpool {
         whirlpool: this,
         wallet: sourceWalletKey,
       },
-      true
+      false,
+      initTxBuilder,
     );
   }
 

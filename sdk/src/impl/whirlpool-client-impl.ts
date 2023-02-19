@@ -8,9 +8,10 @@ import {
   collectAllForPositionAddressesTxns,
   collectProtocolFees,
 } from "../instructions/composites";
+import { twoHopSwapAsync } from "../instructions/composites/two-hop-swap-async";
 import { WhirlpoolIx } from "../ix";
 import { AccountFetcher } from "../network/public";
-import { WhirlpoolData } from "../types/public";
+import { TwoHopSwapInput, WhirlpoolData } from "../types/public";
 import { getTickArrayDataForPosition } from "../utils/builder/position-builder-util";
 import { PDAUtil, PoolUtil, PriceMath, TickUtil } from "../utils/public";
 import { Position, Whirlpool, WhirlpoolClient } from "../whirlpool-client";
@@ -34,9 +35,13 @@ export class WhirlpoolClientImpl implements WhirlpoolClient {
     if (!account) {
       throw new Error(`Unable to fetch Whirlpool at address at ${poolAddress}`);
     }
-    const tokenInfos = await getTokenMintInfos(this.ctx.fetcher, account, refresh);
-    const vaultInfos = await getTokenVaultAccountInfos(this.ctx.fetcher, account, refresh);
-    const rewardInfos = await getRewardInfos(this.ctx.fetcher, account, refresh);
+    
+    const [tokenInfos, vaultInfos, rewardInfos] = await Promise.all([
+      getTokenMintInfos(this.ctx.fetcher, account, refresh),
+      getTokenVaultAccountInfos(this.ctx.fetcher, account, refresh),
+      getRewardInfos(this.ctx.fetcher, account, refresh),
+    ]);
+
     return new WhirlpoolImpl(
       this.ctx,
       AddressUtil.toPubKey(poolAddress),
@@ -282,5 +287,28 @@ export class WhirlpoolClientImpl implements WhirlpoolClient {
 
   public async collectProtocolFeesForPools(poolAddresses: Address[]): Promise<TransactionBuilder> {
     return collectProtocolFees(this.ctx, poolAddresses);
+  }
+
+  public async twoHopSwap(
+    input: TwoHopSwapInput,
+    whirlpoolOne: Whirlpool,
+    whirlpoolTwo: Whirlpool,
+    sourceWallet?: PublicKey | undefined,
+    initTxBuilder?: TransactionBuilder | undefined,
+  ) {
+    const sourceWalletKey = sourceWallet
+      ? AddressUtil.toPubKey(sourceWallet)
+      : this.ctx.wallet.publicKey;
+    return twoHopSwapAsync(
+      this.ctx,
+      {
+        swapInput: input,
+        whirlpoolOne,
+        whirlpoolTwo,
+        wallet: sourceWalletKey,
+      },
+      true,
+      initTxBuilder,
+    );
   }
 }

@@ -26,6 +26,8 @@ export {
   SetRewardEmissionsSuperAuthorityParams,
   SwapInput,
   SwapParams,
+  TwoHopSwapInput,
+  TwoHopSwapParams,
   UpdateFeesAndRewardsParams,
 } from "../../instructions/";
 export {

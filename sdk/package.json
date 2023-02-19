@@ -10,7 +10,7 @@
     "@orca-so/common-sdk": "^0.1.10",
     "@project-serum/anchor": "~0.25.0",
     "@solana/spl-token": "^0.1.8",
-    "@solana/web3.js": "1.66.0",
+    "@solana/web3.js": "^1.66.0",
     "decimal.js": "^10.3.1",
     "tiny-invariant": "^1.2.0"
   },
@@ -47,6 +47,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/orca-so/whirlpools.git"
+  },
+  "resolutions": {
+    "@solana/web3.js": "^1.66.2"
   },
   "keywords": [
     "orca_so",

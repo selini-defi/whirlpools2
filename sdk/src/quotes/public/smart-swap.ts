@@ -138,11 +138,6 @@ function updateQuoteMap(
   for (const { address, percent, routeIndex, quoteIndex } of quoteUpdates) {
     const swapParam = quoteParams[quoteIndex];
     const route = quoteMap[percent][routeIndex];
-    console.log(
-      `Evaluating route - ${AddressUtil.toPubKey(address).toBase58()} ${
-        swapParam.whirlpoolData.tokenMintA
-      } / ${swapParam.whirlpoolData.tokenMintB}, ts${swapParam.whirlpoolData.tickSpacing}`
-    );
     try {
       const quote = swapQuoteWithParams(swapParam, Percentage.fromFraction(0, 1000));
       const { whirlpoolData, tokenAmount, aToB, amountSpecifiedIsInput } = swapParam;

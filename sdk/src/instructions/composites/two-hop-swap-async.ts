@@ -21,7 +21,7 @@ export async function twoHopSwapAsync(
   ctx: WhirlpoolContext,
   params: TwoHopSwapAsyncParams,
   refresh: boolean,
-  txBuilder: TransactionBuilder = new TransactionBuilder(ctx.connection, ctx.wallet),
+  txBuilder: TransactionBuilder = new TransactionBuilder(ctx.connection, ctx.wallet)
 ): Promise<TransactionBuilder> {
   const { wallet, whirlpoolOne, whirlpoolTwo, swapInput } = params;
   const { aToBOne, aToBTwo, amount } = swapInput;
@@ -33,7 +33,7 @@ export async function twoHopSwapAsync(
     swapInput.tickArrayTwo0,
     swapInput.tickArrayTwo1,
     swapInput.tickArrayTwo2,
-];
+  ];
 
   let uninitializedArrays = await TickArrayUtil.getUninitializedArraysString(
     tickArrayAddresses,
@@ -66,25 +66,22 @@ export async function twoHopSwapAsync(
   const oracleTwo = PDAUtil.getOracle(ctx.program.programId, whirlpoolTwo.getAddress()).publicKey;
 
   return txBuilder.addInstruction(
-    twoHopSwapIx(
-      ctx.program,
-      {
-        ...swapInput,
-        whirlpoolOne: whirlpoolOne.getAddress(),
-        whirlpoolTwo: whirlpoolTwo.getAddress(),
-        // TODO: handle ATAs 
-        tokenOwnerAccountOneA: null as any,
-        tokenOwnerAccountOneB: null as any,
-        tokenOwnerAccountTwoA: null as any,
-        tokenOwnerAccountTwoB: null as any,
-        tokenVaultOneA: dataOne.tokenVaultA,
-        tokenVaultOneB: dataOne.tokenVaultB,
-        tokenVaultTwoA: dataTwo.tokenVaultA,
-        tokenVaultTwoB: dataTwo.tokenVaultB,
-        oracleOne,
-        oracleTwo,
-        tokenAuthority: wallet,
-      }
-    )
+    twoHopSwapIx(ctx.program, {
+      ...swapInput,
+      whirlpoolOne: whirlpoolOne.getAddress(),
+      whirlpoolTwo: whirlpoolTwo.getAddress(),
+      // TODO: handle ATAs
+      tokenOwnerAccountOneA: null as any,
+      tokenOwnerAccountOneB: null as any,
+      tokenOwnerAccountTwoA: null as any,
+      tokenOwnerAccountTwoB: null as any,
+      tokenVaultOneA: dataOne.tokenVaultA,
+      tokenVaultOneB: dataOne.tokenVaultB,
+      tokenVaultTwoA: dataTwo.tokenVaultA,
+      tokenVaultTwoB: dataTwo.tokenVaultB,
+      oracleOne,
+      oracleTwo,
+      tokenAuthority: wallet,
+    })
   );
 }

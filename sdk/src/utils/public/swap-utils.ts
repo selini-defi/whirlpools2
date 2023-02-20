@@ -22,10 +22,10 @@ import { SwapDirection, TokenType } from "./types";
 
 // TODO: comment
 export interface TickArrayRequest {
-  whirlpoolAddress: PublicKey,
-  aToB: boolean,
-  tickCurrentIndex: number,
-  tickSpacing: number,
+  whirlpoolAddress: PublicKey;
+  aToB: boolean;
+  tickCurrentIndex: number;
+  tickSpacing: number;
 }
 
 /**
@@ -133,12 +133,9 @@ export class SwapUtils {
     fetcher: AccountFetcher,
     refresh: boolean
   ): Promise<TickArray[]> {
-    const data = await this.getBatchTickArrays(
-      programId,
-      fetcher,
-      refresh,
-      [{ tickCurrentIndex, tickSpacing, aToB, whirlpoolAddress }],
-    );
+    const data = await this.getBatchTickArrays(programId, fetcher, refresh, [
+      { tickCurrentIndex, tickSpacing, aToB, whirlpoolAddress },
+    ]);
     return data[0];
   }
 
@@ -147,7 +144,7 @@ export class SwapUtils {
     programId: PublicKey,
     fetcher: AccountFetcher,
     refresh: boolean,
-    tickArrayRequests: TickArrayRequest[],
+    tickArrayRequests: TickArrayRequest[]
   ): Promise<TickArray[][]> {
     let addresses: PublicKey[] = [];
     let requestToIndices = [];
@@ -170,7 +167,7 @@ export class SwapUtils {
     const data = await fetcher.listTickArrays(addresses, refresh);
 
     // Re-map from flattened batch data to TickArray[] for request
-    return requestToIndices.map(indices => {
+    return requestToIndices.map((indices) => {
       const [start, end] = indices;
       const addressSlice = addresses.slice(start, end);
       const dataSlice = data.slice(start, end);
@@ -240,7 +237,7 @@ export class SwapUtils {
       data.tokenVaultB,
       inputTokenAssociatedAddress,
       outputTokenAssociatedAddress,
-      wallet,
+      wallet
     );
   }
 

@@ -184,7 +184,7 @@ export class WhirlpoolImpl implements Whirlpool {
   async swap(
     quote: SwapInput,
     sourceWallet?: Address,
-    initTxBuilder?: TransactionBuilder,
+    initTxBuilder?: TransactionBuilder
   ): Promise<TransactionBuilder> {
     const sourceWalletKey = sourceWallet
       ? AddressUtil.toPubKey(sourceWallet)
@@ -197,7 +197,7 @@ export class WhirlpoolImpl implements Whirlpool {
         wallet: sourceWalletKey,
       },
       false,
-      initTxBuilder,
+      initTxBuilder
     );
   }
 

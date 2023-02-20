@@ -35,7 +35,7 @@ export class WhirlpoolClientImpl implements WhirlpoolClient {
     if (!account) {
       throw new Error(`Unable to fetch Whirlpool at address at ${poolAddress}`);
     }
-    
+
     const [tokenInfos, vaultInfos, rewardInfos] = await Promise.all([
       getTokenMintInfos(this.ctx.fetcher, account, refresh),
       getTokenVaultAccountInfos(this.ctx.fetcher, account, refresh),
@@ -294,7 +294,7 @@ export class WhirlpoolClientImpl implements WhirlpoolClient {
     whirlpoolOne: Whirlpool,
     whirlpoolTwo: Whirlpool,
     sourceWallet?: PublicKey | undefined,
-    initTxBuilder?: TransactionBuilder | undefined,
+    initTxBuilder?: TransactionBuilder | undefined
   ) {
     const sourceWalletKey = sourceWallet
       ? AddressUtil.toPubKey(sourceWallet)
@@ -308,7 +308,7 @@ export class WhirlpoolClientImpl implements WhirlpoolClient {
         wallet: sourceWalletKey,
       },
       true,
-      initTxBuilder,
+      initTxBuilder
     );
   }
 }

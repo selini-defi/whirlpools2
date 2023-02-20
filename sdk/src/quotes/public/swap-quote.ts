@@ -54,7 +54,7 @@ export type SwapEstimates = {
   estimatedEndTickIndex: number;
   estimatedEndSqrtPrice: BN;
   estimatedFeeAmount: u64;
-}
+};
 
 export type NormalSwapQuote = SwapInput & SwapEstimates;
 
@@ -171,7 +171,9 @@ async function swapQuoteByToken(
   const swapTokenType = PoolUtil.getTokenType(whirlpoolData, swapMintKey);
   invariant(!!swapTokenType, "swapTokenMint does not match any tokens on this pool");
 
-  const aToB = SwapUtils.getSwapDirection(whirlpoolData, swapMintKey, amountSpecifiedIsInput) === SwapDirection.AtoB;
+  const aToB =
+    SwapUtils.getSwapDirection(whirlpoolData, swapMintKey, amountSpecifiedIsInput) ===
+    SwapDirection.AtoB;
 
   const tickArrays = await SwapUtils.getTickArrays(
     whirlpoolData.tickCurrentIndex,
@@ -205,9 +207,12 @@ export async function batchSwapQuoteByToken(
   quoteRequests: SwapQuoteRequest[],
   programId: Address,
   fetcher: AccountFetcher,
-  refresh: boolean,
+  refresh: boolean
 ): Promise<SwapQuoteParam[]> {
-  const whirlpools = await fetcher.listPools(quoteRequests.map(req => req.whirlpool), refresh);
+  const whirlpools = await fetcher.listPools(
+    quoteRequests.map((req) => req.whirlpool),
+    refresh
+  );
   const program = AddressUtil.toPubKey(programId);
 
   const mr = performance.now();
@@ -217,7 +222,9 @@ export async function batchSwapQuoteByToken(
     const swapMintKey = AddressUtil.toPubKey(inputTokenMint);
     const swapTokenType = PoolUtil.getTokenType(whirlpoolData, swapMintKey);
     invariant(!!swapTokenType, "swapTokenMint does not match any tokens on this pool");
-    const aToB = SwapUtils.getSwapDirection(whirlpoolData, swapMintKey, amountSpecifiedIsInput) === SwapDirection.AtoB;
+    const aToB =
+      SwapUtils.getSwapDirection(whirlpoolData, swapMintKey, amountSpecifiedIsInput) ===
+      SwapDirection.AtoB;
     return {
       whirlpoolData,
       tokenAmount,
@@ -233,7 +240,7 @@ export async function batchSwapQuoteByToken(
     program,
     fetcher,
     refresh,
-    tickArrayRequests,
+    tickArrayRequests
   );
 
   return tickArrayRequests.map((req, index) => {

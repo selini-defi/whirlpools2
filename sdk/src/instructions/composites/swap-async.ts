@@ -1,6 +1,13 @@
 import { EMPTY_INSTRUCTION, TransactionBuilder, ZERO } from "@orca-so/common-sdk";
 import { ResolvedTokenAddressInstruction } from "@orca-so/common-sdk/dist/helpers/token-instructions";
-import { NATIVE_MINT, ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, u64, Token, AccountInfo } from "@solana/spl-token";
+import {
+  NATIVE_MINT,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
+  u64,
+  Token,
+  AccountInfo,
+} from "@solana/spl-token";
 import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
 import { SwapUtils, TickArrayUtil, Whirlpool, WhirlpoolContext } from "../..";
 import { createWSOLAccountInstructions } from "../../utils/spl-token-utils";
@@ -23,7 +30,7 @@ export async function swapAsync(
   ctx: WhirlpoolContext,
   params: SwapAsyncParams,
   refresh: boolean,
-  txBuilder: TransactionBuilder = new TransactionBuilder(ctx.connection, ctx.wallet),
+  txBuilder: TransactionBuilder = new TransactionBuilder(ctx.connection, ctx.wallet)
 ): Promise<TransactionBuilder> {
   const { wallet, whirlpool, swapInput } = params;
   const data = whirlpool.getData();
@@ -53,7 +60,7 @@ export async function swapAsyncFromKeys(
   tokenVaultB: PublicKey,
   atas: AccountInfo[] | null,
   refresh: boolean,
-  txBuilder: TransactionBuilder = new TransactionBuilder(ctx.connection, ctx.wallet),
+  txBuilder: TransactionBuilder = new TransactionBuilder(ctx.connection, ctx.wallet)
 ): Promise<TransactionBuilder> {
   const { aToB, amount } = swapInput;
   const tickArrayAddresses = [swapInput.tickArray0, swapInput.tickArray1, swapInput.tickArray2];
@@ -78,11 +85,15 @@ export async function swapAsyncFromKeys(
     () => ctx.fetcher.getAccountRentExempt(),
     (keys) => {
       if (atas != null) {
-        return Promise.resolve(keys.map(key => atas.find(ata => ata.address?.toBase58() === key.toBase58())) as AccountInfo[]);
+        return Promise.resolve(
+          keys.map((key) =>
+            atas.find((ata) => ata.address?.toBase58() === key.toBase58())
+          ) as AccountInfo[]
+        );
       } else {
-        return ctx.fetcher.listTokenInfos(keys, false)
+        return ctx.fetcher.listTokenInfos(keys, false);
       }
-    },
+    }
   );
   const { address: ataAKey, ...tokenOwnerAccountAIx } = resolvedAtaA;
   const { address: ataBKey, ...tokenOwnerAccountBIx } = resolvedAtaB;
@@ -107,11 +118,10 @@ export async function swapAsyncFromKeys(
   );
 }
 
-
 /**
  * Internal duplicate of resolveOrCreateAta
  * This could be ported over to common-sdk?
- * 
+ *
  * IMPORTANT: wrappedSolAmountIn should only be used for input/source token that
  *            could be SOL. This is because when SOL is the output, it is the end
  *            destination, and thus does not need to be wrapped with an amount.
@@ -124,11 +134,11 @@ export async function swapAsyncFromKeys(
  */
 export async function cachedResolveOrCreateATAs(
   ownerAddress: PublicKey,
-  requests: any[], /* This type needs to be exported from common-sdk */
+  requests: any[] /* This type needs to be exported from common-sdk */,
   getAccountRentExempt: () => Promise<number>,
   getTokenAccounts: (keys: PublicKey[]) => Promise<Array<AccountInfo | null>>,
   payer = ownerAddress,
-  modeIdempotent: boolean = false,
+  modeIdempotent: boolean = false
 ): Promise<ResolvedTokenAddressInstruction[]> {
   const nonNativeMints = requests.filter(({ tokenMint }) => !tokenMint.equals(NATIVE_MINT));
   const nativeMints = requests.filter(({ tokenMint }) => tokenMint.equals(NATIVE_MINT));
@@ -163,7 +173,7 @@ export async function cachedResolveOrCreateATAs(
           ataAddress,
           ownerAddress,
           payer,
-          modeIdempotent,
+          modeIdempotent
         );
 
         resolvedInstruction = {
@@ -207,7 +217,7 @@ function createAssociatedTokenAccountInstruction(
   associatedAccount: PublicKey,
   owner: PublicKey,
   payer: PublicKey,
-  modeIdempotent: boolean,
+  modeIdempotent: boolean
 ): TransactionInstruction {
   if (!modeIdempotent) {
     return Token.createAssociatedTokenAccountInstruction(
@@ -216,7 +226,7 @@ function createAssociatedTokenAccountInstruction(
       mint,
       associatedAccount,
       owner,
-      payer,
+      payer
     );
   }
 

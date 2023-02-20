@@ -108,7 +108,6 @@ export interface WhirlpoolClient {
    */
   collectProtocolFeesForPools: (poolAddresses: Address[]) => Promise<TransactionBuilder>;
 
-
   twoHopSwap: (
     input: TwoHopSwapInput,
     whirlpoolOne: Whirlpool,
@@ -271,7 +270,11 @@ export interface Whirlpool {
    * @param initTxBuilder - An optional transaction builder to append instructions
    * @return a transaction that will perform the swap once executed.
    */
-  swap: (input: SwapInput, wallet?: PublicKey, initTxBuilder?: TransactionBuilder) => Promise<TransactionBuilder>;
+  swap: (
+    input: SwapInput,
+    wallet?: PublicKey,
+    initTxBuilder?: TransactionBuilder
+  ) => Promise<TransactionBuilder>;
 
   /**
    * Collect a developer fee and perform a swap between tokenA and tokenB on this pool.

@@ -1,11 +1,7 @@
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
 import { AccountFetcher, PoolUtil, TokenInfo } from "..";
-import {
-  WhirlpoolData,
-  WhirlpoolRewardInfo,
-  TokenAccountInfo,
-} from "../types/public";
+import { WhirlpoolData, WhirlpoolRewardInfo, TokenAccountInfo } from "../types/public";
 
 export async function getTokenMintInfos(
   fetcher: AccountFetcher,
@@ -32,7 +28,7 @@ export async function getRewardInfos(
   data: WhirlpoolData,
   refresh: boolean
 ): Promise<WhirlpoolRewardInfo[]> {
-  const rewardInfos: (WhirlpoolRewardInfo | undefined) [] = [];
+  const rewardInfos: (WhirlpoolRewardInfo | undefined)[] = [];
 
   const fetchIndices: number[] = [];
   const fetchVaults: PublicKey[] = [];

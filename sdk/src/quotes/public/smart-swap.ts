@@ -29,17 +29,13 @@ export const DEFAULT_ROUTING_OPTIONS = {
   numTopPartialQuotes: 10,
 };
 
-async function prefetchRoutes(
-  pairRoutes: string[][],
-  programId: Address,
-  fetcher: AccountFetcher,
-) {
+async function prefetchRoutes(pairRoutes: string[][], programId: Address, fetcher: AccountFetcher) {
   // Pre-fetch
   const poolSet = new Set<string>();
   for (let i = 0; i < pairRoutes.length; i++) {
     const route = pairRoutes[i];
     for (let j = 0; j < route.length; j++) {
-      poolSet.add(route[j])
+      poolSet.add(route[j]);
     }
   }
 
@@ -57,16 +53,16 @@ async function prefetchRoutes(
       wp.tickSpacing,
       true,
       AddressUtil.toPubKey(programId),
-      AddressUtil.toPubKey(ps[i]),
+      AddressUtil.toPubKey(ps[i])
     );
     const addr2 = SwapUtils.getTickArrayPublicKeys(
       wp.tickCurrentIndex,
       wp.tickSpacing,
       false,
       AddressUtil.toPubKey(programId),
-      AddressUtil.toPubKey(ps[i]),
+      AddressUtil.toPubKey(ps[i])
     );
-    const allAddrs = [...addr1, ...addr2].map(k => k.toBase58());
+    const allAddrs = [...addr1, ...addr2].map((k) => k.toBase58());
     const unique = Array.from(new Set(allAddrs));
     tickArrayAddresses.push(...unique);
   }
@@ -82,7 +78,7 @@ export async function findBestRoutes(
   pools: Record<string, TokenPairPool>,
   programId: Address,
   fetcher: AccountFetcher,
-  userRoutingOptions: Partial<RoutingOptions> = DEFAULT_ROUTING_OPTIONS,
+  userRoutingOptions: Partial<RoutingOptions> = DEFAULT_ROUTING_OPTIONS
 ) {
   const pairRoutes = walks[getRouteId(inputTokenMint, outputTokenMint)];
 
@@ -101,10 +97,12 @@ export async function findBestRoutes(
   // The max route length is the number of iterations of quoting that we need to do
   const maxRouteLength = Math.max(...pairRoutes.map((route) => route.length));
 
-
   // For hop 0 of all routes, get swap quotes using [inputAmount, inputTokenMint]
   // For hop 1..n of all routes, get swap quotes using [outputAmount, outputTokenMint] of hop n-1 as input
-  const quoteMap: Record<number, Array<Pick<RouteQuote, "route" | "percent" | "calculatedHops">>> = {};
+  const quoteMap: Record<
+    number,
+    Array<Pick<RouteQuote, "route" | "percent" | "calculatedHops">>
+  > = {};
   for (let hop = 0; hop < maxRouteLength; hop++) {
     // Each batch of quotes needs to be iterative
     const quoteUpdates = buildQuoteUpdateRequests(
@@ -114,11 +112,11 @@ export async function findBestRoutes(
       percents,
       amounts,
       hop,
-      quoteMap,
+      quoteMap
     );
 
     const quoteParams = await batchSwapQuoteByToken(
-      quoteUpdates.map(update => update.request),
+      quoteUpdates.map((update) => update.request),
       AddressUtil.toPubKey(programId),
       fetcher,
       false
@@ -135,12 +133,16 @@ export async function findBestRoutes(
 function updateQuoteMap(
   quoteUpdates: ReturnType<typeof buildQuoteUpdateRequests>,
   quoteParams: SwapQuoteParam[],
-  quoteMap: Record<number, Array<Pick<RouteQuote, "route" | "percent" | "calculatedHops">>>,
+  quoteMap: Record<number, Array<Pick<RouteQuote, "route" | "percent" | "calculatedHops">>>
 ) {
   for (const { address, percent, routeIndex, quoteIndex } of quoteUpdates) {
     const swapParam = quoteParams[quoteIndex];
     const route = quoteMap[percent][routeIndex];
-    console.log(`Evaluating route - ${AddressUtil.toPubKey(address).toBase58()} ${swapParam.whirlpoolData.tokenMintA} / ${swapParam.whirlpoolData.tokenMintB}, ts${swapParam.whirlpoolData.tickSpacing}`)
+    console.log(
+      `Evaluating route - ${AddressUtil.toPubKey(address).toBase58()} ${
+        swapParam.whirlpoolData.tokenMintA
+      } / ${swapParam.whirlpoolData.tokenMintB}, ts${swapParam.whirlpoolData.tickSpacing}`
+    );
     try {
       const quote = swapQuoteWithParams(swapParam, Percentage.fromFraction(0, 1000));
       const { whirlpoolData, tokenAmount, aToB, amountSpecifiedIsInput } = swapParam;
@@ -150,10 +152,7 @@ function updateQuoteMap(
         whirlpoolData.tokenVaultA.toBase58(),
         whirlpoolData.tokenVaultB.toBase58(),
       ];
-      const [
-        inputMint,
-        outputMint,
-      ] =
+      const [inputMint, outputMint] =
         aToB && amountSpecifiedIsInput ? [mintA, mintB] : [mintB, mintA];
       route.calculatedHops.push({
         percent,
@@ -181,7 +180,7 @@ function buildQuoteUpdateRequests(
   percents: number[],
   amounts: BN[],
   hop: number,
-  quoteMap: Record<number, Array<Pick<RouteQuote, "route" | "percent" | "calculatedHops">>>,
+  quoteMap: Record<number, Array<Pick<RouteQuote, "route" | "percent" | "calculatedHops">>>
 ) {
   // Each batch of quotes needs to be iterative
   const quoteUpdates = [];
@@ -232,9 +231,8 @@ function buildQuoteUpdateRequests(
       }
 
       // If this is the first hop, use the input mint and amount, otherwise use the output of the last hop
-      const [tokenAmountIn, input] = hop === 0
-        ? [amountIn, inputTokenMint]
-        : [lastHop.amountOut, lastHop.outputMint];
+      const [tokenAmountIn, input] =
+        hop === 0 ? [amountIn, inputTokenMint] : [lastHop.amountOut, lastHop.outputMint];
 
       quoteUpdates.push({
         percent,
@@ -253,18 +251,17 @@ function buildQuoteUpdateRequests(
   return quoteUpdates;
 }
 
-
 /**
  * Annotate amountIn/amountOut for calculations
- * @param inputAmount 
- * @param quoteMap 
- * @returns 
+ * @param inputAmount
+ * @param quoteMap
+ * @returns
  */
 function cleanQuoteMap(
   inputAmount: u64,
-  quoteMap: Record<number, Array<Pick<RouteQuote, "route" | "percent" | "calculatedHops">>>,
+  quoteMap: Record<number, Array<Pick<RouteQuote, "route" | "percent" | "calculatedHops">>>
 ) {
-  const percents = Object.keys(quoteMap).map(percent => Number(percent));
+  const percents = Object.keys(quoteMap).map((percent) => Number(percent));
   const cleanedQuoteMap: { [key: number]: RouteQuote[] } = {};
   for (let i = 0; i < percents.length; i++) {
     const percent = percents[i];
@@ -286,11 +283,8 @@ function cleanQuoteMap(
   return cleanedQuoteMap;
 }
 
-function pruneQuoteMap(
-  quoteMap: { [key: number]: RouteQuote[] },
-  pruneN: number,
-) {
-  const percents = Object.keys(quoteMap).map(percent => Number(percent));
+function pruneQuoteMap(quoteMap: { [key: number]: RouteQuote[] }, pruneN: number) {
+  const percents = Object.keys(quoteMap).map((percent) => Number(percent));
   const prunedQuoteMap: { [key: number]: RouteQuote[] } = {};
   for (let i = 0; i < percents.length; i++) {
     const sortedQuotes = quoteMap[percents[i]].sort((a, b) => b.amountOut.cmp(a.amountOut));

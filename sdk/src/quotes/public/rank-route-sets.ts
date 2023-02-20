@@ -41,7 +41,9 @@ export function getRankedRouteSets(percentMap: QuotePercentMap, k: number = 100)
   let routeSets = generateRouteSets(percentMap);
 
   // Run quick select algorithm to partition the topN results, mutating inplace
-  kSmallestPartition(routeSets, k, 0, routeSets.length - 1, (a: RouteSet, b: RouteSet) => b.totalOut.cmp(a.totalOut));
+  kSmallestPartition(routeSets, k, 0, routeSets.length - 1, (a: RouteSet, b: RouteSet) =>
+    b.totalOut.cmp(a.totalOut)
+  );
   return routeSets.slice(0, k).sort((a, b) => b.totalOut.cmp(a.totalOut));
 }
 

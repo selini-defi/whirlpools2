@@ -15,7 +15,6 @@ export type PoolGraphEdge = {
 export type PoolGraph = Record<string, Array<PoolGraphEdge>>;
 export type PoolWalks = Record<string, string[][]>;
 
-
 /**
  * Convenience method for finding walks between pairs of tokens, given a set of pools pairing tokens
  * @param pairs Pairs of tokens for which to find walks.
@@ -37,28 +36,27 @@ export function findWalksFromPools(
  * since we assume that most token pairings don't exist as pools
  */
 export function buildPoolGraph(pools: TokenPairPool[]) {
-  const poolGraphSet = pools.reduce(
-    (poolGraph: Record<string, Set<PoolGraphEdge>>, pool) => {
-      const { address, tokenMintA, tokenMintB } = pool;
-      const [addr, mintA, mintB] = AddressUtil.toPubKeys([address, tokenMintA, tokenMintB]).map(pk => pk.toBase58());
+  const poolGraphSet = pools.reduce((poolGraph: Record<string, Set<PoolGraphEdge>>, pool) => {
+    const { address, tokenMintA, tokenMintB } = pool;
+    const [addr, mintA, mintB] = AddressUtil.toPubKeys([address, tokenMintA, tokenMintB]).map(
+      (pk) => pk.toBase58()
+    );
 
-      if (poolGraph[mintA] === undefined) {
-        poolGraph[mintA] = new Set();
-      }
+    if (poolGraph[mintA] === undefined) {
+      poolGraph[mintA] = new Set();
+    }
 
-      if (poolGraph[mintB] === undefined) {
-        poolGraph[mintB] = new Set();
-      }
+    if (poolGraph[mintB] === undefined) {
+      poolGraph[mintB] = new Set();
+    }
 
-      poolGraph[mintA].add({ address: addr, otherToken: mintB });
-      poolGraph[mintB].add({ address: addr, otherToken: mintA });
-      return poolGraph;
-    },
-    {}
-  );
+    poolGraph[mintA].add({ address: addr, otherToken: mintB });
+    poolGraph[mintB].add({ address: addr, otherToken: mintA });
+    return poolGraph;
+  }, {});
 
   return Object.fromEntries(
-    Object.entries(poolGraphSet).map(([mint, otherMints]) => [mint, Array.from(otherMints)]),
+    Object.entries(poolGraphSet).map(([mint, otherMints]) => [mint, Array.from(otherMints)])
   );
 }
 
@@ -85,7 +83,6 @@ export function findWalks(
 
     // Remove all direct edges from poolA to poolB
     const firstHop = poolA.filter(({ address }) => !poolB.some((p) => p.address === address));
-
 
     // Find all edges/nodes from neighbors of A that connect to B to create routes of length 2
     // tokenA --> tokenX --> tokenB

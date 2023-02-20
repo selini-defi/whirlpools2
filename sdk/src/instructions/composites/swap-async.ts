@@ -58,7 +58,6 @@ export async function swapAsyncFromKeys(
   const { aToB, amount } = swapInput;
   const tickArrayAddresses = [swapInput.tickArray0, swapInput.tickArray1, swapInput.tickArray2];
 
-  const ta = performance.now();
   let uninitializedArrays = await TickArrayUtil.getUninitializedArraysString(
     tickArrayAddresses,
     ctx.fetcher,
@@ -68,7 +67,6 @@ export async function swapAsyncFromKeys(
     throw new Error(`TickArray addresses - [${uninitializedArrays}] need to be initialized.`);
   }
 
-  const tb = performance.now();
   const [resolvedAtaA, resolvedAtaB] = await cachedResolveOrCreateATAs(
     wallet,
     [
@@ -77,15 +75,18 @@ export async function swapAsyncFromKeys(
     ],
     () => ctx.fetcher.getAccountRentExempt(),
     (keys) => {
-      if (atas != null) {
-        return Promise.resolve(keys.map(key => atas.find(ata => ata.address?.toBase58() === key.toBase58())) as AccountInfo[]);
-      } else {
+      // if (atas != null) {
+      //   return Promise.resolve(keys.map(key => atas.find(ata => ata.address?.toBase58() === key.toBase58())) as AccountInfo[]);
+      // } else {
         return ctx.fetcher.listTokenInfos(keys, false)
-      }
+      // }
     },
+    undefined,
+    true,
   );
   const { address: ataAKey, ...tokenOwnerAccountAIx } = resolvedAtaA;
   const { address: ataBKey, ...tokenOwnerAccountBIx } = resolvedAtaB;
+  console.log("RESOLVED ATAS", ataAKey.toBase58(), ataBKey.toBase58(), tokenOwnerAccountAIx, tokenOwnerAccountBIx);
   txBuilder.addInstructions([tokenOwnerAccountAIx, tokenOwnerAccountBIx]);
   const inputTokenAccount = aToB ? ataAKey : ataBKey;
   const outputTokenAccount = aToB ? ataBKey : ataAKey;

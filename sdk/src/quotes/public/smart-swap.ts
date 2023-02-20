@@ -4,7 +4,7 @@ import { u64 } from "@solana/spl-token";
 import { AccountFetcher, SwapUtils } from "../..";
 import { batchSwapQuoteByToken, SwapQuoteParam, swapQuoteWithParams } from "./swap-quote";
 import { PoolWalks, TokenPairPool, getRouteId } from "./pool-graph";
-import { getRankedRouteSets, RouteQuote } from "./rank-route-sets";
+import { getRankedRouteSets, RouteQuote, routeSetCompare } from "./rank-route-sets";
 
 export interface RoutingOptions {
   /**
@@ -21,12 +21,18 @@ export interface RoutingOptions {
    * Number of quotes to prune to after calculating quotes
    */
   numTopPartialQuotes: number;
+
+  /**
+   * Max splits
+   */
+  maxSplits: number;
 }
 
 export const DEFAULT_ROUTING_OPTIONS = {
   percentIncrement: 20,
   numTopRoutes: 50,
   numTopPartialQuotes: 10,
+  maxSplits: 3,
 };
 
 async function prefetchRoutes(
@@ -90,7 +96,7 @@ export async function findBestRoutes(
   }
 
   const routingOptions = { ...DEFAULT_ROUTING_OPTIONS, ...userRoutingOptions };
-  const { percentIncrement, numTopRoutes, numTopPartialQuotes } = routingOptions;
+  const { percentIncrement, numTopRoutes, numTopPartialQuotes, maxSplits } = routingOptions;
 
   // Pre-fetch
   await prefetchRoutes(pairRoutes, programId, fetcher);
@@ -126,8 +132,26 @@ export async function findBestRoutes(
   }
 
   const cleanedQuoteMap = cleanQuoteMap(inputAmount, quoteMap);
+
+  const singleHopSingleSplit = getSingleHopSplit(cleanedQuoteMap);
+
   const prunedQuoteMap = pruneQuoteMap(cleanedQuoteMap, numTopPartialQuotes);
-  return getRankedRouteSets(prunedQuoteMap, numTopRoutes);
+  
+  return [...getRankedRouteSets(prunedQuoteMap, numTopRoutes, maxSplits), ...singleHopSingleSplit].sort(routeSetCompare);
+}
+
+function getSingleHopSplit(
+  quoteMap: { [key: number]: RouteQuote[] },
+) {
+  const fullFlow = quoteMap[100];
+  if (fullFlow) {
+    return fullFlow.filter(f => f.calculatedHops.length == 1).map(f => ({
+      quotes: [f],
+      percent: 100,
+      totalOut: f.calculatedHops[0].amountOut,
+    }));
+  }
+  return [];
 }
 
 function updateQuoteMap(

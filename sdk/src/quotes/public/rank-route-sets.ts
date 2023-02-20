@@ -36,22 +36,28 @@ export interface QuotePercentMap {
   [key: number]: RouteQuote[];
 }
 
-export function getRankedRouteSets(
-  percentMap: QuotePercentMap,
-  k: number = 100,
-) {
-  const tA = performance.now();
-  let routeSets = generateRouteSets(percentMap);
-
-  // Run quick select algorithm to partition the topN results, mutating inplace
-  kSmallestPartition(routeSets, k, 0, routeSets.length - 1, (a: RouteSet, b: RouteSet) => b.totalOut.cmp(a.totalOut));
-  return routeSets.slice(0, k).sort((a, b) => b.totalOut.cmp(a.totalOut));
+export function routeSetCompare(a: RouteSet, b: RouteSet) {
+  return b.totalOut.cmp(a.totalOut);
 }
 
-export function generateRouteSets(percentMap: QuotePercentMap) {
+export function getRankedRouteSets(
+  percentMap: QuotePercentMap,
+  topN: number,
+  maxSplits: number,
+) {
+  let routeSets = generateRouteSets(percentMap, maxSplits);
+
+  // Run quick select algorithm to partition the topN results, mutating inplace
+  const partitionSize = Math.min(topN, routeSets.length - 1);
+  kSmallestPartition(routeSets, partitionSize, 0, routeSets.length - 1, routeSetCompare);
+  return routeSets.slice(0, partitionSize).sort(routeSetCompare);
+}
+
+export function generateRouteSets(percentMap: QuotePercentMap, maxSplits: number) {
   let routeSets: RouteSet[] = [];
   buildRouteSet(
     percentMap,
+    maxSplits,
     {
       quotes: [],
       percent: 0,
@@ -69,6 +75,7 @@ export function generateRouteSets(percentMap: QuotePercentMap) {
  */
 function buildRouteSet(
   quotePercentMap: QuotePercentMap,
+  maxSplits: number,
   currentRouteSet: RouteSet,
   routeSets: RouteSet[],
 ) {
@@ -91,7 +98,7 @@ function buildRouteSet(
 
       // Don't use a quote that shares a pool with an existing quote
       const hasReusedPools = nextQuote.route.some((r1) =>
-        currentRouteSet.quotes.some((r2) => r2.route.some((r3) => r3.indexOf(r1) !== -1))
+        quotes.some((r2) => r2.route.some((r3) => r3.indexOf(r1) !== -1))
       );
       if (hasReusedPools) {
         continue;
@@ -100,7 +107,7 @@ function buildRouteSet(
       // todo: Doesn't take into transaction fees
       // double-hops, multi-route penalties, benefits for pairs that can share lookup tables
       const nextRouteSet = {
-        quotes: [...currentRouteSet.quotes, nextQuote],
+        quotes: [...quotes, nextQuote],
         percent: newPercentTotal,
         totalOut: currentRouteSet.totalOut.add(nextQuote.amountOut),
       };
@@ -111,13 +118,14 @@ function buildRouteSet(
       if (newPercentTotal === 100) {
         // If we have reached 100% flow routed, we add it to the set of valid route sets
         routeSets.push(nextRouteSet);
-      } else {
+      } else if (quotes.length + 1 != maxSplits) {
         // Otherwise, recursively build route sets
         buildRouteSet(
           {
             ...quotePercentMap,
             [nextPercent]: nextCandidateQuotes,
           },
+          maxSplits,
           nextRouteSet,
           routeSets
         );

@@ -36,10 +36,7 @@ export interface QuotePercentMap {
   [key: number]: RouteQuote[];
 }
 
-export function getRankedRouteSets(
-  percentMap: QuotePercentMap,
-  k: number = 100,
-) {
+export function getRankedRouteSets(percentMap: QuotePercentMap, k: number = 100) {
   const tA = performance.now();
   let routeSets = generateRouteSets(percentMap);
 
@@ -70,17 +67,18 @@ export function generateRouteSets(percentMap: QuotePercentMap) {
 function buildRouteSet(
   quotePercentMap: QuotePercentMap,
   currentRouteSet: RouteSet,
-  routeSets: RouteSet[],
+  routeSets: RouteSet[]
 ) {
   const { percent, quotes } = currentRouteSet;
-  const percents = Object.keys(quotePercentMap).map(percent => Number(percent));
+  const percents = Object.keys(quotePercentMap).map((percent) => Number(percent));
   for (let i = percents.length - 1; i >= 0; i--) {
     const nextPercent = percents[i];
     const newPercentTotal = percent + nextPercent;
 
     // Optimization to prevent exceeding 100% flow and excess combinations of flow by only using decreasing
     // amounts of flow percentages
-    const nextPercentIsSmaller = quotes.length > 0 && nextPercent > quotes[quotes.length - 1].percent;
+    const nextPercentIsSmaller =
+      quotes.length > 0 && nextPercent > quotes[quotes.length - 1].percent;
     if (newPercentTotal > 100 || nextPercentIsSmaller) {
       continue;
     }

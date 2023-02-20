@@ -20,14 +20,16 @@ export type PoolWalks = Record<string, string[][]>;
  * Convenience method for finding walks between pairs of tokens, given a set of pools pairing tokens
  * @param pairs Pairs of tokens for which to find walks.
  * @param pools Pools that allow bi-directional swaps between token pairs.
+ * @param intermediateTokens Allowed list of tokens that can be intermediate tokens.
  * @returns Walks between pairs of tokens
  */
 export function findWalksFromPools(
   pairs: Array<[string, string]>,
   pools: TokenPairPool[],
+  intermediateTokens?: string[]
 ) {
   const poolGraph = buildPoolGraph(pools);
-  return findWalks(pairs, poolGraph);
+  return findWalks(pairs, poolGraph, intermediateTokens);
 }
 
 /**
@@ -65,6 +67,7 @@ export function buildPoolGraph(pools: TokenPairPool[]) {
 export function findWalks(
   tokenPairs: Array<[string, string]>,
   poolGraph: PoolGraph,
+  intermediateTokens?: string[]
 ) {
   const walks: PoolWalks = {};
 
@@ -76,21 +79,24 @@ export function findWalks(
 
     // Find all direct pool routes, i.e. all edges shared between tokenA and tokenB
     const singleHop = poolA
-      .filter(({ address  }) => poolB.some((p) => p.address === address ))
+      .filter(({ address }) => poolB.some((p) => p.address === address))
       .map((op) => [op.address]);
     routes.push(...singleHop);
 
     // Remove all direct edges from poolA to poolB
     const firstHop = poolA.filter(({ address }) => !poolB.some((p) => p.address === address));
 
+
     // Find all edges/nodes from neighbors of A that connect to B to create routes of length 2
     // tokenA --> tokenX --> tokenB
     firstHop.forEach((firstPool) => {
       const intermediateToken = firstPool.otherToken;
-      const secondHops = poolB
-        .filter((secondPool) => secondPool.otherToken === intermediateToken)
-        .map((secondPool) => [firstPool.address, secondPool.address]);
-      routes.push(...secondHops);
+      if (intermediateTokens && intermediateTokens?.indexOf(intermediateToken) > -1) {
+        const secondHops = poolB
+          .filter((secondPool) => secondPool.otherToken === intermediateToken)
+          .map((secondPool) => [firstPool.address, secondPool.address]);
+        routes.push(...secondHops);
+      }
     });
 
     if (routes.length > 0) {
@@ -111,7 +117,7 @@ export function findWalks(
  * @param destinationMint - The token the swap is trading for.
  * @returns A string representing the routeId between the two provided tokens.
  */
- export function getRouteId(sourceMint: string, destinationMint: string) {
+export function getRouteId(sourceMint: string, destinationMint: string) {
   const [mintA, mintB] = stringSortMintKeys(sourceMint, destinationMint);
   return `${mintA}/${mintB}`;
 }

@@ -35,7 +35,6 @@ export class WhirlpoolClientImpl implements WhirlpoolClient {
     if (!account) {
       throw new Error(`Unable to fetch Whirlpool at address at ${poolAddress}`);
     }
-
     const [tokenInfos, vaultInfos, rewardInfos] = await Promise.all([
       getTokenMintInfos(this.ctx.fetcher, account, refresh),
       getTokenVaultAccountInfos(this.ctx.fetcher, account, refresh),

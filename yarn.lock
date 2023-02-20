@@ -665,10 +665,10 @@
     buffer-layout "^1.2.0"
     dotenv "10.0.0"
 
-"@solana/web3.js@^1.21.0", "@solana/web3.js@^1.31.0", "@solana/web3.js@^1.36.0":
-  version "1.66.0"
-  resolved "https://registry.npmjs.org/@solana/web3.js/-/web3.js-1.66.0.tgz"
-  integrity sha512-hQCzWd9u100Ba3da52u7GeDRqSRwyFZtZkUj4j08GKSK3c3+ZQ6CQoN3HBXzfyjVKMTyRGKT0FlPA+hOX3kmOQ==
+"@solana/web3.js@^1.21.0", "@solana/web3.js@^1.31.0", "@solana/web3.js@^1.36.0", "@solana/web3.js@^1.66.0":
+  version "1.66.2"
+  resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.66.2.tgz#80b43c5868b846124fe3ebac7d3943930c3fa60c"
+  integrity sha512-RyaHMR2jGmaesnYP045VLeBGfR/gAW3cvZHzMFGg7bkO+WOYOYp1nEllf0/la4U4qsYGKCsO9eEevR5fhHiVHg==
   dependencies:
     "@babel/runtime" "^7.12.5"
     "@noble/ed25519" "^1.7.0"

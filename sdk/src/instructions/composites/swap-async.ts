@@ -75,7 +75,6 @@ export async function swapAsyncFromKeys(
     throw new Error(`TickArray addresses - [${uninitializedArrays}] need to be initialized.`);
   }
 
-  const tb = performance.now();
   const [resolvedAtaA, resolvedAtaB] = await cachedResolveOrCreateATAs(
     wallet,
     [
@@ -97,6 +96,7 @@ export async function swapAsyncFromKeys(
   );
   const { address: ataAKey, ...tokenOwnerAccountAIx } = resolvedAtaA;
   const { address: ataBKey, ...tokenOwnerAccountBIx } = resolvedAtaB;
+  console.log("RESOLVED ATAS", ataAKey.toBase58(), ataBKey.toBase58(), tokenOwnerAccountAIx, tokenOwnerAccountBIx);
   txBuilder.addInstructions([tokenOwnerAccountAIx, tokenOwnerAccountBIx]);
   const inputTokenAccount = aToB ? ataAKey : ataBKey;
   const outputTokenAccount = aToB ? ataBKey : ataAKey;
@@ -173,7 +173,7 @@ export async function cachedResolveOrCreateATAs(
           ataAddress,
           ownerAddress,
           payer,
-          modeIdempotent
+          modeIdempotent,
         );
 
         resolvedInstruction = {

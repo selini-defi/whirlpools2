@@ -29,6 +29,7 @@ export interface RouteHop {
 export interface RouteSet {
   quotes: RouteQuote[];
   percent: number;
+  totalIn: u64;
   totalOut: u64;
 }
 
@@ -36,19 +37,29 @@ export interface QuotePercentMap {
   [key: number]: RouteQuote[];
 }
 
-export function routeSetCompare(a: RouteSet, b: RouteSet) {
+export function getRouteSetCompare(amountSpecifiedIsInput: boolean) {
+  return amountSpecifiedIsInput ? routeSetCompareForInputAmount : routeSetCompareForOutputAmount;
+}
+
+function routeSetCompareForInputAmount(a: RouteSet, b: RouteSet) {
   return b.totalOut.cmp(a.totalOut);
+}
+
+function routeSetCompareForOutputAmount(a: RouteSet, b: RouteSet) {
+  return a.totalIn.cmp(b.totalIn);
 }
 
 export function getRankedRouteSets(
   percentMap: QuotePercentMap,
+  amountSpecifiedIsInput: boolean,
   topN: number,
-  maxSplits: number,
+  maxSplits: number
 ) {
   let routeSets = generateRouteSets(percentMap, maxSplits);
 
   // Run quick select algorithm to partition the topN results, mutating inplace
   const partitionSize = Math.min(topN, routeSets.length - 1);
+  const routeSetCompare = getRouteSetCompare(amountSpecifiedIsInput);
   kSmallestPartition(routeSets, partitionSize, 0, routeSets.length - 1, routeSetCompare);
   return routeSets.slice(0, partitionSize).sort(routeSetCompare);
 }
@@ -61,6 +72,7 @@ export function generateRouteSets(percentMap: QuotePercentMap, maxSplits: number
     {
       quotes: [],
       percent: 0,
+      totalIn: new u64(0),
       totalOut: new u64(0),
     },
     routeSets
@@ -77,17 +89,18 @@ function buildRouteSet(
   quotePercentMap: QuotePercentMap,
   maxSplits: number,
   currentRouteSet: RouteSet,
-  routeSets: RouteSet[],
+  routeSets: RouteSet[]
 ) {
   const { percent, quotes } = currentRouteSet;
-  const percents = Object.keys(quotePercentMap).map(percent => Number(percent));
+  const percents = Object.keys(quotePercentMap).map((percent) => Number(percent));
   for (let i = percents.length - 1; i >= 0; i--) {
     const nextPercent = percents[i];
     const newPercentTotal = percent + nextPercent;
 
     // Optimization to prevent exceeding 100% flow and excess combinations of flow by only using decreasing
     // amounts of flow percentages
-    const nextPercentIsSmaller = quotes.length > 0 && nextPercent > quotes[quotes.length - 1].percent;
+    const nextPercentIsSmaller =
+      quotes.length > 0 && nextPercent > quotes[quotes.length - 1].percent;
     if (newPercentTotal > 100 || nextPercentIsSmaller) {
       continue;
     }
@@ -109,6 +122,7 @@ function buildRouteSet(
       const nextRouteSet = {
         quotes: [...quotes, nextQuote],
         percent: newPercentTotal,
+        totalIn: currentRouteSet.totalIn.add(nextQuote.amountIn),
         totalOut: currentRouteSet.totalOut.add(nextQuote.amountOut),
       };
 

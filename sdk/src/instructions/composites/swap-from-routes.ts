@@ -1,8 +1,26 @@
-import { AddressUtil, deriveATA, EMPTY_INSTRUCTION, TransactionBuilder, ZERO } from "@orca-so/common-sdk";
+import {
+  AddressUtil,
+  deriveATA,
+  EMPTY_INSTRUCTION,
+  TransactionBuilder,
+  ZERO,
+} from "@orca-so/common-sdk";
 import { ResolvedTokenAddressInstruction } from "@orca-so/common-sdk/dist/helpers/token-instructions";
-import { AccountInfo, ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, TOKEN_PROGRAM_ID, u64 } from "@solana/spl-token";
+import {
+  AccountInfo,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  NATIVE_MINT,
+  TOKEN_PROGRAM_ID,
+  u64,
+} from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import { PDAUtil, RouteSet, TickArrayUtil, twoHopSwapQuoteFromSwapQuotes, WhirlpoolContext } from "../..";
+import {
+  PDAUtil,
+  RouteSet,
+  TickArrayUtil,
+  twoHopSwapQuoteFromSwapQuotes,
+  WhirlpoolContext,
+} from "../..";
 import { createAssociatedTokenAccountInstruction } from "../../utils/ata-ix-util";
 import { createWSOLAccountInstructions } from "../../utils/spl-token-utils";
 import { swapIx } from "../swap-ix";
@@ -39,28 +57,26 @@ export async function getSwapFromRouteSet(
     if (routeFragment.calculatedHops.length == 1) {
       const { quote, mintA, mintB } = routeFragment.calculatedHops[0];
 
-      requiredTickArrays.push(...[
-        quote.tickArray0,
-        quote.tickArray1,
-        quote.tickArray2,
-      ]);
+      requiredTickArrays.push(...[quote.tickArray0, quote.tickArray1, quote.tickArray2]);
 
       const inputAmount = quote.amount;
       addOrNative(mintA.toString(), quote.aToB ? inputAmount : ZERO);
       addOrNative(mintB.toString(), !quote.aToB ? inputAmount : ZERO);
     } else if (routeFragment.calculatedHops.length == 2) {
-      const { quote: quoteOne, mintA: mintOneA, mintB: mintOneB }  = routeFragment.calculatedHops[0];
-      const { quote: quoteTwo, mintA: mintTwoA, mintB: mintTwoB }  = routeFragment.calculatedHops[1];
+      const { quote: quoteOne, mintA: mintOneA, mintB: mintOneB } = routeFragment.calculatedHops[0];
+      const { quote: quoteTwo, mintA: mintTwoA, mintB: mintTwoB } = routeFragment.calculatedHops[1];
       const twoHopQuote = twoHopSwapQuoteFromSwapQuotes(quoteOne, quoteTwo);
 
-      requiredTickArrays.push(...[
-        twoHopQuote.tickArrayOne0,
-        twoHopQuote.tickArrayOne1,
-        twoHopQuote.tickArrayOne2,
-        twoHopQuote.tickArrayTwo0,
-        twoHopQuote.tickArrayTwo1,
-        twoHopQuote.tickArrayTwo2,
-      ]);
+      requiredTickArrays.push(
+        ...[
+          twoHopQuote.tickArrayOne0,
+          twoHopQuote.tickArrayOne1,
+          twoHopQuote.tickArrayOne2,
+          twoHopQuote.tickArrayTwo0,
+          twoHopQuote.tickArrayTwo1,
+          twoHopQuote.tickArrayTwo2,
+        ]
+      );
 
       const inputAmount = quoteOne.estimatedAmountIn;
       addOrNative(mintOneA.toString(), quoteOne.aToB ? inputAmount : ZERO);
@@ -103,7 +119,11 @@ export async function getSwapFromRouteSet(
   const ataIxes = Object.values(ataInstructionMap);
 
   if (hasNativeMint) {
-    const solIx = createWSOLAccountInstructions(wallet, nativeMintAmount, await ctx.fetcher.getAccountRentExempt());
+    const solIx = createWSOLAccountInstructions(
+      wallet,
+      nativeMintAmount,
+      await ctx.fetcher.getAccountRentExempt()
+    );
     txBuilder.addInstruction(solIx);
     ataInstructionMap[NATIVE_MINT.toBase58()] = solIx;
   }
@@ -114,17 +134,12 @@ export async function getSwapFromRouteSet(
     const routeFragment = routeSet.quotes[i];
     if (routeFragment.calculatedHops.length == 1) {
       const { quote, whirlpool, mintA, mintB, vaultA, vaultB } = routeFragment.calculatedHops[0];
-      const [wp, tokenVaultA, tokenVaultB]= AddressUtil.toPubKeys([
-        whirlpool,
-        vaultA,
-        vaultB,
-      ]);
+      const [wp, tokenVaultA, tokenVaultB] = AddressUtil.toPubKeys([whirlpool, vaultA, vaultB]);
       const accA = ataInstructionMap[mintA.toString()].address;
       const accB = ataInstructionMap[mintB.toString()].address;
       const oraclePda = PDAUtil.getOracle(ctx.program.programId, wp);
-      txBuilder.addInstruction(swapIx(
-        ctx.program,
-        {
+      txBuilder.addInstruction(
+        swapIx(ctx.program, {
           whirlpool: wp,
           tokenOwnerAccountA: accA,
           tokenOwnerAccountB: accB,
@@ -132,9 +147,9 @@ export async function getSwapFromRouteSet(
           tokenVaultB,
           oracle: oraclePda.publicKey,
           tokenAuthority: wallet,
-          ...quote
-        },
-      ));
+          ...quote,
+        })
+      );
     } else if (routeFragment.calculatedHops.length == 2) {
       const {
         quote: quoteOne,
@@ -142,8 +157,8 @@ export async function getSwapFromRouteSet(
         mintA: mintOneA,
         mintB: mintOneB,
         vaultA: vaultOneA,
-        vaultB: vaultOneB
-      }  = routeFragment.calculatedHops[0];
+        vaultB: vaultOneB,
+      } = routeFragment.calculatedHops[0];
       const {
         quote: quoteTwo,
         whirlpool: whirlpoolTwo,
@@ -151,23 +166,17 @@ export async function getSwapFromRouteSet(
         mintB: mintTwoB,
         vaultA: vaultTwoA,
         vaultB: vaultTwoB,
-      }  = routeFragment.calculatedHops[1];
+      } = routeFragment.calculatedHops[1];
 
-      const [
-        wpOne,
-        wpTwo,
-        tokenVaultOneA,
-        tokenVaultOneB,
-        tokenVaultTwoA,
-        tokenVaultTwoB,
-      ] = AddressUtil.toPubKeys([
-        whirlpoolOne,
-        whirlpoolTwo,
-        vaultOneA,
-        vaultOneB,
-        vaultTwoA,
-        vaultTwoB,
-      ]);
+      const [wpOne, wpTwo, tokenVaultOneA, tokenVaultOneB, tokenVaultTwoA, tokenVaultTwoB] =
+        AddressUtil.toPubKeys([
+          whirlpoolOne,
+          whirlpoolTwo,
+          vaultOneA,
+          vaultOneB,
+          vaultTwoA,
+          vaultTwoB,
+        ]);
       const twoHopQuote = twoHopSwapQuoteFromSwapQuotes(quoteOne, quoteTwo);
 
       const oracleOne = PDAUtil.getOracle(ctx.program.programId, wpOne).publicKey;
@@ -178,31 +187,26 @@ export async function getSwapFromRouteSet(
       const tokenOwnerAccountTwoA = ataInstructionMap[mintTwoA.toString()].address;
       const tokenOwnerAccountTwoB = ataInstructionMap[mintTwoB.toString()].address;
       txBuilder.addInstruction(
-        twoHopSwapIx(
-          ctx.program,
-          {
-            ...twoHopQuote,
-            whirlpoolOne: wpOne,
-            whirlpoolTwo: wpTwo,
-            tokenOwnerAccountOneA,
-            tokenOwnerAccountOneB,
-            tokenOwnerAccountTwoA,
-            tokenOwnerAccountTwoB,
-            tokenVaultOneA,
-            tokenVaultOneB,
-            tokenVaultTwoA,
-            tokenVaultTwoB,
-            oracleOne,
-            oracleTwo,
-            tokenAuthority: wallet,
-          }
-        )
-      )
-
+        twoHopSwapIx(ctx.program, {
+          ...twoHopQuote,
+          whirlpoolOne: wpOne,
+          whirlpoolTwo: wpTwo,
+          tokenOwnerAccountOneA,
+          tokenOwnerAccountOneB,
+          tokenOwnerAccountTwoA,
+          tokenOwnerAccountTwoB,
+          tokenVaultOneA,
+          tokenVaultOneB,
+          tokenVaultTwoA,
+          tokenVaultTwoB,
+          oracleOne,
+          oracleTwo,
+          tokenAuthority: wallet,
+        })
+      );
     }
   }
   return txBuilder;
-
 }
 
 /**
@@ -225,10 +229,10 @@ export async function cachedResolveOrCreateNonNativeATAs(
   getTokenAccounts: (keys: PublicKey[]) => Promise<Array<AccountInfo | null>>,
   payer = ownerAddress,
   modeIdempotent: boolean = false
-): Promise<{ [tokenMint: string]: ResolvedTokenAddressInstruction } > {
+): Promise<{ [tokenMint: string]: ResolvedTokenAddressInstruction }> {
   const instructionMap: { [tokenMint: string]: ResolvedTokenAddressInstruction } = {};
-  const tokenMintArray = Array.from(tokenMints).map(tm => new PublicKey(tm));
-  const tokenAtas = await Promise.all(tokenMintArray.map(tm => deriveATA(ownerAddress, tm)));
+  const tokenMintArray = Array.from(tokenMints).map((tm) => new PublicKey(tm));
+  const tokenAtas = await Promise.all(tokenMintArray.map((tm) => deriveATA(ownerAddress, tm)));
   const tokenAccounts = await getTokenAccounts(tokenAtas);
   tokenAccounts.forEach((tokenAccount, index) => {
     const ataAddress = tokenAtas[index]!;
@@ -249,7 +253,7 @@ export async function cachedResolveOrCreateNonNativeATAs(
         ataAddress,
         ownerAddress,
         payer,
-        modeIdempotent,
+        modeIdempotent
       );
 
       resolvedInstruction = {

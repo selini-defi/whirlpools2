@@ -198,7 +198,7 @@ async function swapQuoteByToken(
 
 interface SwapQuoteRequest {
   whirlpool: Address;
-  inputTokenMint: Address;
+  tradeTokenMint: Address;
   tokenAmount: u64;
   amountSpecifiedIsInput: boolean;
 }
@@ -217,9 +217,9 @@ export async function batchSwapQuoteByToken(
 
   const mr = performance.now();
   const tickArrayRequests = quoteRequests.map((quoteReq, index) => {
-    const { whirlpool, tokenAmount, inputTokenMint, amountSpecifiedIsInput } = quoteReq;
+    const { whirlpool, tokenAmount, tradeTokenMint, amountSpecifiedIsInput } = quoteReq;
     const whirlpoolData = whirlpools[index]!;
-    const swapMintKey = AddressUtil.toPubKey(inputTokenMint);
+    const swapMintKey = AddressUtil.toPubKey(tradeTokenMint);
     const swapTokenType = PoolUtil.getTokenType(whirlpoolData, swapMintKey);
     invariant(!!swapTokenType, "swapTokenMint does not match any tokens on this pool");
     const aToB =

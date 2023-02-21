@@ -1,6 +1,13 @@
 import { EMPTY_INSTRUCTION } from "@orca-so/common-sdk";
 import { ResolvedTokenAddressInstruction } from "@orca-so/common-sdk/dist/helpers/token-instructions";
-import { AccountInfo, ASSOCIATED_TOKEN_PROGRAM_ID, NATIVE_MINT, Token, TOKEN_PROGRAM_ID, u64 } from "@solana/spl-token";
+import {
+  AccountInfo,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  NATIVE_MINT,
+  Token,
+  TOKEN_PROGRAM_ID,
+  u64,
+} from "@solana/spl-token";
 import { PublicKey, SystemProgram, TransactionInstruction } from "@solana/web3.js";
 import { createWSOLAccountInstructions } from "./spl-token-utils";
 
@@ -52,7 +59,6 @@ export function createAssociatedTokenAccountInstruction(
     data: instructionData,
   });
 }
-
 
 /**
  * Internal duplicate of resolveOrCreateAta
@@ -109,7 +115,7 @@ export async function cachedResolveOrCreateATAs(
           ataAddress,
           ownerAddress,
           payer,
-          modeIdempotent,
+          modeIdempotent
         );
 
         resolvedInstruction = {

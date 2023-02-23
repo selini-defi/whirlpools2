@@ -5,7 +5,7 @@ import {
   resolveOrCreateATAs,
   TokenUtil,
   TransactionBuilder,
-  ZERO
+  ZERO,
 } from "@orca-so/common-sdk";
 import { Address, BN, translateAddress } from "@project-serum/anchor";
 import { NATIVE_MINT } from "@solana/spl-token";
@@ -22,12 +22,12 @@ import {
   openPositionIx,
   openPositionWithMetadataIx,
   swapAsync,
-  SwapInput
+  SwapInput,
 } from "../instructions";
 import {
   collectFeesQuote,
   collectRewardsQuote,
-  decreaseLiquidityQuoteByLiquidityWithParams
+  decreaseLiquidityQuoteByLiquidityWithParams,
 } from "../quotes/public";
 import { TokenAccountInfo, TokenInfo, WhirlpoolData, WhirlpoolRewardInfo } from "../types/public";
 import { getTickArrayDataForPosition } from "../utils/builder/position-builder-util";
@@ -36,7 +36,7 @@ import { createWSOLAccountInstructions } from "../utils/spl-token-utils";
 import {
   getTokenMintsFromWhirlpools,
   resolveAtaForMints,
-  TokenMintTypes
+  TokenMintTypes,
 } from "../utils/whirlpool-ata-utils";
 import { Whirlpool } from "../whirlpool-client";
 import { PositionImpl } from "./position-impl";
@@ -181,10 +181,7 @@ export class WhirlpoolImpl implements Whirlpool {
     );
   }
 
-  async swap(
-    quote: SwapInput,
-    sourceWallet?: Address
-  ): Promise<TransactionBuilder> {
+  async swap(quote: SwapInput, sourceWallet?: Address): Promise<TransactionBuilder> {
     const sourceWalletKey = sourceWallet
       ? AddressUtil.toPubKey(sourceWallet)
       : this.ctx.wallet.publicKey;

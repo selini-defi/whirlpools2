@@ -1,5 +1,6 @@
 import { AddressUtil, TransactionBuilder } from "@orca-so/common-sdk";
 import { Address } from "@project-serum/anchor";
+import { AccountInfo } from "@solana/spl-token";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import invariant from "tiny-invariant";
 import { WhirlpoolContext } from "../context";
@@ -7,11 +8,12 @@ import { initTickArrayIx } from "../instructions";
 import {
   collectAllForPositionAddressesTxns,
   collectProtocolFees,
+  getSwapFromRoute,
 } from "../instructions/composites";
-import { twoHopSwapAsync } from "../instructions/composites/two-hop-swap-async";
 import { WhirlpoolIx } from "../ix";
 import { AccountFetcher } from "../network/public";
-import { TwoHopSwapInput, WhirlpoolData } from "../types/public";
+import { WhirlpoolRoute } from "../quotes/public";
+import { WhirlpoolData } from "../types/public";
 import { getTickArrayDataForPosition } from "../utils/builder/position-builder-util";
 import { PDAUtil, PoolUtil, PriceMath, TickUtil } from "../utils/public";
 import { Position, Whirlpool, WhirlpoolClient } from "../whirlpool-client";
@@ -288,26 +290,16 @@ export class WhirlpoolClientImpl implements WhirlpoolClient {
     return collectProtocolFees(this.ctx, poolAddresses);
   }
 
-  public async twoHopSwap(
-    input: TwoHopSwapInput,
-    whirlpoolOne: Whirlpool,
-    whirlpoolTwo: Whirlpool,
-    sourceWallet?: PublicKey | undefined,
-    initTxBuilder?: TransactionBuilder | undefined
-  ) {
-    const sourceWalletKey = sourceWallet
-      ? AddressUtil.toPubKey(sourceWallet)
-      : this.ctx.wallet.publicKey;
-    return twoHopSwapAsync(
-      this.ctx,
-      {
-        swapInput: input,
-        whirlpoolOne,
-        whirlpoolTwo,
-        wallet: sourceWalletKey,
-      },
-      true,
-      initTxBuilder
-    );
+  public async swapWithRoute(
+    route: WhirlpoolRoute,
+    atas: AccountInfo[] | null,
+    wallet: PublicKey,
+    payer?: PublicKey | undefined
+  ): Promise<TransactionBuilder> {
+    return getSwapFromRoute(this.ctx, {
+      route,
+      atas,
+      wallet,
+    });
   }
 }

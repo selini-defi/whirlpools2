@@ -1,6 +1,8 @@
 import { Percentage, TransactionBuilder } from "@orca-so/common-sdk";
 import { Address } from "@project-serum/anchor";
+import { AccountInfo } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
+import { WhirlpoolRoute } from ".";
 import { WhirlpoolContext } from "./context";
 import { WhirlpoolClientImpl } from "./impl/whirlpool-client-impl";
 import { DevFeeSwapInput, SwapInput } from "./instructions";
@@ -10,7 +12,6 @@ import {
   IncreaseLiquidityInput,
   PositionData,
   TickData,
-  TwoHopSwapInput,
   WhirlpoolData,
 } from "./types/public";
 import { TokenAccountInfo, TokenInfo, WhirlpoolRewardInfo } from "./types/public/client-types";
@@ -108,12 +109,12 @@ export interface WhirlpoolClient {
    */
   collectProtocolFeesForPools: (poolAddresses: Address[]) => Promise<TransactionBuilder>;
 
-  twoHopSwap: (
-    input: TwoHopSwapInput,
-    whirlpoolOne: Whirlpool,
-    whirlpoolTwo: Whirlpool,
-    sourceWallet?: PublicKey | undefined,
-    initTxBuilder?: TransactionBuilder | undefined
+  // TODO: Not the best place to put this. But can't be placed into a pool either.
+  swapWithRoute: (
+    route: WhirlpoolRoute,
+    atas: AccountInfo[] | null,
+    wallet: PublicKey,
+    payer?: PublicKey
   ) => Promise<TransactionBuilder>;
 }
 

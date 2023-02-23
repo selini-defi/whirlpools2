@@ -14,31 +14,26 @@ import {
   u64,
 } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import {
-  PDAUtil,
-  RouteSet,
-  TickArrayUtil,
-  twoHopSwapQuoteFromSwapQuotes,
-  WhirlpoolContext,
-} from "../..";
+import { PDAUtil, TickArrayUtil, twoHopSwapQuoteFromSwapQuotes, WhirlpoolContext } from "../..";
+import { WhirlpoolRoute } from "../../quotes/public/smart-swap-types";
 import { createAssociatedTokenAccountInstruction } from "../../utils/ata-ix-util";
 import { createWSOLAccountInstructions } from "../../utils/spl-token-utils";
 import { swapIx } from "../swap-ix";
 import { twoHopSwapIx } from "../two-hop-swap-ix";
 
-export type SwapFromRouteSetParams = {
-  routeSet: RouteSet;
+export type SwapFromRouteParams = {
+  route: WhirlpoolRoute;
   wallet: PublicKey;
   atas: AccountInfo[] | null;
 };
 
-export async function getSwapFromRouteSet(
+export async function getSwapFromRoute(
   ctx: WhirlpoolContext,
-  params: SwapFromRouteSetParams,
+  params: SwapFromRouteParams,
   refresh: boolean = false,
   txBuilder: TransactionBuilder = new TransactionBuilder(ctx.connection, ctx.wallet)
 ) {
-  const { routeSet, wallet, atas } = params;
+  const { route, wallet, atas } = params;
   const requiredAtas = new Set<string>();
   const requiredTickArrays = [];
   let hasNativeMint = false;
@@ -52,8 +47,8 @@ export async function getSwapFromRouteSet(
       requiredAtas.add(mint);
     }
   }
-  for (let i = 0; i < routeSet.quotes.length; i++) {
-    const routeFragment = routeSet.quotes[i];
+  for (let i = 0; i < route.quotes.length; i++) {
+    const routeFragment = route.quotes[i];
     if (routeFragment.calculatedHops.length == 1) {
       const { quote, mintA, mintB } = routeFragment.calculatedHops[0];
 
@@ -130,8 +125,8 @@ export async function getSwapFromRouteSet(
 
   txBuilder.addInstructions(ataIxes);
 
-  for (let i = 0; i < routeSet.quotes.length; i++) {
-    const routeFragment = routeSet.quotes[i];
+  for (let i = 0; i < route.quotes.length; i++) {
+    const routeFragment = route.quotes[i];
     if (routeFragment.calculatedHops.length == 1) {
       const { quote, whirlpool, mintA, mintB, vaultA, vaultB } = routeFragment.calculatedHops[0];
       const [wp, tokenVaultA, tokenVaultB] = AddressUtil.toPubKeys([whirlpool, vaultA, vaultB]);

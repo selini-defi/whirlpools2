@@ -1,37 +1,6 @@
-import { Address } from "@project-serum/anchor";
 import { u64 } from "@solana/spl-token";
 import { kSmallestPartition } from "../../utils/math/k-smallest-partition";
-import { SwapQuote } from "./swap-quote";
-
-export interface RouteQuote {
-  // An array of pools (id-ed by PoolKey) to complete an exchange between tokenA -> tokenB
-  route: string[];
-  percent: number;
-  amountIn: u64;
-  amountOut: u64;
-  calculatedHops: RouteHop[];
-}
-
-export interface RouteHop {
-  percent: number;
-  amountIn: u64;
-  amountOut: u64;
-  whirlpool: Address;
-  inputMint: Address;
-  outputMint: Address;
-  mintA: Address;
-  mintB: Address;
-  vaultA: Address;
-  vaultB: Address;
-  quote: SwapQuote;
-}
-
-export interface RouteSet {
-  quotes: RouteQuote[];
-  percent: number;
-  totalIn: u64;
-  totalOut: u64;
-}
+import { RouteQuote, WhirlpoolRoute } from "../public/smart-swap-types";
 
 export interface QuotePercentMap {
   [key: number]: RouteQuote[];
@@ -41,11 +10,11 @@ export function getRouteSetCompare(amountSpecifiedIsInput: boolean) {
   return amountSpecifiedIsInput ? routeSetCompareForInputAmount : routeSetCompareForOutputAmount;
 }
 
-function routeSetCompareForInputAmount(a: RouteSet, b: RouteSet) {
+function routeSetCompareForInputAmount(a: WhirlpoolRoute, b: WhirlpoolRoute) {
   return b.totalOut.cmp(a.totalOut);
 }
 
-function routeSetCompareForOutputAmount(a: RouteSet, b: RouteSet) {
+function routeSetCompareForOutputAmount(a: WhirlpoolRoute, b: WhirlpoolRoute) {
   return a.totalIn.cmp(b.totalIn);
 }
 
@@ -70,7 +39,7 @@ export function getRankedRouteSets(
 }
 
 export function generateRouteSets(percentMap: QuotePercentMap, maxSplits: number) {
-  let routeSets: RouteSet[] = [];
+  let routeSets: WhirlpoolRoute[] = [];
   buildRouteSet(
     percentMap,
     maxSplits,
@@ -93,8 +62,8 @@ export function generateRouteSets(percentMap: QuotePercentMap, maxSplits: number
 function buildRouteSet(
   quotePercentMap: QuotePercentMap,
   maxSplits: number,
-  currentRouteSet: RouteSet,
-  routeSets: RouteSet[]
+  currentRouteSet: WhirlpoolRoute,
+  routeSets: WhirlpoolRoute[]
 ) {
   const { percent, quotes } = currentRouteSet;
   const percents = Object.keys(quotePercentMap).map((percent) => Number(percent));

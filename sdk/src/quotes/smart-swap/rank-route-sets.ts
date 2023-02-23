@@ -6,41 +6,36 @@ export interface QuotePercentMap {
   [key: number]: RouteQuote[];
 }
 
-export function getRouteSetCompare(amountSpecifiedIsInput: boolean) {
-  return amountSpecifiedIsInput ? routeSetCompareForInputAmount : routeSetCompareForOutputAmount;
+export function getRouteCompareFn(amountSpecifiedIsInput: boolean) {
+  return amountSpecifiedIsInput ? routesCompareForInputAmount : routesCompareForOutputAmount;
 }
 
-function routeSetCompareForInputAmount(a: WhirlpoolRoute, b: WhirlpoolRoute) {
+function routesCompareForInputAmount(a: WhirlpoolRoute, b: WhirlpoolRoute) {
   return b.totalOut.cmp(a.totalOut);
 }
 
-function routeSetCompareForOutputAmount(a: WhirlpoolRoute, b: WhirlpoolRoute) {
+function routesCompareForOutputAmount(a: WhirlpoolRoute, b: WhirlpoolRoute) {
   return a.totalIn.cmp(b.totalIn);
 }
 
-export function getRankedRouteSets(
+export function getRankedRoutes(
   percentMap: QuotePercentMap,
   amountSpecifiedIsInput: boolean,
   topN: number,
   maxSplits: number
 ) {
-  let routeSets = generateRouteSets(percentMap, maxSplits);
+  let routes = generateRoutes(percentMap, maxSplits);
 
   // Run quick select algorithm to partition the topN results, mutating inplace
-  const partitionSize = Math.min(topN, routeSets.length - 1);
-  const routeSetCompare = getRouteSetCompare(amountSpecifiedIsInput);
-
-  if (partitionSize < routeSets.length) {
-    return routeSets.sort(routeSetCompare);
-  }
-
-  kSmallestPartition(routeSets, partitionSize, 0, routeSets.length - 1, routeSetCompare);
-  return routeSets.slice(0, partitionSize).sort(routeSetCompare);
+  const partitionSize = Math.min(topN, routes.length - 1);
+  const routeCompare = getRouteCompareFn(amountSpecifiedIsInput);
+  kSmallestPartition(routes, partitionSize, 0, routes.length - 1, routeCompare);
+  return routes.slice(0, partitionSize).sort(routeCompare);
 }
 
-export function generateRouteSets(percentMap: QuotePercentMap, maxSplits: number) {
-  let routeSets: WhirlpoolRoute[] = [];
-  buildRouteSet(
+export function generateRoutes(percentMap: QuotePercentMap, maxSplits: number) {
+  let routes: WhirlpoolRoute[] = [];
+  buildRoutes(
     percentMap,
     maxSplits,
     {
@@ -49,23 +44,23 @@ export function generateRouteSets(percentMap: QuotePercentMap, maxSplits: number
       totalIn: new u64(0),
       totalOut: new u64(0),
     },
-    routeSets
+    routes
   );
-  return routeSets;
+  return routes;
 }
 
 /**
  * @param quotePercentMap Map from percentage of flow to their quotes
- * @param currentRouteSet The currently being considered route set
- * @param routeSets Array of all valid route sets
+ * @param currentRoute The currently being considered route set
+ * @param routes Array of all valid route sets
  */
-function buildRouteSet(
+function buildRoutes(
   quotePercentMap: QuotePercentMap,
   maxSplits: number,
-  currentRouteSet: WhirlpoolRoute,
-  routeSets: WhirlpoolRoute[]
+  currentRoute: WhirlpoolRoute,
+  routes: WhirlpoolRoute[]
 ) {
-  const { percent, quotes } = currentRouteSet;
+  const { percent, quotes } = currentRoute;
   const percents = Object.keys(quotePercentMap).map((percent) => Number(percent));
   for (let i = percents.length - 1; i >= 0; i--) {
     const nextPercent = percents[i];
@@ -93,11 +88,11 @@ function buildRouteSet(
 
       // todo: Doesn't take into transaction fees
       // double-hops, multi-route penalties, benefits for pairs that can share lookup tables
-      const nextRouteSet = {
+      const nextRoute = {
         quotes: [...quotes, nextQuote],
         percent: newPercentTotal,
-        totalIn: currentRouteSet.totalIn.add(nextQuote.amountIn),
-        totalOut: currentRouteSet.totalOut.add(nextQuote.amountOut),
+        totalIn: currentRoute.totalIn.add(nextQuote.amountIn),
+        totalOut: currentRoute.totalOut.add(nextQuote.amountOut),
       };
 
       // Remove the current and prior routes from consideration
@@ -105,17 +100,17 @@ function buildRouteSet(
 
       if (newPercentTotal === 100) {
         // If we have reached 100% flow routed, we add it to the set of valid route sets
-        routeSets.push(nextRouteSet);
+        routes.push(nextRoute);
       } else if (quotes.length + 1 != maxSplits) {
         // Otherwise, recursively build route sets
-        buildRouteSet(
+        buildRoutes(
           {
             ...quotePercentMap,
             [nextPercent]: nextCandidateQuotes,
           },
           maxSplits,
-          nextRouteSet,
-          routeSets
+          nextRoute,
+          routes
         );
       }
     }

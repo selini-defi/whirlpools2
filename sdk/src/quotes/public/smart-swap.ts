@@ -3,11 +3,12 @@ import { Address, BN } from "@project-serum/anchor";
 import { u64 } from "@solana/spl-token";
 import { AccountFetcher, SwapUtils } from "../..";
 import { SwapErrorCode } from "../../errors/errors";
-import { getRankedRouteSets, getRouteSetCompare } from "../smart-swap/rank-route-sets";
+import { batchBuildSwapQuoteParams } from "../smart-swap/batch-swap-quotes";
+import { getRankedRoutes, getRouteCompareFn } from "../smart-swap/rank-route-sets";
 import { InternalRouteQuote } from "../smart-swap/types";
 import { getRouteId, PoolWalks, TokenPairPool } from "./pool-graph";
 import { BestRoutesResult, RouteQueryError, RouteQuote } from "./smart-swap-types";
-import { batchSwapQuoteByToken, SwapQuoteParam, swapQuoteWithParams } from "./swap-quote";
+import { SwapQuoteParam, swapQuoteWithParams } from "./swap-quote";
 
 export interface RoutingOptions {
   /**
@@ -101,7 +102,7 @@ export async function findBestRoutes(
         quoteMap
       );
 
-      const quoteParams = await batchSwapQuoteByToken(
+      const quoteParams = await batchBuildSwapQuoteParams(
         quoteUpdates.map((update) => update.request),
         AddressUtil.toPubKey(programId),
         fetcher,
@@ -131,9 +132,9 @@ export async function findBestRoutes(
   );
 
   const bestRoutes = [
-    ...getRankedRouteSets(prunedQuoteMap, amountSpecifiedIsInput, numTopRoutes, maxSplits),
+    ...getRankedRoutes(prunedQuoteMap, amountSpecifiedIsInput, numTopRoutes, maxSplits),
     ...getSingleHopSplit(cleanedQuoteMap),
-  ].sort(getRouteSetCompare(amountSpecifiedIsInput));
+  ].sort(getRouteCompareFn(amountSpecifiedIsInput));
 
   // TODO: Rudementary implementation to determine error. Find a better solution
   if (bestRoutes.length === 0) {

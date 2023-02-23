@@ -12,7 +12,7 @@ import {
   IncreaseLiquidityInput,
   PositionData,
   TickData,
-  WhirlpoolData,
+  WhirlpoolData
 } from "./types/public";
 import { TokenAccountInfo, TokenInfo, WhirlpoolRewardInfo } from "./types/public/client-types";
 
@@ -268,13 +268,11 @@ export interface Whirlpool {
    *
    * @param input - A quote on the desired tokenIn and tokenOut for this swap. Use {@link swapQuoteWithParams} or other swap quote functions to generate this object.
    * @param wallet - The wallet that tokens will be withdrawn and deposit into. If null, the WhirlpoolContext wallet is used.
-   * @param initTxBuilder - An optional transaction builder to append instructions
    * @return a transaction that will perform the swap once executed.
    */
   swap: (
     input: SwapInput,
     wallet?: PublicKey,
-    initTxBuilder?: TransactionBuilder
   ) => Promise<TransactionBuilder>;
 
   /**

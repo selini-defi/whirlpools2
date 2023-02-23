@@ -60,6 +60,11 @@ export function getRankedRouteSets(
   // Run quick select algorithm to partition the topN results, mutating inplace
   const partitionSize = Math.min(topN, routeSets.length - 1);
   const routeSetCompare = getRouteSetCompare(amountSpecifiedIsInput);
+
+  if (partitionSize < routeSets.length) {
+    return routeSets.sort(routeSetCompare);
+  }
+
   kSmallestPartition(routeSets, partitionSize, 0, routeSets.length - 1, routeSetCompare);
   return routeSets.slice(0, partitionSize).sort(routeSetCompare);
 }

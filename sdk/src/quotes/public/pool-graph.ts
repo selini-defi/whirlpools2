@@ -88,7 +88,7 @@ export function findWalks(
     // tokenA --> tokenX --> tokenB
     firstHop.forEach((firstPool) => {
       const intermediateToken = firstPool.otherToken;
-      if (intermediateTokens && intermediateTokens?.indexOf(intermediateToken) > -1) {
+      if (!intermediateTokens || intermediateTokens.indexOf(intermediateToken) > -1) {
         const secondHops = poolB
           .filter((secondPool) => secondPool.otherToken === intermediateToken)
           .map((secondPool) => [firstPool.address, secondPool.address]);

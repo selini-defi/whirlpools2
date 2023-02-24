@@ -2,6 +2,7 @@ import {
   AddressUtil,
   deriveATA,
   EMPTY_INSTRUCTION,
+  Percentage,
   TransactionBuilder,
   ZERO,
 } from "@orca-so/common-sdk";
@@ -14,15 +15,23 @@ import {
   u64,
 } from "@solana/spl-token";
 import { PublicKey } from "@solana/web3.js";
-import { PDAUtil, TickArrayUtil, twoHopSwapQuoteFromSwapQuotes, WhirlpoolContext } from "../..";
-import { WhirlpoolRoute } from "../../quotes/public/smart-swap-types";
+import {
+  PDAUtil,
+  SwapUtils,
+  TickArrayUtil,
+  twoHopSwapQuoteFromSwapQuotes,
+  WhirlpoolContext,
+} from "../..";
+import { RouteQuote, WhirlpoolRoute } from "../../quotes/public/smart-swap-types";
 import { createAssociatedTokenAccountInstruction } from "../../utils/ata-ix-util";
+import { adjustForSlippage } from "../../utils/position-util";
 import { createWSOLAccountInstructions } from "../../utils/spl-token-utils";
 import { swapIx } from "../swap-ix";
 import { twoHopSwapIx } from "../two-hop-swap-ix";
 
 export type SwapFromRouteParams = {
   route: WhirlpoolRoute;
+  slippage: Percentage;
   wallet: PublicKey;
   atas: AccountInfo[] | null;
 };
@@ -33,7 +42,7 @@ export async function getSwapFromRoute(
   refresh: boolean = false,
   txBuilder: TransactionBuilder = new TransactionBuilder(ctx.connection, ctx.wallet)
 ) {
-  const { route, wallet, atas } = params;
+  const { route, wallet, atas, slippage } = params;
   const requiredAtas = new Set<string>();
   const requiredTickArrays = [];
   let hasNativeMint = false;
@@ -125,8 +134,13 @@ export async function getSwapFromRoute(
 
   txBuilder.addInstructions(ataIxes);
 
-  for (let i = 0; i < route.quotes.length; i++) {
-    const routeFragment = route.quotes[i];
+  // Slippage adjustment
+  const slippageAdjustedQuotes = route.quotes.map((quote) =>
+    adjustQuoteForSlippage(quote, slippage)
+  );
+
+  for (let i = 0; i < slippageAdjustedQuotes.length; i++) {
+    const routeFragment = slippageAdjustedQuotes[i];
     if (routeFragment.calculatedHops.length == 1) {
       const { quote, whirlpool, mintA, mintB, vaultA, vaultB } = routeFragment.calculatedHops[0];
       const [wp, tokenVaultA, tokenVaultB] = AddressUtil.toPubKeys([whirlpool, vaultA, vaultB]);
@@ -202,6 +216,67 @@ export async function getSwapFromRoute(
     }
   }
   return txBuilder;
+}
+
+function adjustQuoteForSlippage(quote: RouteQuote, slippage: Percentage): RouteQuote {
+  const { calculatedHops } = quote;
+  if (calculatedHops.length === 1) {
+    return {
+      ...quote,
+      calculatedHops: [
+        {
+          ...calculatedHops[0],
+          quote: {
+            ...calculatedHops[0].quote,
+            ...SwapUtils.calculateSwapAmountsFromQuote(
+              calculatedHops[0].quote.amount,
+              calculatedHops[0].quote.estimatedAmountIn,
+              calculatedHops[0].quote.estimatedAmountOut,
+              slippage,
+              calculatedHops[0].quote.amountSpecifiedIsInput
+            ),
+          },
+        },
+      ],
+    };
+  } else if (quote.calculatedHops.length === 2) {
+    const swapQuoteOne = quote.calculatedHops[0];
+    const swapQuoteTwo = quote.calculatedHops[1];
+    const amountSpecifiedIsInput = swapQuoteOne.quote.amountSpecifiedIsInput;
+
+    let updatedQuote = {
+      ...quote,
+    };
+
+    if (amountSpecifiedIsInput) {
+      updatedQuote.calculatedHops[1] = {
+        ...swapQuoteTwo,
+        quote: {
+          ...swapQuoteTwo.quote,
+          otherAmountThreshold: adjustForSlippage(
+            swapQuoteTwo.quote.estimatedAmountOut,
+            slippage,
+            false
+          ),
+        },
+      };
+    } else {
+      updatedQuote.calculatedHops[0] = {
+        ...swapQuoteOne,
+        quote: {
+          ...swapQuoteOne.quote,
+          otherAmountThreshold: adjustForSlippage(
+            swapQuoteOne.quote.estimatedAmountIn,
+            slippage,
+            true
+          ),
+        },
+      };
+    }
+    return updatedQuote;
+  }
+
+  return quote;
 }
 
 /**

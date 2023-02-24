@@ -11,7 +11,7 @@ import {
   SwapInput,
   SwapParams,
   TickArray,
-  WhirlpoolData
+  WhirlpoolData,
 } from "../../types/public";
 import { Whirlpool } from "../../whirlpool-client";
 import { adjustForSlippage } from "../math/token-math";

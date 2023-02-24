@@ -112,6 +112,7 @@ export interface WhirlpoolClient {
   // TODO: Not the best place to put this. But can't be placed into a pool either.
   swapWithRoute: (
     route: WhirlpoolRoute,
+    slippage: Percentage,
     atas: AccountInfo[] | null,
     wallet: PublicKey,
     payer?: PublicKey

@@ -1,4 +1,4 @@
-import { AddressUtil, TransactionBuilder } from "@orca-so/common-sdk";
+import { AddressUtil, Percentage, TransactionBuilder } from "@orca-so/common-sdk";
 import { Address } from "@project-serum/anchor";
 import { AccountInfo } from "@solana/spl-token";
 import { Keypair, PublicKey } from "@solana/web3.js";
@@ -292,12 +292,14 @@ export class WhirlpoolClientImpl implements WhirlpoolClient {
 
   public async swapWithRoute(
     route: WhirlpoolRoute,
+    slippage: Percentage,
     atas: AccountInfo[] | null,
     wallet: PublicKey,
     payer?: PublicKey | undefined
   ): Promise<TransactionBuilder> {
     return getSwapFromRoute(this.ctx, {
       route,
+      slippage,
       atas,
       wallet,
     });

@@ -9,11 +9,12 @@ import {
   PositionUtil,
   PositionStatus,
   getLiquidityFromTokenA,
+  adjustForSlippage,
   getTokenAFromLiquidity,
   getTokenBFromLiquidity,
   getLiquidityFromTokenB,
 } from "../../utils/position-util";
-import { adjustForSlippage, PriceMath, TickUtil } from "../../utils/public";
+import { PriceMath, TickUtil } from "../../utils/public";
 import { Whirlpool } from "../../whirlpool-client";
 
 /**

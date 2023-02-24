@@ -3,12 +3,13 @@ import { BN } from "@project-serum/anchor";
 import invariant from "tiny-invariant";
 import { DecreaseLiquidityInput } from "../../instructions";
 import {
+  adjustForSlippage,
   getTokenAFromLiquidity,
   getTokenBFromLiquidity,
   PositionStatus,
   PositionUtil,
 } from "../../utils/position-util";
-import { adjustForSlippage, PriceMath, TickUtil } from "../../utils/public";
+import { PriceMath, TickUtil } from "../../utils/public";
 import { Position, Whirlpool } from "../../whirlpool-client";
 
 /**

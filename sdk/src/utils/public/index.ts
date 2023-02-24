@@ -4,5 +4,4 @@ export * from "./pool-utils";
 export * from "./price-math";
 export * from "./swap-utils";
 export * from "./tick-utils";
-export * from "./token-math";
 export * from "./types";

@@ -4,8 +4,8 @@ import { u64 } from "@solana/spl-token";
 import * as assert from "assert";
 import BN from "bn.js";
 import {
-  adjustForSlippage,
   buildWhirlpoolClient,
+  PDAUtil,
   PriceMath,
   swapQuoteByInputToken,
   swapQuoteWithParams,
@@ -14,6 +14,7 @@ import {
   WhirlpoolContext,
 } from "../../../../src";
 import { SwapErrorCode, WhirlpoolsError } from "../../../../src/errors/errors";
+import { adjustForSlippage } from "../../../../src/utils/position-util";
 import { TickSpacing } from "../../../utils";
 import {
   arrayTickIndexToTickIndex,

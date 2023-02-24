@@ -2,7 +2,7 @@ import { AddressUtil, Percentage, U64_MAX, ZERO } from "@orca-so/common-sdk";
 import { Address } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
 import BN from "bn.js";
-import { adjustForSlippage, WhirlpoolContext } from "../..";
+import { WhirlpoolContext } from "../..";
 import { AccountFetcher } from "../../network/public";
 import {
   MAX_SQRT_PRICE,
@@ -14,6 +14,7 @@ import {
   WhirlpoolData
 } from "../../types/public";
 import { Whirlpool } from "../../whirlpool-client";
+import { adjustForSlippage } from "../math/token-math";
 import { PDAUtil } from "./pda-utils";
 import { PoolUtil } from "./pool-utils";
 import { TickUtil } from "./tick-utils";

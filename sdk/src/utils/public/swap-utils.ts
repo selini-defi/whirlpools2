@@ -11,7 +11,7 @@ import {
   SwapInput,
   SwapParams,
   TickArray,
-  WhirlpoolData,
+  WhirlpoolData
 } from "../../types/public";
 import { Whirlpool } from "../../whirlpool-client";
 import { PDAUtil } from "./pda-utils";
@@ -19,7 +19,6 @@ import { PoolUtil } from "./pool-utils";
 import { TickUtil } from "./tick-utils";
 import { SwapDirection, TokenType } from "./types";
 
-// TODO: comment
 export interface TickArrayRequest {
   whirlpoolAddress: PublicKey;
   aToB: boolean;
@@ -138,7 +137,14 @@ export class SwapUtils {
     return data[0];
   }
 
-  // TODO: comment
+  /**
+   * Fetch a batch of tick-arrays for a set of TA requests.
+   * @param programId - The Whirlpool programId which the Whirlpool lives on.
+   * @param fetcher - AccountFetcher object to fetch solana accounts
+   * @param refresh - If true, fetcher would default to fetching the latest accounts
+   * @param tickArrayRequests - An array of {@link TickArrayRequest} of tick-arrays to request for.
+   * @returns A array of request indicies mapped to an array of resulting PublicKeys.
+   */
   public static async getBatchTickArrays(
     programId: PublicKey,
     fetcher: AccountFetcher,
@@ -152,7 +158,6 @@ export class SwapUtils {
     // so we map each request to a slice of the batch request
     for (let i = 0; i < tickArrayRequests.length; i++) {
       const { tickCurrentIndex, tickSpacing, aToB, whirlpoolAddress } = tickArrayRequests[i];
-      const a = performance.now();
       const requestAddresses = SwapUtils.getTickArrayPublicKeys(
         tickCurrentIndex,
         tickSpacing,

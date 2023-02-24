@@ -1,4 +1,4 @@
-import { Percentage, U64_MAX, ZERO } from "@orca-so/common-sdk";
+import { U64_MAX, ZERO } from "@orca-so/common-sdk";
 import { BN } from "@project-serum/anchor";
 import { u64 } from "@solana/spl-token";
 import { MathErrorCode, TokenErrorCode, WhirlpoolsError } from "../../errors/errors";
@@ -54,17 +54,6 @@ export function getNextSqrtPrice(
   }
 }
 
-export function adjustForSlippage(
-  n: BN,
-  { numerator, denominator }: Percentage,
-  adjustUp: boolean
-): BN {
-  if (adjustUp) {
-    return n.mul(denominator.add(numerator)).div(denominator);
-  } else {
-    return n.mul(denominator).div(denominator.add(numerator));
-  }
-}
 
 function toIncreasingPriceOrder(sqrtPrice0: BN, sqrtPrice1: BN) {
   if (sqrtPrice0.gt(sqrtPrice1)) {

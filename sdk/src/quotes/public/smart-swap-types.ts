@@ -10,25 +10,6 @@ export type WhirlpoolRoute = {
   totalOut: u64;
 };
 
-export type BestRoutesResult = BestRoutesSuccess | BestRoutesError;
-type BestRoutesSuccess = {
-  success: true;
-  bestRoutes: WhirlpoolRoute[];
-};
-
-type BestRoutesError = {
-  success: false;
-  error: RouteQueryError;
-  stack?: string;
-};
-
-export enum RouteQueryError {
-  ROUTE_DOES_NOT_EXIST = "ROUTE_DOES_NOT_EXIST",
-  TRADE_AMOUNT_TOO_HIGH = "TRADE_AMOUNT_TOO_HIGH",
-  ZERO_INPUT_AMOUNT = "ZERO_INPUT_AMOUNT",
-  GENERAL = "GENERAL",
-}
-
 export type RouteQuote = Omit<InternalRouteQuote, "calculatedHops"> & {
   calculatedHops: RouteHop[];
 };

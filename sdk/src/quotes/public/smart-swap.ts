@@ -2,12 +2,12 @@ import { AddressUtil, Percentage } from "@orca-so/common-sdk";
 import { Address, BN } from "@project-serum/anchor";
 import { u64 } from "@solana/spl-token";
 import { AccountFetcher, SwapUtils } from "../..";
-import { SwapErrorCode } from "../../errors/errors";
+import { RouteQueryErrorCode, SwapErrorCode, WhirlpoolsError } from "../../errors/errors";
 import { batchBuildSwapQuoteParams } from "../smart-swap/batch-swap-quotes";
 import { getRankedRoutes, getRouteCompareFn } from "../smart-swap/rank-route-sets";
 import { InternalRouteQuote } from "../smart-swap/types";
 import { getRouteId, PoolWalks, TokenPairPool } from "./pool-graph";
-import { BestRoutesResult, RouteQueryError, RouteQuote } from "./smart-swap-types";
+import { RouteQuote, WhirlpoolRoute } from "./smart-swap-types";
 import { SwapQuoteParam, swapQuoteWithParams } from "./swap-quote";
 
 export interface RoutingOptions {
@@ -49,21 +49,21 @@ export async function findBestRoutes(
   programId: Address,
   fetcher: AccountFetcher,
   userRoutingOptions: Partial<RoutingOptions> = DEFAULT_ROUTING_OPTIONS
-): Promise<BestRoutesResult> {
+): Promise<WhirlpoolRoute[]> {
   const pairRoutes = walks[getRouteId(inputTokenMint, outputTokenMint)];
 
   if (!pairRoutes) {
-    return Promise.reject({
-      success: false,
-      error: RouteQueryError.ROUTE_DOES_NOT_EXIST,
-    });
+    return Promise.reject(new WhirlpoolsError(
+      `findBestRoutes error - Could not find route for ${inputTokenMint} -> ${outputTokenMint}`,
+      RouteQueryErrorCode.ROUTE_DOES_NOT_EXIST,
+    ));
   }
 
   if (tradeAmount.isZero()) {
-    return Promise.reject({
-      success: false,
-      error: RouteQueryError.ZERO_INPUT_AMOUNT,
-    });
+    return Promise.reject(new WhirlpoolsError(
+      `findBestRoutes error - input amount is zero.`,
+      RouteQueryErrorCode.ZERO_INPUT_AMOUNT,
+    ));
   }
 
   const routingOptions = { ...DEFAULT_ROUTING_OPTIONS, ...userRoutingOptions };
@@ -112,11 +112,11 @@ export async function findBestRoutes(
       updateQuoteMap(quoteUpdates, quoteParams, quoteMap);
     }
   } catch (e: any) {
-    return {
-      success: false,
-      error: RouteQueryError.GENERAL,
-      stack: e.stack,
-    };
+    return Promise.reject(new WhirlpoolsError(
+      `findBestRoutes error - stack error received on quote generation.`,
+      RouteQueryErrorCode.GENERAL,
+      e.stack
+    ));
   }
 
   const [cleanedQuoteMap, failures] = categorizeQuotes(
@@ -140,17 +140,14 @@ export async function findBestRoutes(
   if (bestRoutes.length === 0) {
     // TODO: TRADE_AMOUNT_TOO_HIGH actually corresponds to TickArrayCrossingAboveMax. Fix swap quote.
     if (failures.has(SwapErrorCode.TickArraySequenceInvalid)) {
-      return {
-        success: false,
-        error: RouteQueryError.TRADE_AMOUNT_TOO_HIGH,
-      };
+      return Promise.reject(new WhirlpoolsError(
+        `findBestRoutes error - all swap quote generation failed on amount too high.`,
+        RouteQueryErrorCode.TRADE_AMOUNT_TOO_HIGH,
+      ));
     }
   }
 
-  return {
-    success: true,
-    bestRoutes,
-  };
+  return bestRoutes;
 }
 
 async function prefetchRoutes(pairRoutes: string[][], programId: Address, fetcher: AccountFetcher) {

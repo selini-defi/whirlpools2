@@ -3,11 +3,11 @@ import { Percentage, ZERO } from "@orca-so/common-sdk";
 import invariant from "tiny-invariant";
 import { DecreaseLiquidityInput } from "../../instructions";
 import {
+  PositionStatus,
+  PositionUtil,
   adjustForSlippage,
   getTokenAFromLiquidity,
   getTokenBFromLiquidity,
-  PositionStatus,
-  PositionUtil,
 } from "../../utils/position-util";
 import { PriceMath, TickUtil } from "../../utils/public";
 import { Position, Whirlpool } from "../../whirlpool-client";
@@ -34,7 +34,10 @@ export type DecreaseLiquidityQuoteParam = {
  * Return object from decrease liquidity quote functions.
  * @category Quotes
  */
-export type DecreaseLiquidityQuote = DecreaseLiquidityInput & { tokenEstA: BN; tokenEstB: BN };
+export type DecreaseLiquidityQuote = DecreaseLiquidityInput & {
+  tokenEstA: BN;
+  tokenEstB: BN;
+};
 
 /**
  * Get an estimated quote on the minimum tokens receivable based on the desired withdraw liquidity value.
@@ -50,7 +53,7 @@ export function decreaseLiquidityQuoteByLiquidity(
   liquidity: BN,
   slippageTolerance: Percentage,
   position: Position,
-  whirlpool: Whirlpool
+  whirlpool: Whirlpool,
 ) {
   const positionData = position.getData();
   const whirlpoolData = whirlpool.getData();
@@ -78,86 +81,107 @@ export function decreaseLiquidityQuoteByLiquidity(
  * @returns An DecreaseLiquidityInput object detailing the tokenMin & liquidity values to use when calling decrease-liquidity-ix.
  */
 export function decreaseLiquidityQuoteByLiquidityWithParams(
-  param: DecreaseLiquidityQuoteParam
+  params: DecreaseLiquidityQuoteParam
 ): DecreaseLiquidityQuote {
-  invariant(TickUtil.checkTickInBounds(param.tickLowerIndex), "tickLowerIndex is out of bounds.");
-  invariant(TickUtil.checkTickInBounds(param.tickUpperIndex), "tickUpperIndex is out of bounds.");
+  invariant(TickUtil.checkTickInBounds(params.tickLowerIndex), "tickLowerIndex is out of bounds.");
+  invariant(TickUtil.checkTickInBounds(params.tickUpperIndex), "tickUpperIndex is out of bounds.");
   invariant(
-    TickUtil.checkTickInBounds(param.tickCurrentIndex),
+    TickUtil.checkTickInBounds(params.tickCurrentIndex),
     "tickCurrentIndex is out of bounds."
   );
 
-  const positionStatus = PositionUtil.getStrictPositionStatus(
-    param.sqrtPrice,
-    param.tickLowerIndex,
-    param.tickUpperIndex
-  );
+  if (params.liquidity.eq(ZERO)) {
+    return {
+      tokenMinA: ZERO,
+      tokenMinB: ZERO,
+      liquidityAmount: ZERO,
+      tokenEstA: ZERO,
+      tokenEstB: ZERO,
+    };
+  }
 
-  switch (positionStatus) {
-    case PositionStatus.BelowRange:
-      return quotePositionBelowRange(param);
-    case PositionStatus.InRange:
-      return quotePositionInRange(param);
-    case PositionStatus.AboveRange:
-      return quotePositionAboveRange(param);
-    default:
-      throw new Error(`type ${positionStatus} is an unknown PositionStatus`);
+  const { tokenEstA, tokenEstB } = getTokenEstimatesFromLiquidity(params);
+  const [tokenMinA, tokenMinB] = [tokenEstA, tokenEstB].map((tokenEst) => adjustForSlippage(tokenEst, params.slippageTolerance, false));
+
+
+  return {
+    tokenMinA,
+    tokenMinB,
+    tokenEstA,
+    tokenEstB,
+    liquidityAmount: params.liquidity,
+  };
+}
+
+/**
+ * Get an estimated quote on the minimum tokens receivable based on the desired withdraw liquidity value.
+ * This version calculates slippage based on price percentage movement, rather than setting the percentage threshold based on token estimates.
+ * @param params DecreaseLiquidityQuoteParam
+ * @returns A DecreaseLiquidityQuote object detailing the tokenMin & liquidity values to use when calling decrease-liquidity-ix.
+ */
+export function decreaseLiquidityQuoteByLiquidityWithParamsUsingPriceSlippage(params: DecreaseLiquidityQuoteParam): DecreaseLiquidityQuote {
+  if (params.liquidity.eq(ZERO)) {
+    return {
+      tokenMinA: ZERO,
+      tokenMinB: ZERO,
+      liquidityAmount: ZERO,
+      tokenEstA: ZERO,
+      tokenEstB: ZERO,
+    };
+  }
+
+  const { tokenEstA, tokenEstB } = getTokenEstimatesFromLiquidity(params);
+
+  const {
+    lowerBound: [sLowerSqrtPrice, sLowerIndex],
+    upperBound: [sUpperSqrtPrice, sUpperIndex],
+  } = PriceMath.getSlippageBoundForSqrtPrice(params.sqrtPrice, params.slippageTolerance);
+
+  const { tokenEstA: tokenEstALower, tokenEstB: tokenEstBLower } = getTokenEstimatesFromLiquidity({
+    ...params,
+    sqrtPrice: sLowerSqrtPrice,
+    tickCurrentIndex: sLowerIndex,
+  });
+
+  const { tokenEstA: tokenEstAUpper, tokenEstB: tokenEstBUpper } = getTokenEstimatesFromLiquidity({
+    ...params,
+    sqrtPrice: sUpperSqrtPrice,
+    tickCurrentIndex: sUpperIndex,
+  });
+
+  const tokenMinA = BN.min(BN.min(tokenEstA, tokenEstALower), tokenEstAUpper);
+  const tokenMinB = BN.min(BN.min(tokenEstB, tokenEstBLower), tokenEstBUpper);
+
+  return {
+    tokenMinA,
+    tokenMinB,
+    tokenEstA,
+    tokenEstB,
+    liquidityAmount: params.liquidity,
   }
 }
 
-function quotePositionBelowRange(param: DecreaseLiquidityQuoteParam): DecreaseLiquidityQuote {
-  const { tickLowerIndex, tickUpperIndex, liquidity, slippageTolerance } = param;
+function getTokenEstimatesFromLiquidity(params: DecreaseLiquidityQuoteParam) {
+  const { liquidity, tickLowerIndex, tickUpperIndex, sqrtPrice } = params;
 
-  const sqrtPriceLowerX64 = PriceMath.tickIndexToSqrtPriceX64(tickLowerIndex);
-  const sqrtPriceUpperX64 = PriceMath.tickIndexToSqrtPriceX64(tickUpperIndex);
+  if (liquidity.eq(ZERO)) {
+    throw new Error("liquidity must be greater than 0");
+  }
 
-  const tokenEstA = getTokenAFromLiquidity(liquidity, sqrtPriceLowerX64, sqrtPriceUpperX64, false);
-  const tokenMinA = adjustForSlippage(tokenEstA, slippageTolerance, false);
+  let tokenEstA = ZERO;
+  let tokenEstB = ZERO;
 
-  return {
-    tokenMinA,
-    tokenMinB: ZERO,
-    tokenEstA,
-    tokenEstB: ZERO,
-    liquidityAmount: liquidity,
-  };
-}
+  const lowerSqrtPrice = PriceMath.tickIndexToSqrtPriceX64(tickLowerIndex);
+  const upperSqrtPrice = PriceMath.tickIndexToSqrtPriceX64(tickUpperIndex);
+  const positionStatus = PositionUtil.getStrictPositionStatus(sqrtPrice, tickLowerIndex, tickUpperIndex);
 
-function quotePositionInRange(param: DecreaseLiquidityQuoteParam): DecreaseLiquidityQuote {
-  const { sqrtPrice, tickLowerIndex, tickUpperIndex, liquidity, slippageTolerance } = param;
-
-  const sqrtPriceX64 = sqrtPrice;
-  const sqrtPriceLowerX64 = PriceMath.tickIndexToSqrtPriceX64(tickLowerIndex);
-  const sqrtPriceUpperX64 = PriceMath.tickIndexToSqrtPriceX64(tickUpperIndex);
-
-  const tokenEstA = getTokenAFromLiquidity(liquidity, sqrtPriceX64, sqrtPriceUpperX64, false);
-  const tokenMinA = adjustForSlippage(tokenEstA, slippageTolerance, false);
-  const tokenEstB = getTokenBFromLiquidity(liquidity, sqrtPriceLowerX64, sqrtPriceX64, false);
-  const tokenMinB = adjustForSlippage(tokenEstB, slippageTolerance, false);
-
-  return {
-    tokenMinA,
-    tokenMinB,
-    tokenEstA,
-    tokenEstB,
-    liquidityAmount: liquidity,
-  };
-}
-
-function quotePositionAboveRange(param: DecreaseLiquidityQuoteParam): DecreaseLiquidityQuote {
-  const { tickLowerIndex, tickUpperIndex, liquidity, slippageTolerance: slippageTolerance } = param;
-
-  const sqrtPriceLowerX64 = PriceMath.tickIndexToSqrtPriceX64(tickLowerIndex);
-  const sqrtPriceUpperX64 = PriceMath.tickIndexToSqrtPriceX64(tickUpperIndex);
-
-  const tokenEstB = getTokenBFromLiquidity(liquidity, sqrtPriceLowerX64, sqrtPriceUpperX64, false);
-  const tokenMinB = adjustForSlippage(tokenEstB, slippageTolerance, false);
-
-  return {
-    tokenMinA: ZERO,
-    tokenMinB,
-    tokenEstA: ZERO,
-    tokenEstB,
-    liquidityAmount: liquidity,
-  };
+  if (positionStatus === PositionStatus.BelowRange) {
+    tokenEstA = getTokenAFromLiquidity(liquidity, lowerSqrtPrice, upperSqrtPrice, false);
+  } else if (positionStatus === PositionStatus.InRange) {
+    tokenEstA = getTokenAFromLiquidity(liquidity, sqrtPrice, upperSqrtPrice, false);
+    tokenEstB = getTokenBFromLiquidity(liquidity, lowerSqrtPrice, sqrtPrice, false);
+  } else {
+    tokenEstB = getTokenBFromLiquidity(liquidity, lowerSqrtPrice, upperSqrtPrice, false);
+  }
+  return { tokenEstA, tokenEstB };
 }

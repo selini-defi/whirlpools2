@@ -10,8 +10,6 @@ use anchor_lang::prelude::*;
 use super::WhirlpoolsConfig;
 
 #[derive(Default)]
-#[repr(C)]
-#[repr(align(16))]
 #[account(zero_copy)]
 pub struct Whirlpool {
     pub reward_infos: [WhirlpoolRewardInfo; NUM_REWARDS], // 384 bytes
@@ -261,7 +259,6 @@ impl Whirlpool {
 /// and `Whirlpool.reward_last_updated_timestamp` to determine how many rewards are earned by open
 /// positions.
 #[derive(Default, Debug, PartialEq)]
-#[repr(C)]
 #[account(zero_copy)]
 pub struct WhirlpoolRewardInfo {
     /// Reward token mint.

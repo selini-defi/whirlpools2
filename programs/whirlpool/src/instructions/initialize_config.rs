@@ -13,8 +13,8 @@ pub struct InitializeConfig<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handler<'a, 'b, 'c, 'd>(
-    ctx: Context<'a, 'b, 'c, 'd, InitializeConfig<'d>>,
+pub fn handler(
+    ctx: Context<InitializeConfig>,
     fee_authority: Pubkey,
     collect_protocol_fees_authority: Pubkey,
     reward_emissions_super_authority: Pubkey,

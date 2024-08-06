@@ -29,7 +29,7 @@ pub struct OpenBundledPosition<'info> {
 
     pub position_bundle_authority: Signer<'info>,
 
-    pub whirlpool: AccountLoader<'info, Whirlpool>,
+    pub whirlpool: Box<Account<'info, Whirlpool>>,
 
     #[account(mut)]
     pub funder: Signer<'info>,
@@ -44,6 +44,7 @@ pub fn handler(
     tick_lower_index: i32,
     tick_upper_index: i32,
 ) -> Result<()> {
+    let whirlpool = &ctx.accounts.whirlpool;
     let position_bundle = &mut ctx.accounts.position_bundle;
     let position = &mut ctx.accounts.bundled_position;
 
@@ -56,7 +57,7 @@ pub fn handler(
     position_bundle.open_bundled_position(bundle_index)?;
 
     position.open_position(
-        &ctx.accounts.whirlpool,
+        whirlpool,
         position_bundle.position_bundle_mint,
         tick_lower_index,
         tick_upper_index,

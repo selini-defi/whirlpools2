@@ -5,7 +5,7 @@ use crate::state::*;
 #[derive(Accounts)]
 #[instruction(start_tick_index: i32)]
 pub struct InitializeTickArray<'info> {
-    pub whirlpool: AccountLoader<'info, Whirlpool>,
+    pub whirlpool: Account<'info, Whirlpool>,
 
     #[account(mut)]
     pub funder: Signer<'info>,

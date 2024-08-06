@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 use anchor_spl::memo::Memo;
@@ -8,8 +6,8 @@ use crate::swap_with_transfer_fee_extension;
 use crate::util::{calculate_transfer_fee_excluded_amount, parse_remaining_accounts, update_and_two_hop_swap_whirlpool_v2, AccountsType, RemainingAccountsInfo};
 use crate::{
     errors::ErrorCode,
-    state::{TickArray, Whirlpool},
-    util::{to_timestamp_u64, SwapTickSequence},
+    state::Whirlpool,
+    util::{to_timestamp_u64, SparseSwapTickSequenceBuilder},
     constants::transfer_memo,
 };
 
@@ -23,15 +21,15 @@ use crate::{
 )]
 pub struct TwoHopSwapV2<'info> {
     #[account(mut)]
-    pub whirlpool_one: AccountLoader<'info, Whirlpool>,
+    pub whirlpool_one: Box<Account<'info, Whirlpool>>,
     #[account(mut)]
-    pub whirlpool_two: AccountLoader<'info, Whirlpool>,
+    pub whirlpool_two: Box<Account<'info, Whirlpool>>,
 
-    #[account(address = whirlpool_one.load()?.input_token_mint(a_to_b_one))]
+    #[account(address = whirlpool_one.input_token_mint(a_to_b_one))]
     pub token_mint_input: InterfaceAccount<'info, Mint>,    
-    #[account(address = whirlpool_one.load()?.output_token_mint(a_to_b_one))]
+    #[account(address = whirlpool_one.output_token_mint(a_to_b_one))]
     pub token_mint_intermediate: InterfaceAccount<'info, Mint>,
-    #[account(address = whirlpool_two.load()?.output_token_mint(a_to_b_two))]
+    #[account(address = whirlpool_two.output_token_mint(a_to_b_two))]
     pub token_mint_output: InterfaceAccount<'info, Mint>,
 
     #[account(address = token_mint_input.to_account_info().owner.clone())]
@@ -43,37 +41,43 @@ pub struct TwoHopSwapV2<'info> {
 
     #[account(mut, constraint = token_owner_account_input.mint == token_mint_input.key())]
     pub token_owner_account_input: Box<InterfaceAccount<'info, TokenAccount>>,
-    #[account(mut, address = whirlpool_one.load()?.input_token_vault(a_to_b_one))]
+    #[account(mut, address = whirlpool_one.input_token_vault(a_to_b_one))]
     pub token_vault_one_input: Box<InterfaceAccount<'info, TokenAccount>>,
-    #[account(mut, address = whirlpool_one.load()?.output_token_vault(a_to_b_one))]
+    #[account(mut, address = whirlpool_one.output_token_vault(a_to_b_one))]
     pub token_vault_one_intermediate: Box<InterfaceAccount<'info, TokenAccount>>,
 
-    #[account(mut, address = whirlpool_two.load()?.input_token_vault(a_to_b_two))]
+    #[account(mut, address = whirlpool_two.input_token_vault(a_to_b_two))]
     pub token_vault_two_intermediate: Box<InterfaceAccount<'info, TokenAccount>>,
-    #[account(mut, address = whirlpool_two.load()?.output_token_vault(a_to_b_two))]
+    #[account(mut, address = whirlpool_two.output_token_vault(a_to_b_two))]
     pub token_vault_two_output: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(mut, constraint = token_owner_account_output.mint == token_mint_output.key())]
     pub token_owner_account_output: Box<InterfaceAccount<'info, TokenAccount>>,
 
     pub token_authority: Signer<'info>,
 
-    #[account(mut, constraint = tick_array_one_0.load()?.whirlpool == whirlpool_one.key())]
-    pub tick_array_one_0: AccountLoader<'info, TickArray>,
+    #[account(mut)]
+    /// CHECK: checked in the handler
+    pub tick_array_one_0: UncheckedAccount<'info>,
 
-    #[account(mut, constraint = tick_array_one_1.load()?.whirlpool == whirlpool_one.key())]
-    pub tick_array_one_1: AccountLoader<'info, TickArray>,
+    #[account(mut)]
+    /// CHECK: checked in the handler
+    pub tick_array_one_1: UncheckedAccount<'info>,
 
-    #[account(mut, constraint = tick_array_one_2.load()?.whirlpool == whirlpool_one.key())]
-    pub tick_array_one_2: AccountLoader<'info, TickArray>,
+    #[account(mut)]
+    /// CHECK: checked in the handler
+    pub tick_array_one_2: UncheckedAccount<'info>,
 
-    #[account(mut, constraint = tick_array_two_0.load()?.whirlpool == whirlpool_two.key())]
-    pub tick_array_two_0: AccountLoader<'info, TickArray>,
+    #[account(mut)]
+    /// CHECK: checked in the handler
+    pub tick_array_two_0: UncheckedAccount<'info>,
 
-    #[account(mut, constraint = tick_array_two_1.load()?.whirlpool == whirlpool_two.key())]
-    pub tick_array_two_1: AccountLoader<'info, TickArray>,
+    #[account(mut)]
+    /// CHECK: checked in the handler
+    pub tick_array_two_1: UncheckedAccount<'info>,
 
-    #[account(mut, constraint = tick_array_two_2.load()?.whirlpool == whirlpool_two.key())]
-    pub tick_array_two_2: AccountLoader<'info, TickArray>,
+    #[account(mut)]
+    /// CHECK: checked in the handler
+    pub tick_array_two_2: UncheckedAccount<'info>,
 
     #[account(mut, seeds = [b"oracle", whirlpool_one.key().as_ref()], bump)]
     /// CHECK: Oracle is currently unused and will be enabled on subsequent updates
@@ -89,9 +93,11 @@ pub struct TwoHopSwapV2<'info> {
     // - accounts for transfer hook program of token_mint_input
     // - accounts for transfer hook program of token_mint_intermediate
     // - accounts for transfer hook program of token_mint_output
+    // - supplemental TickArray accounts for whirlpool_one
+    // - supplemental TickArray accounts for whirlpool_two
 }
 
-pub fn handler<'a, 'b, 'c: 'info, 'info>(
+pub fn handler<'a, 'b, 'c, 'info>(
     ctx: Context<'a, 'b, 'c, 'info, TwoHopSwapV2<'info>>,
     amount: u64,
     other_amount_threshold: u64,
@@ -115,15 +121,15 @@ pub fn handler<'a, 'b, 'c: 'info, 'info>(
     }
 
     let swap_one_output_mint = if a_to_b_one {
-        whirlpool_one.load()?.token_mint_b
+        whirlpool_one.token_mint_b
     } else {
-        whirlpool_one.load()?.token_mint_a
+        whirlpool_one.token_mint_a
     };
 
     let swap_two_input_mint = if a_to_b_two {
-        whirlpool_two.load()?.token_mint_a
+        whirlpool_two.token_mint_a
     } else {
-        whirlpool_two.load()?.token_mint_b
+        whirlpool_two.token_mint_b
     };
     if swap_one_output_mint != swap_two_input_mint {
         return Err(ErrorCode::InvalidIntermediaryMint.into());
@@ -137,20 +143,34 @@ pub fn handler<'a, 'b, 'c: 'info, 'info>(
             AccountsType::TransferHookInput,
             AccountsType::TransferHookIntermediate,
             AccountsType::TransferHookOutput,
+            AccountsType::SupplementalTickArraysOne,
+            AccountsType::SupplementalTickArraysTwo,
         ],
     )?;
 
-    let mut swap_tick_sequence_one = SwapTickSequence::new(
-        ctx.accounts.tick_array_one_0.load_mut().unwrap(),
-        ctx.accounts.tick_array_one_1.load_mut().ok(),
-        ctx.accounts.tick_array_one_2.load_mut().ok(),
-    );
+    let builder_one = SparseSwapTickSequenceBuilder::try_from(
+        whirlpool_one,
+        a_to_b_one,
+        vec![
+            ctx.accounts.tick_array_one_0.to_account_info(),
+            ctx.accounts.tick_array_one_1.to_account_info(),
+            ctx.accounts.tick_array_one_2.to_account_info(),
+        ],
+        remaining_accounts.supplemental_tick_arrays_one,
+    )?;
+    let mut swap_tick_sequence_one = builder_one.build()?;
 
-    let mut swap_tick_sequence_two = SwapTickSequence::new(
-        ctx.accounts.tick_array_two_0.load_mut().unwrap(),
-        ctx.accounts.tick_array_two_1.load_mut().ok(),
-        ctx.accounts.tick_array_two_2.load_mut().ok(),
-    );
+    let builder_two = SparseSwapTickSequenceBuilder::try_from(
+        whirlpool_two,
+        a_to_b_two,
+        vec![
+            ctx.accounts.tick_array_two_0.to_account_info(),
+            ctx.accounts.tick_array_two_1.to_account_info(),
+            ctx.accounts.tick_array_two_2.to_account_info(),
+        ],
+        remaining_accounts.supplemental_tick_arrays_two,
+    )?;
+    let mut swap_tick_sequence_two = builder_two.build()?;
 
     // TODO: WLOG, we could extend this to N-swaps, but the account inputs to the instruction would
     // need to be jankier and we may need to programatically map/verify rather than using anchor constraints

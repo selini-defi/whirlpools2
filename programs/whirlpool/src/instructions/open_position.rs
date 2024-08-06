@@ -35,7 +35,7 @@ pub struct OpenPosition<'info> {
     )]
     pub position_token_account: Box<Account<'info, TokenAccount>>,
 
-    pub whirlpool: AccountLoader<'info, Whirlpool>,
+    pub whirlpool: Box<Account<'info, Whirlpool>>,
 
     #[account(address = token::ID)]
     pub token_program: Program<'info, Token>,
@@ -54,18 +54,19 @@ pub fn handler(
     tick_lower_index: i32,
     tick_upper_index: i32,
 ) -> Result<()> {
+    let whirlpool = &ctx.accounts.whirlpool;
     let position_mint = &ctx.accounts.position_mint;
     let position = &mut ctx.accounts.position;
 
     position.open_position(
-        &ctx.accounts.whirlpool,
+        whirlpool,
         position_mint.key(),
         tick_lower_index,
         tick_upper_index,
     )?;
 
     mint_position_token_and_remove_authority(
-        &ctx.accounts.whirlpool,
+        whirlpool,
         position_mint,
         &ctx.accounts.position_token_account,
         &ctx.accounts.token_program,

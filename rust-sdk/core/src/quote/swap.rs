@@ -3,8 +3,8 @@ use core::cmp::{max, min};
 use crate::{
     adjust_amount, get_amount_delta_a, get_amount_delta_b, get_next_sqrt_price_from_a,
     get_next_sqrt_price_from_b, inverse_adjust_amount, sqrt_price_to_tick_index,
-    tick_index_to_sqrt_price, AdjustmentType, ExactInSwapQuote, ExactOutSwapQuote, Tick, TickArray,
-    TickArraySequence, TransferFee, Whirlpool, U128,
+    tick_index_to_sqrt_price, AdjustmentType, ExactInSwapQuote, ExactOutSwapQuote, TickFacade, TickArrayFacade,
+    TickArraySequence, TransferFee, WhirlpoolFacade, U128,
 };
 
 #[cfg(feature = "wasm")]
@@ -34,10 +34,10 @@ pub fn swap_quote_by_input_token(
     token_in: U128,
     specified_token_a: bool,
     slippage_tolerance: u16,
-    whirlpool: Whirlpool,
-    tick_array_1: TickArray,
-    tick_array_2: TickArray,
-    tick_array_3: TickArray,
+    whirlpool: WhirlpoolFacade,
+    tick_array_1: TickArrayFacade,
+    tick_array_2: TickArrayFacade,
+    tick_array_3: TickArrayFacade,
     transfer_fee_a: Option<TransferFee>,
     transfer_fee_b: Option<TransferFee>,
 ) -> ExactInSwapQuote {
@@ -116,10 +116,10 @@ pub fn swap_quote_by_output_token(
     token_out: U128,
     specified_token_a: bool,
     slippage_tolerance: u16,
-    whirlpool: Whirlpool,
-    tick_array_1: TickArray,
-    tick_array_2: TickArray,
-    tick_array_3: TickArray,
+    whirlpool: WhirlpoolFacade,
+    tick_array_1: TickArrayFacade,
+    tick_array_2: TickArrayFacade,
+    tick_array_3: TickArrayFacade,
     transfer_fee_a: Option<TransferFee>,
     transfer_fee_b: Option<TransferFee>,
 ) -> ExactOutSwapQuote {
@@ -182,7 +182,7 @@ struct SwapResult {
 
 fn compute_swap(
     token_amount: u128,
-    whirlpool: Whirlpool,
+    whirlpool: WhirlpoolFacade,
     tick_sequence: TickArraySequence,
     a_to_b: bool,
     specified_input: bool,
@@ -259,7 +259,7 @@ fn compute_swap(
     }
 }
 
-fn get_next_liquidity(current_liquidity: u128, next_tick: &Tick, a_to_b: bool) -> u128 {
+fn get_next_liquidity(current_liquidity: u128, next_tick: &TickFacade, a_to_b: bool) -> u128 {
     let liquidity_net = next_tick.liquidity_net;
     let liquidity_net_unsigned = liquidity_net.unsigned_abs();
     if a_to_b {
@@ -455,31 +455,31 @@ mod tests {
 
     use super::*;
 
-    fn test_whirlpool(sqrt_price: u128, sufficient_liq: bool) -> Whirlpool {
+    fn test_whirlpool(sqrt_price: u128, sufficient_liq: bool) -> WhirlpoolFacade {
         let tick_current_index = sqrt_price_to_tick_index(sqrt_price);
         let liquidity = if sufficient_liq { 100000000 } else { 100000 };
-        Whirlpool {
+        WhirlpoolFacade {
             tick_current_index,
             fee_rate: 3000,
             liquidity,
             sqrt_price,
             tick_spacing: 2,
-            ..Whirlpool::default()
+            ..WhirlpoolFacade::default()
         }
     }
 
-    fn test_tick(positive: bool) -> Tick {
+    fn test_tick(positive: bool) -> TickFacade {
         let liquidity_net = if positive { 1000 } else { -1000 };
-        Tick {
+        TickFacade {
             initialized: true,
             liquidity_net,
-            ..Tick::default()
+            ..TickFacade::default()
         }
     }
 
-    fn test_tick_array(start_tick_index: i32) -> TickArray {
+    fn test_tick_array(start_tick_index: i32) -> TickArrayFacade {
         let positive_liq_net = start_tick_index < 0;
-        TickArray {
+        TickArrayFacade {
             start_tick_index,
             ticks: [test_tick(positive_liq_net); TICK_ARRAY_SIZE],
         }

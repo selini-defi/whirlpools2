@@ -5,7 +5,7 @@ use ethnum::U256;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-use crate::{adjust_amount, CollectRewardsQuote, Position, Tick, TransferFee, Whirlpool};
+use crate::{adjust_amount, CollectRewardsQuote, PositionFacade, TickFacade, TransferFee, WhirlpoolFacade};
 
 /// Calculate rewards owed for a position
 ///
@@ -24,10 +24,10 @@ use crate::{adjust_amount, CollectRewardsQuote, Position, Tick, TransferFee, Whi
 #[allow(clippy::too_many_arguments)]
 #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = collectRewardsQuote, skip_jsdoc))]
 pub fn collect_rewards_quote(
-    whirlpool: Whirlpool,
-    position: Position,
-    tick_lower: Tick,
-    tick_upper: Tick,
+    whirlpool: WhirlpoolFacade,
+    position: PositionFacade,
+    tick_lower: TickFacade,
+    tick_upper: TickFacade,
     current_timestamp: u64,
     transfer_fee_1: Option<TransferFee>,
     transfer_fee_2: Option<TransferFee>,
@@ -135,60 +135,60 @@ pub fn collect_rewards_quote(
 
 #[cfg(all(test, not(feature = "wasm")))]
 mod tests {
-    use crate::{PositionRewardInfo, WhirlpoolRewardInfo};
+    use crate::{PositionRewardInfoFacade, WhirlpoolRewardInfoFacade};
 
     use super::*;
 
-    fn test_whirlpool(tick_current_index: i32) -> Whirlpool {
-        Whirlpool {
+    fn test_whirlpool(tick_current_index: i32) -> WhirlpoolFacade {
+        WhirlpoolFacade {
             tick_current_index,
             reward_last_updated_timestamp: 0,
             reward_infos: [
-                WhirlpoolRewardInfo {
+                WhirlpoolRewardInfoFacade {
                     growth_global_x64: 500,
                     emissions_per_second_x64: 1,
                 },
-                WhirlpoolRewardInfo {
+                WhirlpoolRewardInfoFacade {
                     growth_global_x64: 600,
                     emissions_per_second_x64: 2,
                 },
-                WhirlpoolRewardInfo {
+                WhirlpoolRewardInfoFacade {
                     growth_global_x64: 700,
                     emissions_per_second_x64: 3,
                 },
             ],
             liquidity: 50,
-            ..Whirlpool::default()
+            ..WhirlpoolFacade::default()
         }
     }
 
-    fn test_position() -> Position {
-        Position {
+    fn test_position() -> PositionFacade {
+        PositionFacade {
             liquidity: 50,
             tick_lower_index: 5,
             tick_upper_index: 10,
             reward_infos: [
-                PositionRewardInfo {
+                PositionRewardInfoFacade {
                     growth_inside_checkpoint: 100,
                     amount_owed: 100,
                 },
-                PositionRewardInfo {
+                PositionRewardInfoFacade {
                     growth_inside_checkpoint: 200,
                     amount_owed: 200,
                 },
-                PositionRewardInfo {
+                PositionRewardInfoFacade {
                     growth_inside_checkpoint: 300,
                     amount_owed: 300,
                 },
             ],
-            ..Position::default()
+            ..PositionFacade::default()
         }
     }
 
-    fn test_tick() -> Tick {
-        Tick {
+    fn test_tick() -> TickFacade {
+        TickFacade {
             reward_growths_outside: [10, 20, 30],
-            ..Tick::default()
+            ..TickFacade::default()
         }
     }
 

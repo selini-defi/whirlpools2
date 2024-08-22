@@ -30,7 +30,7 @@ pub enum PositionStatus {
 #[cfg_attr(feature = "wasm", derive(Serialize, Deserialize, Tsify))]
 #[cfg_attr(feature = "wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "wasm", tsify(from_wasm_abi))]
-pub struct Position {
+pub struct PositionFacade {
     pub liquidity: u128,
     pub tick_lower_index: i32,
     pub tick_upper_index: i32,
@@ -38,7 +38,7 @@ pub struct Position {
     pub fee_owed_a: u64,
     pub fee_growth_checkpoint_b: u128,
     pub fee_owed_b: u64,
-    pub reward_infos: [PositionRewardInfo; 3],
+    pub reward_infos: [PositionRewardInfoFacade; 3],
 }
 
 #[cfg(any(feature = "wasm", test))]
@@ -46,10 +46,10 @@ pub struct Position {
 #[cfg_attr(feature = "wasm", derive(Serialize, Deserialize, Tsify))]
 #[cfg_attr(feature = "wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "wasm", tsify(from_wasm_abi))]
-pub struct PositionRewardInfo {
+pub struct PositionRewardInfoFacade {
     pub growth_inside_checkpoint: u128,
     pub amount_owed: u64,
 }
 
 #[cfg(not(any(feature = "wasm", test)))]
-pub use orca_whirlpools_client::accounts::Position;
+pub use orca_whirlpools_client::accounts::Position as PositionFacade;

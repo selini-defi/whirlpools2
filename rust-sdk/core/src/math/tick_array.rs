@@ -1,13 +1,13 @@
-use crate::{Tick, TickArray, TICK_ARRAY_SIZE};
+use crate::{TickFacade, TickArrayFacade, TICK_ARRAY_SIZE};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TickArraySequence {
-    tick_arrays: [TickArray; 3],
+    tick_arrays: [TickArrayFacade; 3],
     tick_spacing: u16,
 }
 
 impl TickArraySequence {
-    pub fn new(one: TickArray, two: TickArray, three: TickArray, tick_spacing: u16) -> Self {
+    pub fn new(one: TickArrayFacade, two: TickArrayFacade, three: TickArrayFacade, tick_spacing: u16) -> Self {
         let (first, second, third) = order_tick_arrays(one, two, three);
 
         let first_second_diff = (second.start_tick_index - first.start_tick_index).unsigned_abs();
@@ -31,7 +31,7 @@ impl TickArraySequence {
         self.start_index() + tick_span as i32
     }
 
-    pub fn tick(&self, tick_index: i32) -> &Tick {
+    pub fn tick(&self, tick_index: i32) -> &TickFacade {
         if (tick_index < self.start_index()) || (tick_index >= self.end_index()) {
             panic!("tick index out of bounds");
         }
@@ -47,7 +47,7 @@ impl TickArraySequence {
         &tick_array.ticks[tick_index_in_array as usize]
     }
 
-    pub fn next_initialized_tick(&self, tick_index: i32) -> (&Tick, i32) {
+    pub fn next_initialized_tick(&self, tick_index: i32) -> (&TickFacade, i32) {
         let remainder = tick_index % self.tick_spacing as i32;
         let next_index = tick_index + self.tick_spacing as i32 - remainder;
         let tick = self.tick(next_index);
@@ -57,7 +57,7 @@ impl TickArraySequence {
         (tick, next_index)
     }
 
-    pub fn prev_initialized_tick(&self, tick_index: i32) -> (&Tick, i32) {
+    pub fn prev_initialized_tick(&self, tick_index: i32) -> (&TickFacade, i32) {
         let remainder = tick_index % self.tick_spacing as i32;
         let prev_index = tick_index - self.tick_spacing as i32 + remainder;
         let tick = self.tick(prev_index);
@@ -69,10 +69,10 @@ impl TickArraySequence {
 }
 
 fn order_tick_arrays(
-    one: TickArray,
-    two: TickArray,
-    three: TickArray,
-) -> (TickArray, TickArray, TickArray) {
+    one: TickArrayFacade,
+    two: TickArrayFacade,
+    three: TickArrayFacade,
+) -> (TickArrayFacade, TickArrayFacade, TickArrayFacade) {
     let first_start_index = one.start_tick_index;
     let second_start_index = two.start_tick_index;
     let third_start_index = three.start_tick_index;
@@ -99,24 +99,24 @@ mod tests {
     use super::*;
 
     fn test_sequence() -> TickArraySequence {
-        let ticks: [Tick; TICK_ARRAY_SIZE] = (0..TICK_ARRAY_SIZE)
-            .map(|x| Tick {
+        let ticks: [TickFacade; TICK_ARRAY_SIZE] = (0..TICK_ARRAY_SIZE)
+            .map(|x| TickFacade {
                 initialized: x & 1 == 1,
                 liquidity_gross: x as u128,
-                ..Tick::default()
+                ..TickFacade::default()
             })
-            .collect::<Vec<Tick>>()
+            .collect::<Vec<TickFacade>>()
             .try_into()
             .unwrap();
-        let one = TickArray {
+        let one = TickArrayFacade {
             start_tick_index: 0,
             ticks,
         };
-        let two = TickArray {
+        let two = TickArrayFacade {
             start_tick_index: TICK_ARRAY_SIZE as i32 * 16,
             ticks,
         };
-        let three = TickArray {
+        let three = TickArrayFacade {
             start_tick_index: TICK_ARRAY_SIZE as i32 * 16 * 2,
             ticks,
         };

@@ -26,7 +26,7 @@ pub struct TickRange {
 #[cfg_attr(feature = "wasm", derive(Serialize, Deserialize, Tsify))]
 #[cfg_attr(feature = "wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "wasm", tsify(from_wasm_abi))]
-pub struct Tick {
+pub struct TickFacade {
     pub initialized: bool,
     pub liquidity_net: i128,
     pub liquidity_gross: u128,
@@ -36,18 +36,18 @@ pub struct Tick {
 }
 
 #[cfg(not(any(feature = "wasm", test)))]
-pub use orca_whirlpools_client::types::Tick;
+pub use orca_whirlpools_client::types::Tick as TickFacade;
 
 #[cfg(any(feature = "wasm", test))]
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "wasm", derive(Serialize, Deserialize, Tsify))]
 #[cfg_attr(feature = "wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "wasm", tsify(from_wasm_abi))]
-pub struct TickArray {
+pub struct TickArrayFacade {
     pub start_tick_index: i32,
     #[cfg_attr(feature = "wasm", serde(with = "BigArray"))]
-    pub ticks: [Tick; TICK_ARRAY_SIZE],
+    pub ticks: [TickFacade; TICK_ARRAY_SIZE],
 }
 
 #[cfg(not(any(feature = "wasm", test)))]
-pub use orca_whirlpools_client::accounts::TickArray;
+pub use orca_whirlpools_client::accounts::TickArray as TickArrayFacade;

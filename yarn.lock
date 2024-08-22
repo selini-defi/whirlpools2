@@ -2523,7 +2523,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kinobi-so/nodes-from-anchor@npm:0.21.2, @kinobi-so/nodes-from-anchor@npm:^0.21.1":
+"@kinobi-so/nodes-from-anchor@npm:0.21.2, @kinobi-so/nodes-from-anchor@npm:^0.21.2":
   version: 0.21.2
   resolution: "@kinobi-so/nodes-from-anchor@npm:0.21.2"
   dependencies:
@@ -2844,11 +2844,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@orca-so/whirlpools-client@workspace:ts-sdk/client"
   dependencies:
-    "@kinobi-so/nodes-from-anchor": "npm:^0.21.1"
+    "@kinobi-so/nodes-from-anchor": "npm:^0.21.2"
     "@kinobi-so/renderers-js": "npm:^0.21.7"
     "@orca-so/whirlpools-program": "npm:*"
     "@solana/web3.js": "npm:^2.0.0-preview.4"
-    kinobi: "npm:^0.21.3"
+    kinobi: "npm:^0.21.4"
     typescript: "npm:^5.5.4"
   peerDependencies:
     "@solana/web3.js": ^2.0.0-preview.4
@@ -2907,7 +2907,7 @@ __metadata:
     "@orca-so/whirlpools-docs-legacy": "npm:*"
     "@orca-so/whirlpools-docs-rust": "npm:*"
     "@orca-so/whirlpools-docs-ts": "npm:*"
-    "@types/react": "npm:^18.3.3"
+    "@types/react": "npm:^18.3.4"
     clsx: "npm:^2.1.1"
     prism-react-renderer: "npm:^2.3.1"
     react: "npm:^18.3.1"
@@ -2932,12 +2932,12 @@ __metadata:
   dependencies:
     "@types/bn.js": "npm:~5.1.5"
     "@types/mocha": "npm:^10.0.7"
-    "@types/node": "npm:^22.4.2"
+    "@types/node": "npm:^22.5.0"
     "@types/sinon": "npm:^17.0.3"
     husky: "npm:^9.1.5"
     lint-staged: "npm:^15.2.9"
     mocha: "npm:^10.7.3"
-    nx: "npm:^19.6.1"
+    nx: "npm:^19.6.2"
     rimraf: "npm:^6.0.1"
     sinon: "npm:^18.0.0"
     ts-mocha: "npm:^10.0.0"
@@ -2954,7 +2954,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@orca-so/whirlpools-rust-client@workspace:rust-sdk/client"
   dependencies:
-    "@kinobi-so/nodes-from-anchor": "npm:^0.21.1"
+    "@kinobi-so/nodes-from-anchor": "npm:^0.21.2"
     "@kinobi-so/renderers-rust": "npm:^0.21.6"
     "@orca-so/whirlpools-program": "npm:*"
   languageName: unknown
@@ -4478,7 +4478,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^22.4.2":
+"@types/node@npm:^22.5.0":
   version: 22.5.0
   resolution: "@types/node@npm:22.5.0"
   dependencies:
@@ -4554,13 +4554,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:^18.3.3":
+"@types/react@npm:*":
   version: 18.3.3
   resolution: "@types/react@npm:18.3.3"
   dependencies:
     "@types/prop-types": "npm:*"
     csstype: "npm:^3.0.2"
   checksum: 10c0/fe455f805c5da13b89964c3d68060cebd43e73ec15001a68b34634604a78140e6fc202f3f61679b9d809dde6d7a7c2cb3ed51e0fd1462557911db09879b55114
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:^18.3.4":
+  version: 18.3.4
+  resolution: "@types/react@npm:18.3.4"
+  dependencies:
+    "@types/prop-types": "npm:*"
+    csstype: "npm:^3.0.2"
+  checksum: 10c0/5c52e1e6f540cff21e3c2a5212066d02e005f6fb21e4a536a29097fae878db9f407cd7a4b43778f51359349c5f692e08bc77ddb5f5cecbfca9ca4d4e3c91a48e
   languageName: node
   linkType: hard
 
@@ -9743,7 +9753,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"kinobi@npm:^0.21.3":
+"kinobi@npm:^0.21.4":
   version: 0.21.4
   resolution: "kinobi@npm:0.21.4"
   dependencies:
@@ -11482,7 +11492,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nx@npm:19.6.2, nx@npm:^19.6.1":
+"nx@npm:19.6.2, nx@npm:^19.6.2":
   version: 19.6.2
   resolution: "nx@npm:19.6.2"
   dependencies:

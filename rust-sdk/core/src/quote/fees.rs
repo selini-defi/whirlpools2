@@ -4,7 +4,7 @@ use ethnum::U256;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-use crate::{adjust_amount, CollectFeesQuote, Position, Tick, TransferFee, Whirlpool};
+use crate::{adjust_amount, CollectFeesQuote, PositionFacade, TickFacade, TransferFee, WhirlpoolFacade};
 
 /// Calculate fees owed for a position
 ///
@@ -21,10 +21,10 @@ use crate::{adjust_amount, CollectFeesQuote, Position, Tick, TransferFee, Whirlp
 #[allow(clippy::too_many_arguments)]
 #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = collectFeesQuote, skip_jsdoc))]
 pub fn collect_fees_quote(
-    whirlpool: Whirlpool,
-    position: Position,
-    tick_lower: Tick,
-    tick_upper: Tick,
+    whirlpool: WhirlpoolFacade,
+    position: PositionFacade,
+    tick_lower: TickFacade,
+    tick_upper: TickFacade,
     transfer_fee_a: Option<TransferFee>,
     transfer_fee_b: Option<TransferFee>,
 ) -> CollectFeesQuote {
@@ -90,17 +90,17 @@ pub fn collect_fees_quote(
 mod tests {
     use super::*;
 
-    fn test_whirlpool(tick_index: i32) -> Whirlpool {
-        Whirlpool {
+    fn test_whirlpool(tick_index: i32) -> WhirlpoolFacade {
+        WhirlpoolFacade {
             tick_current_index: tick_index,
             fee_growth_global_a: 800,
             fee_growth_global_b: 1000,
-            ..Whirlpool::default()
+            ..WhirlpoolFacade::default()
         }
     }
 
-    fn test_position() -> Position {
-        Position {
+    fn test_position() -> PositionFacade {
+        PositionFacade {
             liquidity: 10000000000000000000,
             tick_lower_index: 5,
             tick_upper_index: 10,
@@ -108,15 +108,15 @@ mod tests {
             fee_owed_a: 400,
             fee_growth_checkpoint_b: 500,
             fee_owed_b: 600,
-            ..Position::default()
+            ..PositionFacade::default()
         }
     }
 
-    fn test_tick() -> Tick {
-        Tick {
+    fn test_tick() -> TickFacade {
+        TickFacade {
             fee_growth_outside_a: 50,
             fee_growth_outside_b: 20,
-            ..Tick::default()
+            ..TickFacade::default()
         }
     }
 

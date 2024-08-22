@@ -11,7 +11,7 @@ use tsify::Tsify;
 #[cfg_attr(feature = "wasm", derive(Serialize, Deserialize, Tsify))]
 #[cfg_attr(feature = "wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "wasm", tsify(from_wasm_abi))]
-pub struct Whirlpool {
+pub struct WhirlpoolFacade {
     pub tick_spacing: u16,
     pub fee_rate: u16,
     pub liquidity: u128,
@@ -20,7 +20,7 @@ pub struct Whirlpool {
     pub fee_growth_global_a: u128,
     pub fee_growth_global_b: u128,
     pub reward_last_updated_timestamp: u64,
-    pub reward_infos: [WhirlpoolRewardInfo; 3],
+    pub reward_infos: [WhirlpoolRewardInfoFacade; 3],
 }
 
 #[cfg(any(feature = "wasm", test))]
@@ -28,10 +28,10 @@ pub struct Whirlpool {
 #[cfg_attr(feature = "wasm", derive(Serialize, Deserialize, Tsify))]
 #[cfg_attr(feature = "wasm", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "wasm", tsify(from_wasm_abi))]
-pub struct WhirlpoolRewardInfo {
+pub struct WhirlpoolRewardInfoFacade {
     pub emissions_per_second_x64: u128,
     pub growth_global_x64: u128,
 }
 
 #[cfg(not(any(feature = "wasm", test)))]
-pub use orca_whirlpools_client::accounts::Whirlpool;
+pub use orca_whirlpools_client::accounts::Whirlpool as WhirlpoolFacade;

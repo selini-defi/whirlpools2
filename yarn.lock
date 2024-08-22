@@ -2503,19 +2503,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kinobi-so/errors@npm:0.21.3":
-  version: 0.21.3
-  resolution: "@kinobi-so/errors@npm:0.21.3"
-  dependencies:
-    "@kinobi-so/node-types": "npm:0.21.3"
-    chalk: "npm:^5.3.0"
-    commander: "npm:^12.1.0"
-  bin:
-    errors: bin/cli.mjs
-  checksum: 10c0/20bee010dd1fa01e46470426eab77da7fbf492d36f5895fc4499d8b8d4f9f41eb5be5686f987fe291d7712c8936404cbd4933357661d4faabb9dd119c761dccc
-  languageName: node
-  linkType: hard
-
 "@kinobi-so/errors@npm:0.21.4":
   version: 0.21.4
   resolution: "@kinobi-so/errors@npm:0.21.4"
@@ -2529,13 +2516,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kinobi-so/node-types@npm:0.21.3":
-  version: 0.21.3
-  resolution: "@kinobi-so/node-types@npm:0.21.3"
-  checksum: 10c0/ee44d1667d6a74d74872efb0c14bf6e1e73fcde883c8ef1220bf2b99db61fd05d713a2fc466e50a3162186c7c7a1e9eceb65906c007464f869d826d87406b77e
-  languageName: node
-  linkType: hard
-
 "@kinobi-so/node-types@npm:0.21.4":
   version: 0.21.4
   resolution: "@kinobi-so/node-types@npm:0.21.4"
@@ -2543,7 +2523,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kinobi-so/nodes-from-anchor@npm:0.21.2":
+"@kinobi-so/nodes-from-anchor@npm:0.21.2, @kinobi-so/nodes-from-anchor@npm:^0.21.1":
   version: 0.21.2
   resolution: "@kinobi-so/nodes-from-anchor@npm:0.21.2"
   dependencies:
@@ -2552,28 +2532,6 @@ __metadata:
     "@kinobi-so/visitors": "npm:0.21.4"
     "@noble/hashes": "npm:^1.4.0"
   checksum: 10c0/4e75b343ac2ed6a266c1925f07c55fe47d2573470f15ab30d6f03f26cc20e87fe917e9c48233b388311c69a3f6a4ec50f62ae925eda55609cb2e06e948d4ec6a
-  languageName: node
-  linkType: hard
-
-"@kinobi-so/nodes-from-anchor@npm:^0.21.1":
-  version: 0.21.1
-  resolution: "@kinobi-so/nodes-from-anchor@npm:0.21.1"
-  dependencies:
-    "@kinobi-so/errors": "npm:0.21.3"
-    "@kinobi-so/nodes": "npm:0.21.3"
-    "@kinobi-so/visitors": "npm:0.21.3"
-    "@noble/hashes": "npm:^1.4.0"
-  checksum: 10c0/6d59a93c9dadb83467177f726c3e031c72f3eeda61cdae4011443aa165e5ad2cfd67493c0acd2a5a12ad3683d6ecdf1b766a2522dd7001b824daba8774bf21e5
-  languageName: node
-  linkType: hard
-
-"@kinobi-so/nodes@npm:0.21.3":
-  version: 0.21.3
-  resolution: "@kinobi-so/nodes@npm:0.21.3"
-  dependencies:
-    "@kinobi-so/errors": "npm:0.21.3"
-    "@kinobi-so/node-types": "npm:0.21.3"
-  checksum: 10c0/a8710328232762a4d7167d35d444ab298eefaad4bfdfece235be7ab5ad17eb8f3354b631b27f5117da0a61e8c8f5729b8666b54004118bb1e0b11fa20e1ba66e
   languageName: node
   linkType: hard
 
@@ -2628,25 +2586,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kinobi-so/validators@npm:0.21.3":
-  version: 0.21.3
-  resolution: "@kinobi-so/validators@npm:0.21.3"
+"@kinobi-so/validators@npm:0.21.4":
+  version: 0.21.4
+  resolution: "@kinobi-so/validators@npm:0.21.4"
   dependencies:
-    "@kinobi-so/errors": "npm:0.21.3"
-    "@kinobi-so/nodes": "npm:0.21.3"
-    "@kinobi-so/visitors-core": "npm:0.21.3"
-  checksum: 10c0/067d4eb365bea5072ee7e246e2e67574562bc4eeb066f1fa34f945cc006b6a1bd587e34ff289e4127ea6e2010e7a1c1ebfc036faf0baa7bc7785c8b8b638a895
-  languageName: node
-  linkType: hard
-
-"@kinobi-so/visitors-core@npm:0.21.3":
-  version: 0.21.3
-  resolution: "@kinobi-so/visitors-core@npm:0.21.3"
-  dependencies:
-    "@kinobi-so/errors": "npm:0.21.3"
-    "@kinobi-so/nodes": "npm:0.21.3"
-    json-stable-stringify: "npm:^1.1.1"
-  checksum: 10c0/ec4b6538b17b0263a381019101f38de3d8b637668674135192d19ac7f909e9c01a3992668393a50077778887f1c01054734ce0affbafb3e577ccbf9a0aac4bbc
+    "@kinobi-so/errors": "npm:0.21.4"
+    "@kinobi-so/nodes": "npm:0.21.4"
+    "@kinobi-so/visitors-core": "npm:0.21.4"
+  checksum: 10c0/2e7ae88ac46c329a8ab9445ec68238ae766163e9523ed8862915ad4a39bc52db7a9aa627e5417f97859c0d1802487416f7f0f0d69eda2f9e62325db93982bcf5
   languageName: node
   linkType: hard
 
@@ -2658,17 +2605,6 @@ __metadata:
     "@kinobi-so/nodes": "npm:0.21.4"
     json-stable-stringify: "npm:^1.1.1"
   checksum: 10c0/43bfbcd7ff4864b3aeab16df02d1cc03b093e0343b8caeea79f8be719e32cf4e3ee7d9e663528a4b4e1d310f1b475fac016d2da080e07969b62950de8008e1da
-  languageName: node
-  linkType: hard
-
-"@kinobi-so/visitors@npm:0.21.3":
-  version: 0.21.3
-  resolution: "@kinobi-so/visitors@npm:0.21.3"
-  dependencies:
-    "@kinobi-so/errors": "npm:0.21.3"
-    "@kinobi-so/nodes": "npm:0.21.3"
-    "@kinobi-so/visitors-core": "npm:0.21.3"
-  checksum: 10c0/6d2ed0a16b3683f4889c6f618d97ab52a9d5e3d954e91edbc6095823bf613f8d6d7fac86df9c385fcd746418e243b5579552ae3b027a120102cd49dc8f0967ac
   languageName: node
   linkType: hard
 
@@ -2809,84 +2745,84 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nrwl/tao@npm:19.6.1":
-  version: 19.6.1
-  resolution: "@nrwl/tao@npm:19.6.1"
+"@nrwl/tao@npm:19.6.2":
+  version: 19.6.2
+  resolution: "@nrwl/tao@npm:19.6.2"
   dependencies:
-    nx: "npm:19.6.1"
+    nx: "npm:19.6.2"
     tslib: "npm:^2.3.0"
   bin:
     tao: index.js
-  checksum: 10c0/14125fc1a7ecec6100ad1370e85f1bdce5cb44b35eda2a3e89ec911d2ef5e46835745de5ac24b6b45ab4023b4ba17e13baacaaf575be69066cf935bdbd85a091
+  checksum: 10c0/db7ae5796274740298ffb2eb44f8542b784181321d9898f94ed9a64e01b6d336d48afedb09c1db9c299605eb5f4544d5aa37656f80c44b219919238ecda2d2ae
   languageName: node
   linkType: hard
 
-"@nx/nx-darwin-arm64@npm:19.6.1":
-  version: 19.6.1
-  resolution: "@nx/nx-darwin-arm64@npm:19.6.1"
+"@nx/nx-darwin-arm64@npm:19.6.2":
+  version: 19.6.2
+  resolution: "@nx/nx-darwin-arm64@npm:19.6.2"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@nx/nx-darwin-x64@npm:19.6.1":
-  version: 19.6.1
-  resolution: "@nx/nx-darwin-x64@npm:19.6.1"
+"@nx/nx-darwin-x64@npm:19.6.2":
+  version: 19.6.2
+  resolution: "@nx/nx-darwin-x64@npm:19.6.2"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@nx/nx-freebsd-x64@npm:19.6.1":
-  version: 19.6.1
-  resolution: "@nx/nx-freebsd-x64@npm:19.6.1"
+"@nx/nx-freebsd-x64@npm:19.6.2":
+  version: 19.6.2
+  resolution: "@nx/nx-freebsd-x64@npm:19.6.2"
   conditions: os=freebsd & cpu=x64
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm-gnueabihf@npm:19.6.1":
-  version: 19.6.1
-  resolution: "@nx/nx-linux-arm-gnueabihf@npm:19.6.1"
+"@nx/nx-linux-arm-gnueabihf@npm:19.6.2":
+  version: 19.6.2
+  resolution: "@nx/nx-linux-arm-gnueabihf@npm:19.6.2"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm64-gnu@npm:19.6.1":
-  version: 19.6.1
-  resolution: "@nx/nx-linux-arm64-gnu@npm:19.6.1"
+"@nx/nx-linux-arm64-gnu@npm:19.6.2":
+  version: 19.6.2
+  resolution: "@nx/nx-linux-arm64-gnu@npm:19.6.2"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm64-musl@npm:19.6.1":
-  version: 19.6.1
-  resolution: "@nx/nx-linux-arm64-musl@npm:19.6.1"
+"@nx/nx-linux-arm64-musl@npm:19.6.2":
+  version: 19.6.2
+  resolution: "@nx/nx-linux-arm64-musl@npm:19.6.2"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-x64-gnu@npm:19.6.1":
-  version: 19.6.1
-  resolution: "@nx/nx-linux-x64-gnu@npm:19.6.1"
+"@nx/nx-linux-x64-gnu@npm:19.6.2":
+  version: 19.6.2
+  resolution: "@nx/nx-linux-x64-gnu@npm:19.6.2"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-x64-musl@npm:19.6.1":
-  version: 19.6.1
-  resolution: "@nx/nx-linux-x64-musl@npm:19.6.1"
+"@nx/nx-linux-x64-musl@npm:19.6.2":
+  version: 19.6.2
+  resolution: "@nx/nx-linux-x64-musl@npm:19.6.2"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@nx/nx-win32-arm64-msvc@npm:19.6.1":
-  version: 19.6.1
-  resolution: "@nx/nx-win32-arm64-msvc@npm:19.6.1"
+"@nx/nx-win32-arm64-msvc@npm:19.6.2":
+  version: 19.6.2
+  resolution: "@nx/nx-win32-arm64-msvc@npm:19.6.2"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@nx/nx-win32-x64-msvc@npm:19.6.1":
-  version: 19.6.1
-  resolution: "@nx/nx-win32-x64-msvc@npm:19.6.1"
+"@nx/nx-win32-x64-msvc@npm:19.6.2":
+  version: 19.6.2
+  resolution: "@nx/nx-win32-x64-msvc@npm:19.6.2"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -2919,10 +2855,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@orca-so/whirlpools-core@npm:*, @orca-so/whirlpools-core@workspace:ts-sdk/core":
+  version: 0.0.0-use.local
+  resolution: "@orca-so/whirlpools-core@workspace:ts-sdk/core"
+  dependencies:
+    "@orca-so/whirlpools-rust-core": "npm:*"
+    wasm-pack: "npm:^0.13.0"
+  languageName: unknown
+  linkType: soft
+
 "@orca-so/whirlpools-docs-legacy@npm:*, @orca-so/whirlpools-docs-legacy@workspace:docs/legacy":
   version: 0.0.0-use.local
   resolution: "@orca-so/whirlpools-docs-legacy@workspace:docs/legacy"
   dependencies:
+    "@orca-so/whirlpools": "npm:*"
     "@orca-so/whirlpools-sdk": "npm:*"
     typedoc: "npm:^0.26.6"
     typescript: "npm:^5.5.4"
@@ -2942,6 +2888,7 @@ __metadata:
   resolution: "@orca-so/whirlpools-docs-ts@workspace:docs/ts"
   dependencies:
     "@orca-so/whirlpools": "npm:*"
+    "@orca-so/whirlpools-sdk": "npm:*"
     typedoc: "npm:^0.26.6"
     typescript: "npm:^5.5.4"
   languageName: unknown
@@ -3013,6 +2960,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@orca-so/whirlpools-rust-core@npm:*, @orca-so/whirlpools-rust-core@workspace:rust-sdk/core":
+  version: 0.0.0-use.local
+  resolution: "@orca-so/whirlpools-rust-core@workspace:rust-sdk/core"
+  dependencies:
+    "@orca-so/whirlpools-rust-client": "npm:*"
+    "@orca-so/whirlpools-rust-macros": "npm:*"
+  languageName: unknown
+  linkType: soft
+
+"@orca-so/whirlpools-rust-macros@npm:*, @orca-so/whirlpools-rust-macros@workspace:rust-sdk/macros":
+  version: 0.0.0-use.local
+  resolution: "@orca-so/whirlpools-rust-macros@workspace:rust-sdk/macros"
+  languageName: unknown
+  linkType: soft
+
 "@orca-so/whirlpools-rust@npm:*, @orca-so/whirlpools-rust@workspace:rust-sdk/whirlpool":
   version: 0.0.0-use.local
   resolution: "@orca-so/whirlpools-rust@workspace:rust-sdk/whirlpool"
@@ -3061,6 +3023,7 @@ __metadata:
   resolution: "@orca-so/whirlpools@workspace:ts-sdk/whirlpool"
   dependencies:
     "@orca-so/whirlpools-client": "npm:*"
+    "@orca-so/whirlpools-core": "npm:*"
     typescript: "npm:^5.5.4"
   languageName: unknown
   linkType: soft
@@ -3129,12 +3092,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@shikijs/core@npm:1.13.0":
-  version: 1.13.0
-  resolution: "@shikijs/core@npm:1.13.0"
+"@shikijs/core@npm:1.12.1":
+  version: 1.12.1
+  resolution: "@shikijs/core@npm:1.12.1"
   dependencies:
     "@types/hast": "npm:^3.0.4"
-  checksum: 10c0/271ce7f3a6589d0dc5f7e8028fd2a471d4545f87f569d9f33f69fa443d3de52d2b0011b57309eeb2e954c7e0bf5134e9c21fcb69fa0ad5b9590be5163869919a
+  checksum: 10c0/196df410a63a7cee3539f7ea46ee2241f7d6876af622041330b9c2725e9efa2993a2f0e24938d1dd1c214222fa03e18e61b4c849d323b06505387d93acadb918
   languageName: node
   linkType: hard
 
@@ -4516,11 +4479,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:^22.4.2":
-  version: 22.4.2
-  resolution: "@types/node@npm:22.4.2"
+  version: 22.5.0
+  resolution: "@types/node@npm:22.5.0"
   dependencies:
     undici-types: "npm:~6.19.2"
-  checksum: 10c0/db583e83230eed29eb73e24cc03637f5bdc8c01883ae0ba0a6ab9356065f93d0355a91ad1c89b985631006bd77c529d6a3ce042b3667b69c8851d05e1f965db1
+  checksum: 10c0/45aa75c5e71645fac42dced4eff7f197c3fdfff6e8a9fdacd0eb2e748ff21ee70ffb73982f068a58e8d73b2c088a63613142c125236cdcf3c072ea97eada1559
   languageName: node
   linkType: hard
 
@@ -4672,10 +4635,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/unist@npm:*, @types/unist@npm:^3.0.0":
-  version: 3.0.3
-  resolution: "@types/unist@npm:3.0.3"
-  checksum: 10c0/2b1e4adcab78388e088fcc3c0ae8700f76619dbcb4741d7d201f87e2cb346bfc29a89003cfea2d76c996e1061452e14fcd737e8b25aacf949c1f2d6b2bc3dd60
+"@types/unist@npm:*":
+  version: 3.0.2
+  resolution: "@types/unist@npm:3.0.2"
+  checksum: 10c0/39f220ce184a773c55c18a127062bfc4d0d30c987250cd59bab544d97be6cfec93717a49ef96e81f024b575718f798d4d329eb81c452fc57d6d051af8b043ebf
   languageName: node
   linkType: hard
 
@@ -4683,6 +4646,13 @@ __metadata:
   version: 2.0.11
   resolution: "@types/unist@npm:2.0.11"
   checksum: 10c0/24dcdf25a168f453bb70298145eb043cfdbb82472db0bc0b56d6d51cd2e484b9ed8271d4ac93000a80da568f2402e9339723db262d0869e2bf13bc58e081768d
+  languageName: node
+  linkType: hard
+
+"@types/unist@npm:^3.0.0":
+  version: 3.0.3
+  resolution: "@types/unist@npm:3.0.3"
+  checksum: 10c0/2b1e4adcab78388e088fcc3c0ae8700f76619dbcb4741d7d201f87e2cb346bfc29a89003cfea2d76c996e1061452e14fcd737e8b25aacf949c1f2d6b2bc3dd60
   languageName: node
   linkType: hard
 
@@ -5431,6 +5401,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"axios@npm:^0.26.1":
+  version: 0.26.1
+  resolution: "axios@npm:0.26.1"
+  dependencies:
+    follow-redirects: "npm:^1.14.8"
+  checksum: 10c0/77ad7f1e6ca04fcd3fa8af1795b09d8b7c005b71a31f28d99ba40cda0bdcc12a4627801d7fac5efa62b9f667a8402bd54c669039694373bc8d44f6be611f785c
+  languageName: node
+  linkType: hard
+
 "axios@npm:^1.7.4":
   version: 1.7.4
   resolution: "axios@npm:1.7.4"
@@ -5565,6 +5544,17 @@ __metadata:
   version: 2.3.0
   resolution: "binary-extensions@npm:2.3.0"
   checksum: 10c0/75a59cafc10fb12a11d510e77110c6c7ae3f4ca22463d52487709ca7f18f69d886aa387557cc9864fbdb10153d0bdb4caacabf11541f55e89ed6e18d12ece2b5
+  languageName: node
+  linkType: hard
+
+"binary-install@npm:^1.0.1":
+  version: 1.1.0
+  resolution: "binary-install@npm:1.1.0"
+  dependencies:
+    axios: "npm:^0.26.1"
+    rimraf: "npm:^3.0.2"
+    tar: "npm:^6.1.11"
+  checksum: 10c0/c0c94a81262c037a1a84f12ff9acfe667b7938b126e764b0f066d5be128d21e0bb8ac5700f4d89f8f7b860b660882deddeaca300dea0ff218d94676999a133a1
   languageName: node
   linkType: hard
 
@@ -7944,7 +7934,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.15.6":
+"follow-redirects@npm:^1.0.0, follow-redirects@npm:^1.14.8, follow-redirects@npm:^1.15.6":
   version: 1.15.6
   resolution: "follow-redirects@npm:1.15.6"
   peerDependenciesMeta:
@@ -9754,14 +9744,14 @@ __metadata:
   linkType: hard
 
 "kinobi@npm:^0.21.3":
-  version: 0.21.3
-  resolution: "kinobi@npm:0.21.3"
+  version: 0.21.4
+  resolution: "kinobi@npm:0.21.4"
   dependencies:
-    "@kinobi-so/errors": "npm:0.21.3"
-    "@kinobi-so/nodes": "npm:0.21.3"
-    "@kinobi-so/validators": "npm:0.21.3"
-    "@kinobi-so/visitors": "npm:0.21.3"
-  checksum: 10c0/36acf9ec99ba8b110205a4b7110c906ae0ffe653f8abd6209bc0e1d38ca2990b371a7a38c43d53ddbf181f8370eb9b29608e9c241cab7f56b5b52ebca54d68d5
+    "@kinobi-so/errors": "npm:0.21.4"
+    "@kinobi-so/nodes": "npm:0.21.4"
+    "@kinobi-so/validators": "npm:0.21.4"
+    "@kinobi-so/visitors": "npm:0.21.4"
+  checksum: 10c0/cd29af06d22f18fa3adfca1001e507e305b67e3657f231c541ab0fda783da4009cc65c0af9f3af80a9ebeb9f506815d7ca41a0878ba20c193cb18c18d9f7fa60
   languageName: node
   linkType: hard
 
@@ -11492,22 +11482,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nx@npm:19.6.1, nx@npm:^19.6.1":
-  version: 19.6.1
-  resolution: "nx@npm:19.6.1"
+"nx@npm:19.6.2, nx@npm:^19.6.1":
+  version: 19.6.2
+  resolution: "nx@npm:19.6.2"
   dependencies:
     "@napi-rs/wasm-runtime": "npm:0.2.4"
-    "@nrwl/tao": "npm:19.6.1"
-    "@nx/nx-darwin-arm64": "npm:19.6.1"
-    "@nx/nx-darwin-x64": "npm:19.6.1"
-    "@nx/nx-freebsd-x64": "npm:19.6.1"
-    "@nx/nx-linux-arm-gnueabihf": "npm:19.6.1"
-    "@nx/nx-linux-arm64-gnu": "npm:19.6.1"
-    "@nx/nx-linux-arm64-musl": "npm:19.6.1"
-    "@nx/nx-linux-x64-gnu": "npm:19.6.1"
-    "@nx/nx-linux-x64-musl": "npm:19.6.1"
-    "@nx/nx-win32-arm64-msvc": "npm:19.6.1"
-    "@nx/nx-win32-x64-msvc": "npm:19.6.1"
+    "@nrwl/tao": "npm:19.6.2"
+    "@nx/nx-darwin-arm64": "npm:19.6.2"
+    "@nx/nx-darwin-x64": "npm:19.6.2"
+    "@nx/nx-freebsd-x64": "npm:19.6.2"
+    "@nx/nx-linux-arm-gnueabihf": "npm:19.6.2"
+    "@nx/nx-linux-arm64-gnu": "npm:19.6.2"
+    "@nx/nx-linux-arm64-musl": "npm:19.6.2"
+    "@nx/nx-linux-x64-gnu": "npm:19.6.2"
+    "@nx/nx-linux-x64-musl": "npm:19.6.2"
+    "@nx/nx-win32-arm64-msvc": "npm:19.6.2"
+    "@nx/nx-win32-x64-msvc": "npm:19.6.2"
     "@yarnpkg/lockfile": "npm:^1.1.0"
     "@yarnpkg/parsers": "npm:3.0.0-rc.46"
     "@zkochan/js-yaml": "npm:0.0.7"
@@ -11573,7 +11563,7 @@ __metadata:
   bin:
     nx: bin/nx.js
     nx-cloud: bin/nx-cloud.js
-  checksum: 10c0/a27d249776e924fe28c1c961e25e890dabc0b701e6dee425ed115b4819371f56042fd5490ce1d4d4ccfd7c8fad3e7b816a051e689487312372c23e68920da033
+  checksum: 10c0/f97da3455de56c3e2b46c999b0b7f523bf3a3584974a647da669f11db6c3ce63c6e22bd90b863e6966c4a06ea237521a2115d81a76d6862d9c34c6368feeddfc
   languageName: node
   linkType: hard
 
@@ -13720,12 +13710,12 @@ __metadata:
   linkType: hard
 
 "shiki@npm:^1.9.1":
-  version: 1.13.0
-  resolution: "shiki@npm:1.13.0"
+  version: 1.12.1
+  resolution: "shiki@npm:1.12.1"
   dependencies:
-    "@shikijs/core": "npm:1.13.0"
+    "@shikijs/core": "npm:1.12.1"
     "@types/hast": "npm:^3.0.4"
-  checksum: 10c0/0536b255b2522fe89d5ef1be211a30a64ad18c50dc576d6a2afee2398c0d12e9135d9c80c1dfdc25a19e97ce90c3a2b9a2778549b56ccd22ed5ed941274bf918
+  checksum: 10c0/1afe9a0002a215fec6960e48284b207d4714de192f4a2223f748a640c0de17a45f2c76ebc4c4020c308bd441c6f7b913eecbd97d346ddd681db0a643c46190fc
   languageName: node
   linkType: hard
 
@@ -14993,6 +14983,17 @@ __metadata:
     unist-util-stringify-position: "npm:^4.0.0"
     vfile-message: "npm:^4.0.0"
   checksum: 10c0/96b7e060b332ff1b05462053bd9b0f39062c00c5eabb78fc75603cc808d5f77c4379857fffca3e30a28e0aad2d51c065dfcd4a43fbe15b1fc9c2aaa9ac1be8e1
+  languageName: node
+  linkType: hard
+
+"wasm-pack@npm:^0.13.0":
+  version: 0.13.0
+  resolution: "wasm-pack@npm:0.13.0"
+  dependencies:
+    binary-install: "npm:^1.0.1"
+  bin:
+    wasm-pack: run.js
+  checksum: 10c0/71ed64c9b0082d51098ec71041ce68a9323d7a0027e3a9c0b694c5931f83ce2a58f1df7255c68239ca4ab702e2daf5c550a7886f8af048f0cb76945a510268b6
   languageName: node
   linkType: hard
 

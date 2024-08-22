@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
+default = []
 anchor = ["dep:anchor-lang"]
 anchor-idl-build = []
 test-sbf = []
@@ -16,5 +17,5 @@ num-derive = { version = "^0.4.2" }
 num-traits = { version = "^0.2.19" }
 solana-program = { version = "^1.18.21" }
 thiserror = { version = "^1.0.63" }
-serde = { version = "^1.0", features = ["derive"], optional = true }
-serde_with = { version = "^3.0", optional = true }
+serde = { version = "^1.0.207", features = ["derive"], optional = true }
+serde_with = { version = "^3.9.0", optional = true }

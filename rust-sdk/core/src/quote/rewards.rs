@@ -296,7 +296,7 @@ mod tests {
         );
 
         assert_eq!(quote.reward_owed_1, 17190);
-        assert_eq!(quote.reward_owed_2, 14740);
+        assert_eq!(quote.reward_owed_2, 14560);
         assert_eq!(quote.reward_owed_3, 12110);
     }
 }

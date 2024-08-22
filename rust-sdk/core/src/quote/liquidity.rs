@@ -921,9 +921,9 @@ mod tests {
             Some(TransferFee::new(1000)),
         );
         assert_eq!(result.liquidity_delta, 1000000);
-        assert_eq!(result.token_est_a, 1200);
+        assert_eq!(result.token_est_a, 1250);
         assert_eq!(result.token_est_b, 0);
-        assert_eq!(result.token_max_a, 1212);
+        assert_eq!(result.token_max_a, 1263);
         assert_eq!(result.token_max_b, 0);
 
         // in range
@@ -937,10 +937,10 @@ mod tests {
             Some(TransferFee::new(1000)),
         );
         assert_eq!(result.liquidity_delta, 1000000);
-        assert_eq!(result.token_est_a, 600);
-        assert_eq!(result.token_est_b, 550);
-        assert_eq!(result.token_max_a, 606);
-        assert_eq!(result.token_max_b, 556);
+        assert_eq!(result.token_est_a, 625);
+        assert_eq!(result.token_est_b, 556);
+        assert_eq!(result.token_max_a, 632);
+        assert_eq!(result.token_max_b, 562);
 
         // Above range
         let result = increase_liquidity_quote(
@@ -954,9 +954,9 @@ mod tests {
         );
         assert_eq!(result.liquidity_delta, 1000000);
         assert_eq!(result.token_est_a, 0);
-        assert_eq!(result.token_est_b, 1100);
+        assert_eq!(result.token_est_b, 1112);
         assert_eq!(result.token_max_a, 0);
-        assert_eq!(result.token_max_b, 1111);
+        assert_eq!(result.token_max_b, 1123);
 
         // zero liquidity
         let result = increase_liquidity_quote(

@@ -19,3 +19,9 @@ pub const MIN_TICK_INDEX: i32 = -443636;
 /// The maximum tick index.
 #[cfg_attr(feature = "wasm", export_ts_const)]
 pub const MAX_TICK_INDEX: i32 = 443636;
+
+/// The default supported tick spacings through the Orca config.
+#[cfg_attr(feature = "wasm", export_ts_const)]
+pub const SUPPORTED_TICK_SPACINGS: [u16; 10] = [
+  1, 2, 4, 8, 16, 64, 96, 128, 256, 32896,
+];

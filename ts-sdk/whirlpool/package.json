@@ -1,6 +1,7 @@
 {
   "name": "@orca-so/whirlpools",
   "version": "0.0.1",
+  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "sideEffects": false,
@@ -10,13 +11,21 @@
   ],
   "scripts": {
     "build": "tsc",
+    "test": "ts-mocha ./tests/**/*.test.ts",
     "clean": "rimraf dist"
   },
   "dependencies": {
     "@orca-so/whirlpools-client": "*",
-    "@orca-so/whirlpools-core": "*"
+    "@orca-so/whirlpools-core": "*",
+    "@solana-program/memo": "^0.5.0",
+    "@solana-program/system": "^0.5.0",
+    "@solana-program/token": "^0.2.1"
+  },
+  "peerDependencies": {
+    "@solana/web3.js": "^2.0.0-rc.1"
   },
   "devDependencies": {
+    "@solana/web3.js": "^2.0.0-rc.1",
     "typescript": "^5.5.4"
   }
 }

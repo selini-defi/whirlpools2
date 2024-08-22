@@ -1,4 +1,5 @@
 export * from "./closePosition";
+export * from "./config";
 export * from "./createPool";
 export * from "./decreaseLiquidity";
 export * from "./harvest";

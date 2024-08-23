@@ -20,8 +20,16 @@ pub const MIN_TICK_INDEX: i32 = -443636;
 #[cfg_attr(feature = "wasm", export_ts_const)]
 pub const MAX_TICK_INDEX: i32 = 443636;
 
+/// The minimum sqrt price supported by the program.
+#[cfg_attr(feature = "wasm", export_ts_const)]
+pub const MIN_SQRT_PRICE: u128 = 4295048016;
+
+/// The maximum sqrt price supported by the program.
+#[cfg_attr(feature = "wasm", export_ts_const)]
+pub const MAX_SQRT_PRICE: u128 = 79226673515401279992447579055;
+
 /// The default supported tick spacings through the Orca config.
 #[cfg_attr(feature = "wasm", export_ts_const)]
-pub const SUPPORTED_TICK_SPACINGS: [u16; 10] = [
+pub const SUPPORTED_TICK_SPACINGS: &[u16] = &[
   1, 2, 4, 8, 16, 64, 96, 128, 256, 32896,
 ];

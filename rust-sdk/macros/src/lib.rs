@@ -24,10 +24,10 @@ fn export_ts_const_impl(attr: TokenStream2, item: TokenStream2) -> Result<TokenS
 
     let const_value = match &*item_const.expr {
         Expr::Lit(syn::ExprLit { lit, .. }) => match lit {
-            Lit::Int(value) => quote! { #value },
-            Lit::Float(value) => quote! { #value },
-            Lit::Bool(value) => quote! { #value },
-            Lit::Str(value) => quote! { #value },
+            Lit::Int(value) => Ok(quote! { #value }),
+            Lit::Float(value) => Ok(quote! { #value }),
+            Lit::Bool(value) => Ok(quote! { #value }),
+            Lit::Str(value) => Ok(quote! { #value }),
             _ => {
                 return Err(syn::Error::new_spanned(
                     &item_const.expr,
@@ -35,14 +35,42 @@ fn export_ts_const_impl(attr: TokenStream2, item: TokenStream2) -> Result<TokenS
                 ))
             }
         },
+        Expr::Array(array) => {
+            let elements: Result<Vec<_>> = array
+                .elems
+                .iter()
+                .map(|elem| match elem {
+                    Expr::Lit(syn::ExprLit { lit, .. }) => match lit {
+                        Lit::Int(value) => Ok(quote! { #value }),
+                        Lit::Float(value) => Ok(quote! { #value }),
+                        Lit::Bool(value) => Ok(quote! { #value }),
+                        Lit::Str(value) => Ok(quote! { #value }),
+                        _ => {
+                            return Err(syn::Error::new_spanned(
+                                elem,
+                                "Unsupported array element type",
+                            ))
+                        }
+                    },
+                    _ => {
+                        return Err(syn::Error::new_spanned(
+                            elem,
+                            "Expected a literal type in array",
+                        ))
+                    }
+                })
+                .collect();
+
+            elements.map(|elems| quote! { [#(#elems),*] })
+        }
         Expr::Unary(ExprUnary {
             op: UnOp::Neg(_),
             expr,
             ..
         }) => match &**expr {
             Expr::Lit(syn::ExprLit { lit, .. }) => match lit {
-                Lit::Int(value) => quote! { -#value },
-                Lit::Float(value) => quote! { -#value },
+                Lit::Int(value) => Ok(quote! { -#value }),
+                Lit::Float(value) => Ok(quote! { -#value }),
                 _ => {
                     return Err(syn::Error::new_spanned(
                         &item_const.expr,
@@ -60,10 +88,10 @@ fn export_ts_const_impl(attr: TokenStream2, item: TokenStream2) -> Result<TokenS
         _ => {
             return Err(syn::Error::new_spanned(
                 &item_const.expr,
-                "Expected a literal or unary operator",
+                "Expected a literal or array",
             ))
         }
-    };
+    }?;
 
     let expanded = quote! {
         #(#attrs)*
@@ -223,4 +251,35 @@ pub mod tests {
         assert!(output.contains("- 45.67 }"));
         assert!(output.contains("pub const NEG_FLOAT : f64 = - 45.67 ;"));
     }
+}
+
+#[test]
+fn test_array_literals() {
+    let tokens = quote! {
+        #[export_ts_const]
+        pub const NUMBERS: [i32; 3] = [1, 2, 3];
+    };
+    let attr = quote! {};
+    let result: Result<TokenStream2> = export_ts_const_impl(attr, tokens);
+    assert!(result.is_ok());
+
+    let output = result.unwrap().to_string();
+    println!("Generated Output for NUMBERS:\n{}", output);
+
+    assert!(output.contains("pub fn _NUMBERS () -> [i32 ; 3] { [1 , 2 , 3] }"));
+    assert!(output.contains("pub const NUMBERS : [i32 ; 3] = [1 , 2 , 3] ;"));
+
+    let tokens = quote! {
+        #[export_ts_const]
+        pub const BOOLS: [bool; 2] = [true, false];
+    };
+    let attr = quote! {};
+    let result: Result<TokenStream2> = export_ts_const_impl(attr, tokens);
+    assert!(result.is_ok());
+
+    let output = result.unwrap().to_string();
+    println!("Generated Output for BOOLS:\n{}", output);
+
+    assert!(output.contains("pub fn _BOOLS () -> [bool ; 2] { [true , false] }"));
+    assert!(output.contains("pub const BOOLS : [bool ; 2] = [true , false] ;"));
 }

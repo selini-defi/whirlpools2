@@ -121,11 +121,11 @@ pub fn sqrt_price_to_tick_index(sqrt_price: U128) -> i32 {
 /// # Parameters
 /// - `tick_index` - A i32 integer representing the tick integer
 /// - `tick_spacing` - A i32 integer representing the tick spacing
-/// - `round_up` - A boolean value indicating if the tick index should be rounded up
+/// - `round_up` - A boolean value indicating if the supplied tick index should be rounded up
 ///
 /// # Returns
 /// - A i32 integer representing the previous initializable tick index
-#[cfg_attr(feature = "wasm", wasm_bindgen(js_name = getPrevInitializableTickIndex, skip_jsdoc))]
+#[cfg_attr(feature = "wasm", wasm_bindgen(js_name = getInitializableTickIndex, skip_jsdoc))]
 pub fn get_initializable_tick_index(tick_index: i32, tick_spacing: u16, round_up: bool) -> i32 {
     let tick_spacing_i32 = tick_spacing as i32;
     let remainder = tick_index % tick_spacing_i32;

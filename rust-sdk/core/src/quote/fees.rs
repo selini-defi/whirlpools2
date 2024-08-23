@@ -4,7 +4,9 @@ use ethnum::U256;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-use crate::{adjust_amount, CollectFeesQuote, PositionFacade, TickFacade, TransferFee, WhirlpoolFacade};
+use crate::{
+    adjust_amount, CollectFeesQuote, PositionFacade, TickFacade, TransferFee, WhirlpoolFacade,
+};
 
 /// Calculate fees owed for a position
 ///

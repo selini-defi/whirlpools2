@@ -45,19 +45,15 @@ fn export_ts_const_impl(attr: TokenStream2, item: TokenStream2) -> Result<TokenS
                         Lit::Float(value) => Ok(quote! { #value }),
                         Lit::Bool(value) => Ok(quote! { #value }),
                         Lit::Str(value) => Ok(quote! { #value }),
-                        _ => {
-                            return Err(syn::Error::new_spanned(
-                                elem,
-                                "Unsupported array element type",
-                            ))
-                        }
-                    },
-                    _ => {
-                        return Err(syn::Error::new_spanned(
+                        _ => Err(syn::Error::new_spanned(
                             elem,
-                            "Expected a literal type in array",
-                        ))
-                    }
+                            "Unsupported array element type",
+                        )),
+                    },
+                    _ => Err(syn::Error::new_spanned(
+                        elem,
+                        "Expected a literal type in array",
+                    )),
                 })
                 .collect();
 
@@ -251,35 +247,35 @@ pub mod tests {
         assert!(output.contains("- 45.67 }"));
         assert!(output.contains("pub const NEG_FLOAT : f64 = - 45.67 ;"));
     }
-}
 
-#[test]
-fn test_array_literals() {
-    let tokens = quote! {
-        #[export_ts_const]
-        pub const NUMBERS: [i32; 3] = [1, 2, 3];
-    };
-    let attr = quote! {};
-    let result: Result<TokenStream2> = export_ts_const_impl(attr, tokens);
-    assert!(result.is_ok());
+    #[test]
+    fn test_array_literals() {
+        let tokens = quote! {
+            #[export_ts_const]
+            pub const NUMBERS: [i32; 3] = [1, 2, 3];
+        };
+        let attr = quote! {};
+        let result: Result<TokenStream2> = export_ts_const_impl(attr, tokens);
+        assert!(result.is_ok());
 
-    let output = result.unwrap().to_string();
-    println!("Generated Output for NUMBERS:\n{}", output);
+        let output = result.unwrap().to_string();
+        println!("Generated Output for NUMBERS:\n{}", output);
 
-    assert!(output.contains("pub fn _NUMBERS () -> [i32 ; 3] { [1 , 2 , 3] }"));
-    assert!(output.contains("pub const NUMBERS : [i32 ; 3] = [1 , 2 , 3] ;"));
+        assert!(output.contains("pub fn _NUMBERS () -> [i32 ; 3] { [1 , 2 , 3] }"));
+        assert!(output.contains("pub const NUMBERS : [i32 ; 3] = [1 , 2 , 3] ;"));
 
-    let tokens = quote! {
-        #[export_ts_const]
-        pub const BOOLS: [bool; 2] = [true, false];
-    };
-    let attr = quote! {};
-    let result: Result<TokenStream2> = export_ts_const_impl(attr, tokens);
-    assert!(result.is_ok());
+        let tokens = quote! {
+            #[export_ts_const]
+            pub const BOOLS: [bool; 2] = [true, false];
+        };
+        let attr = quote! {};
+        let result: Result<TokenStream2> = export_ts_const_impl(attr, tokens);
+        assert!(result.is_ok());
 
-    let output = result.unwrap().to_string();
-    println!("Generated Output for BOOLS:\n{}", output);
+        let output = result.unwrap().to_string();
+        println!("Generated Output for BOOLS:\n{}", output);
 
-    assert!(output.contains("pub fn _BOOLS () -> [bool ; 2] { [true , false] }"));
-    assert!(output.contains("pub const BOOLS : [bool ; 2] = [true , false] ;"));
+        assert!(output.contains("pub fn _BOOLS () -> [bool ; 2] { [true , false] }"));
+        assert!(output.contains("pub const BOOLS : [bool ; 2] = [true , false] ;"));
+    }
 }

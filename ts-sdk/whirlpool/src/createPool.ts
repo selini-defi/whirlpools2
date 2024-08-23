@@ -39,7 +39,7 @@ import {
   priceToSqrtPrice,
   sqrtPriceToTickIndex,
 } from "@orca-so/whirlpools-core";
-import { fetchAllMint, getTokenSize, TokenAccount } from "@solana-program/token";
+import { fetchAllMint, getTokenSize } from "@solana-program/token";
 
 type InitializablePool = {
   initialized: false;
@@ -283,7 +283,7 @@ export async function createPoolInstructions(
   );
 
   stateSpace += getTokenSize() * 2;
-  stateSpace += getWhirlpoolSize()
+  stateSpace += getWhirlpoolSize();
 
   const fullRange = getFullRangeTickIndexes(tickSpacing);
   const lowerTickIndex = getTickArrayStartTickIndex(
@@ -345,7 +345,9 @@ export async function createPoolInstructions(
     stateSpace += getTickArraySize();
   }
 
-  const nonRefundableRent = await rpc.getMinimumBalanceForRentExemption(BigInt(stateSpace)).send();
+  const nonRefundableRent = await rpc
+    .getMinimumBalanceForRentExemption(BigInt(stateSpace))
+    .send();
 
   return {
     instructions,

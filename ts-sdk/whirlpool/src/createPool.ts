@@ -9,14 +9,18 @@ import {
   getInitializePoolV2Instruction,
   getInitializeTickArrayInstruction,
   getTickArrayAddress,
+  getTickArraySize,
   getTokenBadgeAddress,
   getWhirlpoolAddress,
+  getWhirlpoolSize,
 } from "@orca-so/whirlpools-client";
 import type {
   Address,
   GetAccountInfoApi,
+  GetMinimumBalanceForRentExemptionApi,
   GetMultipleAccountsApi,
   IInstruction,
+  LamportsUnsafeBeyond2Pow53Minus1,
   Rpc,
   TransactionPartialSigner,
 } from "@solana/web3.js";
@@ -35,7 +39,7 @@ import {
   priceToSqrtPrice,
   sqrtPriceToTickIndex,
 } from "@orca-so/whirlpools-core";
-import { fetchAllMint } from "@solana-program/token";
+import { fetchAllMint, getTokenSize, TokenAccount } from "@solana-program/token";
 
 type InitializablePool = {
   initialized: false;
@@ -185,17 +189,18 @@ export async function fetchPools(
 
 type CreatePoolInstructions = {
   instructions: IInstruction[];
+  initializationCost: LamportsUnsafeBeyond2Pow53Minus1;
   poolAddress: Address;
 };
 
-export function createSplashPool(
-  rpc: Rpc<GetMultipleAccountsApi>,
+export function createSplashPoolInstructions(
+  rpc: Rpc<GetMultipleAccountsApi & GetMinimumBalanceForRentExemptionApi>,
   tokenMintOne: Address,
   tokenMintTwo: Address,
   initialPrice: number = 1,
   funder: TransactionPartialSigner = DEFAULT_FUNDER,
 ): Promise<CreatePoolInstructions> {
-  return createPool(
+  return createPoolInstructions(
     rpc,
     tokenMintOne,
     tokenMintTwo,
@@ -205,8 +210,8 @@ export function createSplashPool(
   );
 }
 
-export async function createPool(
-  rpc: Rpc<GetMultipleAccountsApi>,
+export async function createPoolInstructions(
+  rpc: Rpc<GetMultipleAccountsApi & GetMinimumBalanceForRentExemptionApi>,
   tokenMintOne: Address,
   tokenMintTwo: Address,
   tickSpacing: number,
@@ -222,6 +227,7 @@ export async function createPool(
       ? [tokenMintOne, tokenMintTwo]
       : [tokenMintTwo, tokenMintOne];
   const instructions: IInstruction[] = [];
+  let stateSpace = 0;
 
   // Since TE mint data is an extension of T mint data, we can use the same fetch function
   const [mintA, mintB] = await fetchAllMint(rpc, [tokenMintA, tokenMintB]);
@@ -276,6 +282,9 @@ export async function createPool(
     }),
   );
 
+  stateSpace += getTokenSize() * 2;
+  stateSpace += getWhirlpoolSize()
+
   const fullRange = getFullRangeTickIndexes(tickSpacing);
   const lowerTickIndex = getTickArrayStartTickIndex(
     fullRange.tickLowerIndex,
@@ -319,6 +328,8 @@ export async function createPool(
     }),
   );
 
+  stateSpace += getTickArraySize() * 2;
+
   if (
     currentTickIndex !== lowerTickIndex &&
     currentTickIndex !== upperTickIndex
@@ -331,10 +342,14 @@ export async function createPool(
         startTickIndex: currentTickIndex,
       }),
     );
+    stateSpace += getTickArraySize();
   }
+
+  const nonRefundableRent = await rpc.getMinimumBalanceForRentExemption(BigInt(stateSpace)).send();
 
   return {
     instructions,
     poolAddress,
+    initializationCost: nonRefundableRent,
   };
 }

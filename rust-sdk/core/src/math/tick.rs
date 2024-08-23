@@ -115,6 +115,28 @@ pub fn sqrt_price_to_tick_index(sqrt_price: U128) -> i32 {
     }
 }
 
+/// Get the initializable tick index.
+/// If the tick index is already initializable, it is returned as is.
+///
+/// # Parameters
+/// - `tick_index` - A i32 integer representing the tick integer
+/// - `tick_spacing` - A i32 integer representing the tick spacing
+/// - `round_up` - A boolean value indicating if the tick index should be rounded up
+///
+/// # Returns
+/// - A i32 integer representing the previous initializable tick index
+#[cfg_attr(feature = "wasm", wasm_bindgen(js_name = getPrevInitializableTickIndex, skip_jsdoc))]
+pub fn get_initializable_tick_index(tick_index: i32, tick_spacing: u16, round_up: bool) -> i32 {
+    let tick_spacing_i32 = tick_spacing as i32;
+    let remainder = tick_index % tick_spacing_i32;
+    let result = tick_index / tick_spacing_i32 * tick_spacing_i32;
+    if round_up && remainder != 0 {
+        result + tick_spacing_i32
+    } else {
+        result
+    }
+}
+
 /// Get the previous initializable tick index.
 ///
 /// # Parameters
@@ -125,8 +147,12 @@ pub fn sqrt_price_to_tick_index(sqrt_price: U128) -> i32 {
 /// - A i32 integer representing the previous initializable tick index
 #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = getPrevInitializableTickIndex, skip_jsdoc))]
 pub fn get_prev_initializable_tick_index(tick_index: i32, tick_spacing: u16) -> i32 {
-    let tick_spacing_i32 = tick_spacing as i32;
-    tick_index - (tick_index % tick_spacing_i32)
+    let initializable_tick_index = get_initializable_tick_index(tick_index, tick_spacing, false);
+    if tick_index == initializable_tick_index {
+        initializable_tick_index - tick_spacing as i32
+    } else {
+        initializable_tick_index
+    }
 }
 
 /// Get the next initializable tick index.
@@ -139,8 +165,12 @@ pub fn get_prev_initializable_tick_index(tick_index: i32, tick_spacing: u16) -> 
 /// - A i32 integer representing the next initializable tick index
 #[cfg_attr(feature = "wasm", wasm_bindgen(js_name = getNextInitializableTickIndex, skip_jsdoc))]
 pub fn get_next_initializable_tick_index(tick_index: i32, tick_spacing: u16) -> i32 {
-    let tick_spacing_i32 = tick_spacing as i32;
-    get_prev_initializable_tick_index(tick_index, tick_spacing) + tick_spacing_i32
+    let initializable_tick_index = get_initializable_tick_index(tick_index, tick_spacing, true);
+    if tick_index == initializable_tick_index {
+        initializable_tick_index + tick_spacing as i32
+    } else {
+        initializable_tick_index
+    }
 }
 
 /// Check if a tick is in-bounds.
@@ -425,10 +455,18 @@ mod tests {
     }
 
     #[test]
+    fn test_get_initializable_tick_index() {
+        assert_eq!(get_initializable_tick_index(100, 10, false), 100);
+        assert_eq!(get_initializable_tick_index(100, 10, true), 100);
+        assert_eq!(get_initializable_tick_index(105, 10, false), 100);
+        assert_eq!(get_initializable_tick_index(105, 10, true), 110);
+    }
+
+    #[test]
     fn test_get_prev_initializable_tick_index() {
-        assert_eq!(get_prev_initializable_tick_index(100, 10), 100);
+        assert_eq!(get_prev_initializable_tick_index(100, 10), 90);
         assert_eq!(get_prev_initializable_tick_index(105, 10), 100);
-        assert_eq!(get_prev_initializable_tick_index(0, 10), 0);
+        assert_eq!(get_prev_initializable_tick_index(0, 10), -10);
     }
 
     #[test]

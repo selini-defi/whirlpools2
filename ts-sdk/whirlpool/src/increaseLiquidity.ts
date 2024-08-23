@@ -1,1 +1,226 @@
-export {};
+import { fetchAllMaybeTickArray, fetchPosition, fetchWhirlpool, getIncreaseLiquidityInstruction, getInitializeTickArrayInstruction, getOpenPositionInstruction, getPositionAddress, getTickArrayAddress, getTickArraySize, Whirlpool } from "@orca-so/whirlpools-client";
+import { _MAX_TICK_INDEX, _MIN_TICK_INDEX, getFullRangeTickIndexes, getTickArrayStartTickIndex, increaseLiquidityQuote, IncreaseLiquidityQuote, increaseLiquidityQuoteA, increaseLiquidityQuoteB, priceToTickIndex, getInitializableTickIndex, orderTickIndexes, TickRange } from "@orca-so/whirlpools-core";
+import { Account, Address, generateKeyPairSigner, GetAccountInfoApi, GetMinimumBalanceForRentExemptionApi, GetMultipleAccountsApi, IInstruction, lamports, LamportsUnsafeBeyond2Pow53Minus1, Rpc, TransactionPartialSigner } from "@solana/web3.js";
+import { DEFAULT_ADDRESS, DEFAULT_FUNDER, DEFAULT_SLIPPAGE_TOLERANCE } from "./config";
+import { ASSOCIATED_TOKEN_PROGRAM_ADDRESS, fetchAllMint, findAssociatedTokenPda, getMintSize, TOKEN_PROGRAM_ADDRESS } from "@solana-program/token";
+import invariant from "tiny-invariant";
+
+type IncreaseLiquidityQuoteInput = {
+  liquidity: bigint;
+} | {
+  tokenA: bigint;
+} | {
+  tokenB: bigint;
+}
+
+type IncreaseLiquidityQuoteParam = IncreaseLiquidityQuoteInput & {
+    slippageTolerance?: number;
+}
+
+type IncreaseLiquidityInstructions = {
+  quote: IncreaseLiquidityQuote;
+  initializationCost: LamportsUnsafeBeyond2Pow53Minus1;
+  instructions: IInstruction[];
+}
+
+function getIncreaseLiquidityQuote(param: IncreaseLiquidityQuoteParam, pool: Whirlpool, tickRange: TickRange): IncreaseLiquidityQuote {
+  const slippageTolerance = param.slippageTolerance ?? DEFAULT_SLIPPAGE_TOLERANCE;
+  const slippageToleranceBps = Math.floor(slippageTolerance * 10000);
+  if ("liquidity" in param) {
+    return increaseLiquidityQuote(
+      param.liquidity,
+      slippageToleranceBps,
+      pool.tickCurrentIndex,
+      tickRange.tickLowerIndex,
+      tickRange.tickUpperIndex,
+    );
+  } else if ("tokenA" in param) {
+    return increaseLiquidityQuoteA(
+      param.tokenA,
+      slippageToleranceBps,
+      pool.tickCurrentIndex,
+      tickRange.tickLowerIndex,
+      tickRange.tickUpperIndex,
+    );
+  } else {
+    return increaseLiquidityQuoteB(
+      param.tokenB,
+      slippageToleranceBps,
+      pool.tickCurrentIndex,
+      tickRange.tickLowerIndex,
+      tickRange.tickUpperIndex,
+    );
+  }
+}
+
+export async function increaseLiquidityInstructions(rpc: Rpc<GetAccountInfoApi>, positionMint: Address, param: IncreaseLiquidityQuoteParam, authority: TransactionPartialSigner = DEFAULT_FUNDER): Promise<IncreaseLiquidityInstructions> {
+  invariant(
+    authority.address !== DEFAULT_ADDRESS,
+    "Either supply the authority or set the default funder",
+  );
+
+  const positionAddress = await getPositionAddress(positionMint);
+  const position = await fetchPosition(rpc, positionAddress[0]);
+  const whirlpool = await fetchWhirlpool(rpc, position.data.whirlpool);
+  const quote = getIncreaseLiquidityQuote(param, whirlpool.data, position.data);
+  const instructions: IInstruction[] = [];
+
+  const lowerTickArrayStartIndex = getTickArrayStartTickIndex(position.data.tickLowerIndex, whirlpool.data.tickSpacing);
+  const upperTickArrayStartIndex = getTickArrayStartTickIndex(position.data.tickUpperIndex, whirlpool.data.tickSpacing);
+
+  const [positionTokenAccount, tokenOwnerAccountA, tokenOwnerAccountB, tickArrayLower, tickArrayUpper] = await Promise.all([
+    findAssociatedTokenPda({ owner: authority.address, mint: positionMint, tokenProgram: TOKEN_PROGRAM_ADDRESS }).then(x => x[0]),
+    findAssociatedTokenPda({ owner: authority.address, mint: whirlpool.data.tokenMintA, tokenProgram: TOKEN_PROGRAM_ADDRESS }).then(x => x[0]),
+    findAssociatedTokenPda({ owner: authority.address, mint: whirlpool.data.tokenMintB, tokenProgram: TOKEN_PROGRAM_ADDRESS }).then(x => x[0]),
+    getTickArrayAddress(whirlpool.address, lowerTickArrayStartIndex).then(x => x[0]),
+    getTickArrayAddress(whirlpool.address, upperTickArrayStartIndex).then(x => x[0]),
+  ]);
+
+  // Since position exists tick arrays must also already exist
+
+  instructions.push(
+    getIncreaseLiquidityInstruction({
+      whirlpool: whirlpool.address,
+      positionAuthority: authority,
+      position: position.address,
+      positionTokenAccount,
+      tokenOwnerAccountA,
+      tokenOwnerAccountB,
+      tokenVaultA: whirlpool.data.tokenVaultA,
+      tokenVaultB: whirlpool.data.tokenVaultB,
+      tickArrayLower,
+      tickArrayUpper,
+      liquidityAmount: quote.liquidityDelta,
+      tokenMaxA: quote.tokenMaxA,
+      tokenMaxB: quote.tokenMaxB,
+    })
+  )
+  return { quote, instructions, initializationCost: lamports(0n) };
+}
+
+async function internalOpenPositionInstructions(rpc: Rpc<GetAccountInfoApi & GetMultipleAccountsApi & GetMinimumBalanceForRentExemptionApi>, whirlpool: Account<Whirlpool>, param: IncreaseLiquidityQuoteParam, lowerTickIndex: number, upperTickIndex: number, funder: TransactionPartialSigner = DEFAULT_FUNDER): Promise<IncreaseLiquidityInstructions> {
+  invariant(
+    funder.address !== DEFAULT_ADDRESS,
+    "Either supply a funder or set the default funder",
+  );
+  const instructions: IInstruction[] = [];
+  let stateSpace = 0;
+
+
+  const initializableLowerTickIndex = getInitializableTickIndex(lowerTickIndex, whirlpool.data.tickSpacing, false);
+  const initializableUpperTickIndex = getInitializableTickIndex(upperTickIndex, whirlpool.data.tickSpacing, true);
+  const tickRange = orderTickIndexes(initializableLowerTickIndex, initializableUpperTickIndex);
+
+  const quote = getIncreaseLiquidityQuote(param, whirlpool.data, tickRange);
+
+  const positionMint = await generateKeyPairSigner();
+
+  const lowerTickArrayIndex = getTickArrayStartTickIndex(
+    tickRange.tickLowerIndex,
+    whirlpool.data.tickSpacing,
+  );
+  const upperTickArrayIndex = getTickArrayStartTickIndex(
+    tickRange.tickUpperIndex,
+    whirlpool.data.tickSpacing,
+  );
+
+  const [positionAddress, positionTokenAccount, lowerTickArrayAddress, upperTickArrayAddress, tokenOwnerAccountA, tokenOwnerAccountB] = await Promise.all([
+    getPositionAddress(positionMint.address),
+    findAssociatedTokenPda({ owner: funder.address, mint: positionMint.address, tokenProgram: TOKEN_PROGRAM_ADDRESS }).then(x => x[0]),
+    getTickArrayAddress(whirlpool.address, lowerTickArrayIndex).then(x => x[0]),
+    getTickArrayAddress(whirlpool.address, upperTickArrayIndex).then(x => x[0]),
+    findAssociatedTokenPda({ owner: funder.address, mint: whirlpool.data.tokenMintA, tokenProgram: TOKEN_PROGRAM_ADDRESS }).then(x => x[0]),
+    findAssociatedTokenPda({ owner: funder.address, mint: whirlpool.data.tokenMintB, tokenProgram: TOKEN_PROGRAM_ADDRESS }).then(x => x[0]),
+  ]);
+
+  const [lowerTickArray, upperTickArray] = await fetchAllMaybeTickArray(rpc, [lowerTickArrayAddress, upperTickArrayAddress]);
+
+  if (!lowerTickArray.exists) {
+    instructions.push(
+      getInitializeTickArrayInstruction({
+        whirlpool: whirlpool.address,
+        funder,
+        tickArray: lowerTickArrayAddress,
+        startTickIndex: lowerTickIndex,
+      }),
+    );
+    stateSpace += getTickArraySize();
+  }
+
+  if (!upperTickArray.exists) {
+    instructions.push(
+      getInitializeTickArrayInstruction({
+        whirlpool: whirlpool.address,
+        funder,
+        tickArray: upperTickArrayAddress,
+        startTickIndex: upperTickIndex,
+      }),
+    );
+    stateSpace += getTickArraySize();
+  }
+
+  instructions.push(
+    getOpenPositionInstruction({
+      funder,
+      owner: funder.address,
+      position: positionAddress[0],
+      positionMint,
+      positionTokenAccount,
+      whirlpool: whirlpool.address,
+      associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ADDRESS,
+      positionBump: positionAddress[1],
+      tickLowerIndex: tickRange.tickLowerIndex,
+      tickUpperIndex: tickRange.tickUpperIndex,
+    })
+  );
+  stateSpace += getMintSize();
+
+
+  instructions.push(
+    getIncreaseLiquidityInstruction({
+      whirlpool: whirlpool.address,
+      positionAuthority: funder,
+      position: positionAddress[0],
+      positionTokenAccount,
+      tokenOwnerAccountA,
+      tokenOwnerAccountB,
+      tokenVaultA: whirlpool.data.tokenVaultA,
+      tokenVaultB: whirlpool.data.tokenVaultB,
+      tickArrayLower: lowerTickArrayAddress,
+      tickArrayUpper: upperTickArrayAddress,
+      liquidityAmount: quote.liquidityDelta,
+      tokenMaxA: quote.tokenMaxA,
+      tokenMaxB: quote.tokenMaxB,
+    })
+  )
+
+  const nonRefundableRent = await rpc.getMinimumBalanceForRentExemption(BigInt(stateSpace)).send();
+  const initializationCost = lamports(nonRefundableRent + 15616720n); // Rent + protocol fee for metaplex
+
+  return {
+    instructions,
+    quote,
+    initializationCost,
+  };
+
+}
+
+export async function openFullRangePositionInstructions(rpc: Rpc<GetAccountInfoApi & GetMultipleAccountsApi & GetMinimumBalanceForRentExemptionApi>, poolAddress: Address, param: IncreaseLiquidityQuoteParam, funder: TransactionPartialSigner = DEFAULT_FUNDER): Promise<IncreaseLiquidityInstructions> {
+  const whirlpool = await fetchWhirlpool(rpc, poolAddress);
+  const tickRange = getFullRangeTickIndexes(whirlpool.data.tickSpacing);
+  return internalOpenPositionInstructions(rpc, whirlpool, param, tickRange.tickLowerIndex, tickRange.tickUpperIndex, funder);
+}
+
+export function openSplashPoolPositionInstructions(rpc: Rpc<GetAccountInfoApi & GetMultipleAccountsApi & GetMinimumBalanceForRentExemptionApi>, poolAddress: Address, param: IncreaseLiquidityQuoteParam, funder: TransactionPartialSigner = DEFAULT_FUNDER): Promise<IncreaseLiquidityInstructions> {
+  return openFullRangePositionInstructions(rpc, poolAddress, param, funder);
+}
+
+export async function openPositionInstructions(rpc: Rpc<GetAccountInfoApi & GetMultipleAccountsApi & GetMinimumBalanceForRentExemptionApi>, poolAddress: Address, param: IncreaseLiquidityQuoteParam, lowerPrice: number, upperPrice: number, funder: TransactionPartialSigner = DEFAULT_FUNDER): Promise<IncreaseLiquidityInstructions> {
+  const whirlpool = await fetchWhirlpool(rpc, poolAddress);
+  const [mintA, mintB] = await fetchAllMint(rpc, [whirlpool.data.tokenMintA, whirlpool.data.tokenMintB]);
+  const decimalsA = mintA.data.decimals;
+  const decimalsB = mintB.data.decimals;
+  const lowerTickIndex = priceToTickIndex(lowerPrice, decimalsA, decimalsB);
+  const upperTickIndex = priceToTickIndex(upperPrice, decimalsA, decimalsB);
+  return internalOpenPositionInstructions(rpc, whirlpool, param, lowerTickIndex, upperTickIndex, funder);
+}

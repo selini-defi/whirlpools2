@@ -1,17 +1,11 @@
 use core::cmp::{max, min};
 
 use crate::{
-    adjust_amount, get_amount_delta_a, get_amount_delta_b, get_next_sqrt_price_from_a,
-    get_next_sqrt_price_from_b, inverse_adjust_amount, sqrt_price_to_tick_index,
-    tick_index_to_sqrt_price, AdjustmentType, ExactInSwapQuote, ExactOutSwapQuote, TickArrayFacade,
-    TickArraySequence, TickFacade, TransferFee, WhirlpoolFacade, U128,
+    adjust_amount, get_amount_delta_a, get_amount_delta_b, get_next_sqrt_price_from_a, get_next_sqrt_price_from_b, inverse_adjust_amount, sqrt_price_to_tick_index, tick_index_to_sqrt_price, AdjustmentType, ExactInSwapQuote, ExactOutSwapQuote, TickArrayFacade, TickArraySequence, TickFacade, TransferFee, WhirlpoolFacade, MAX_SQRT_PRICE, MIN_SQRT_PRICE, U128
 };
 
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
-
-const MIN_SQRT_PRICE: u128 = 4295048016;
-const MAX_SQRT_PRICE: u128 = 79226673515401279992447579055;
 
 /// Computes the exact input or output amount for a swap transaction.
 ///

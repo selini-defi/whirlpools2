@@ -107,7 +107,6 @@ mod tests {
         let ticks: [TickFacade; TICK_ARRAY_SIZE] = (0..TICK_ARRAY_SIZE)
             .map(|x| TickFacade {
                 initialized: x & 1 == 1,
-                liquidity_gross: x as u128,
                 ..TickFacade::default()
             })
             .collect::<Vec<TickFacade>>()
@@ -143,10 +142,10 @@ mod tests {
     #[test]
     fn test_get_tick() {
         let sequence = test_sequence();
-        assert_eq!(sequence.tick(0).liquidity_gross, 0);
-        assert_eq!(sequence.tick(16).liquidity_gross, 1);
-        assert_eq!(sequence.tick(1408).liquidity_gross, 0);
-        assert_eq!(sequence.tick(1424).liquidity_gross, 1);
+        assert_eq!(sequence.tick(0).liquidity_net, 0);
+        assert_eq!(sequence.tick(16).liquidity_net, 1);
+        assert_eq!(sequence.tick(1408).liquidity_net, 0);
+        assert_eq!(sequence.tick(1424).liquidity_net, 1);
     }
 
     #[test]
@@ -172,7 +171,7 @@ mod tests {
         let sequence = test_sequence();
         let (tick, index) = sequence.next_initialized_tick(0);
         assert_eq!(index, 16);
-        assert_eq!(tick.liquidity_gross, 1);
+        assert_eq!(tick.liquidity_net, 1);
     }
 
     #[test]
@@ -180,7 +179,7 @@ mod tests {
         let sequence = test_sequence();
         let (tick, index) = sequence.next_initialized_tick(1392);
         assert_eq!(index, 1424);
-        assert_eq!(tick.liquidity_gross, 1);
+        assert_eq!(tick.liquidity_net, 1);
     }
 
     #[test]
@@ -188,7 +187,7 @@ mod tests {
         let sequence = test_sequence();
         let (tick, index) = sequence.prev_initialized_tick(32);
         assert_eq!(index, 16);
-        assert_eq!(tick.liquidity_gross, 1);
+        assert_eq!(tick.liquidity_net, 1);
     }
 
     #[test]
@@ -196,6 +195,6 @@ mod tests {
         let sequence = test_sequence();
         let (tick, index) = sequence.prev_initialized_tick(1408);
         assert_eq!(index, 1392);
-        assert_eq!(tick.liquidity_gross, 87);
+        assert_eq!(tick.liquidity_net, 87);
     }
 }

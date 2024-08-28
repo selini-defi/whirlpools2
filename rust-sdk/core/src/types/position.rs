@@ -23,6 +23,7 @@ pub enum PositionStatus {
     InRange,
     BelowRange,
     AboveRange,
+    Invalid,
 }
 
 #[cfg(any(feature = "wasm", test))]

@@ -1,4 +1,4 @@
-use crate::{TickFacade, TickArrayFacade, TICK_ARRAY_SIZE};
+use crate::{TickArrayFacade, TickFacade, TICK_ARRAY_SIZE};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TickArraySequence {
@@ -7,7 +7,12 @@ pub struct TickArraySequence {
 }
 
 impl TickArraySequence {
-    pub fn new(one: TickArrayFacade, two: TickArrayFacade, three: TickArrayFacade, tick_spacing: u16) -> Self {
+    pub fn new(
+        one: TickArrayFacade,
+        two: TickArrayFacade,
+        three: TickArrayFacade,
+        tick_spacing: u16,
+    ) -> Self {
         let (first, second, third) = order_tick_arrays(one, two, three);
 
         let first_second_diff = (second.start_tick_index - first.start_tick_index).unsigned_abs();

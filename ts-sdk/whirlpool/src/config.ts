@@ -46,3 +46,11 @@ export let DEFAULT_SLIPPAGE_TOLERANCE = 0.01;
 export function setDefaultSlippageTolerance(slippageTolerance: number): void {
   DEFAULT_SLIPPAGE_TOLERANCE = slippageTolerance;
 }
+
+export type SolWrappingStrategy = "keypair" | "seed" | "ata" | "none";
+
+export let SOL_WRAPPING_STRATEGY: SolWrappingStrategy = "ata";
+
+export function setSolWrappingStrategy(strategy: SolWrappingStrategy): void {
+  SOL_WRAPPING_STRATEGY = strategy;
+}

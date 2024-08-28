@@ -355,9 +355,12 @@ fn compute_swap_step(
     let fee_amount: u128 = if specified_input && !is_max_swap {
         amount_remaining - amount_in
     } else {
-        let pre_fee_amount: u128 =
-            inverse_adjust_amount(amount_in.into(), AdjustmentType::SwapFee { fee_rate }, false)
-                .into();
+        let pre_fee_amount: u128 = inverse_adjust_amount(
+            amount_in.into(),
+            AdjustmentType::SwapFee { fee_rate },
+            false,
+        )
+        .into();
         pre_fee_amount - amount_in
     };
 

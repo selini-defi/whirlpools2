@@ -3025,7 +3025,6 @@ __metadata:
   dependencies:
     "@orca-so/whirlpools-client": "npm:*"
     "@orca-so/whirlpools-core": "npm:*"
-    "@solana-program/memo": "npm:^0.5.0"
     "@solana-program/system": "npm:^0.5.0"
     "@solana-program/token": "npm:^0.2.1"
     "@solana/web3.js": "npm:^2.0.0-rc.1"
@@ -3206,15 +3205,6 @@ __metadata:
     micromark-util-character: "npm:^1.1.0"
     micromark-util-symbol: "npm:^1.0.1"
   checksum: 10c0/b8da9d8f560740959c421d3ce5be43952eace1c95cb65402d9473a15e66463346a37fb5f121a6b22a83af51e8845b0b4ff3c321f14ce31bd58fb126acf6c8ed9
-  languageName: node
-  linkType: hard
-
-"@solana-program/memo@npm:^0.5.0":
-  version: 0.5.0
-  resolution: "@solana-program/memo@npm:0.5.0"
-  peerDependencies:
-    "@solana/web3.js": 2.0.0-rc.0
-  checksum: 10c0/595b826954fa96a8b23f235de96e3422bd3fb3559eb21a818ede300767258140212af107c616909051d7592f035f03ec56f0ea0a7ef43dd4e37b7ad6a0488ff0
   languageName: node
   linkType: hard
 

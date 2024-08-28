@@ -45,7 +45,10 @@ impl TransferFee {
 impl From<Option<TransferFee>> for AdjustmentType {
     fn from(transfer_fee: Option<TransferFee>) -> Self {
         if let Some(transfer_fee) = transfer_fee {
-            Self::TransferFee { fee_bps: transfer_fee.fee_bps, max_fee: transfer_fee.max_fee }
+            Self::TransferFee {
+                fee_bps: transfer_fee.fee_bps,
+                max_fee: transfer_fee.max_fee,
+            }
         } else {
             Self::None
         }

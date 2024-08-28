@@ -1,5 +1,17 @@
 import { describe, it } from "mocha";
-import { collectFeesQuote, collectRewardsQuote, decreaseLiquidityQuote, increaseLiquidityQuote, PositionFacade, PositionRewardInfoFacade, swapQuoteByOutputToken, TickArrayFacade, TickFacade, WhirlpoolFacade, WhirlpoolRewardInfoFacade } from "../dist/nodejs/orca_whirlpools_core_js_bindings";
+import type {
+  PositionFacade,
+  TickArrayFacade,
+  TickFacade,
+  WhirlpoolFacade,
+} from "../dist/nodejs/orca_whirlpools_core_js_bindings";
+import {
+  collectFeesQuote,
+  collectRewardsQuote,
+  decreaseLiquidityQuote,
+  increaseLiquidityQuote,
+  swapQuoteByOutputToken,
+} from "../dist/nodejs/orca_whirlpools_core_js_bindings";
 import assert from "assert";
 
 // Assumption: if a complex test cases produces the same result as the rust test,
@@ -30,7 +42,7 @@ function testWhirlpool(): WhirlpoolFacade {
         emissionsPerSecondX64: 3n,
       },
     ],
-  }
+  };
 }
 
 function testTick(positive: boolean = true): TickFacade {
@@ -41,40 +53,40 @@ function testTick(positive: boolean = true): TickFacade {
     feeGrowthOutsideA: 50n,
     feeGrowthOutsideB: 20n,
     rewardGrowthsOutside: [10n, 20n, 30n],
-  }
+  };
 }
 
 function testTickArray(startTickIndex: number): TickArrayFacade {
   return {
     startTickIndex,
     ticks: Array.from({ length: 10 }, () => testTick(startTickIndex < 0)),
-  }
+  };
 }
 
 function testPosition(): PositionFacade {
   return {
     liquidity: 50n,
-            tickLowerIndex: 95,
-            tickUpperIndex: 105,
-            feeGrowthCheckpointA: 300n,
-            feeOwedA: 400,
-            feeGrowthCheckpointB: 500n,
-            feeOwedB: 600,
-            rewardInfos: [
-              {
-                growthInsideCheckpoint: 100n,
-                amountOwed: 100,
-              },
-              {
-                growthInsideCheckpoint: 200n,
-                amountOwed: 200,
-              },
-              {
-                growthInsideCheckpoint: 300n,
-                amountOwed: 300,
-              },
-            ],
-  }
+    tickLowerIndex: 95,
+    tickUpperIndex: 105,
+    feeGrowthCheckpointA: 300n,
+    feeOwedA: 400,
+    feeGrowthCheckpointB: 500n,
+    feeOwedB: 600,
+    rewardInfos: [
+      {
+        growthInsideCheckpoint: 100n,
+        amountOwed: 100,
+      },
+      {
+        growthInsideCheckpoint: 200n,
+        amountOwed: 200,
+      },
+      {
+        growthInsideCheckpoint: 300n,
+        amountOwed: 300,
+      },
+    ],
+  };
 }
 
 describe("WASM bundle smoke test", () => {
@@ -86,7 +98,7 @@ describe("WASM bundle smoke test", () => {
       testWhirlpool(),
       testTickArray(-176),
       testTickArray(0),
-      testTickArray(176)
+      testTickArray(176),
     );
     assert.strictEqual(result.tokenOut, 1000);
     assert.strictEqual(result.tokenEstIn, 1141);

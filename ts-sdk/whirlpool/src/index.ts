@@ -4,3 +4,4 @@ export * from "./decreaseLiquidity";
 export * from "./harvest";
 export * from "./increaseLiquidity";
 export * from "./swap";
+export * from "./token";

@@ -1,17 +1,30 @@
 import { describe, it } from "mocha";
-import { DEFAULT_ADDRESS, DEFAULT_FUNDER, DEFAULT_SLIPPAGE_TOLERANCE, setDefaultFunder, setDefaultSlippageTolerance, setSupportedTickSpacings, setWhirlpoolsConfig, SUPPORTED_TICK_SPACINGS, WHIRLPOOLS_CONFIG_ADDRESS, WHIRLPOOLS_CONFIG_EXTENSION_ADDRESS } from "../src/config";
+import {
+  DEFAULT_ADDRESS,
+  DEFAULT_FUNDER,
+  DEFAULT_SLIPPAGE_TOLERANCE,
+  setDefaultFunder,
+  setDefaultSlippageTolerance,
+  setSolWrappingStrategy,
+  setSupportedTickSpacings,
+  setWhirlpoolsConfig,
+  SOL_WRAPPING_STRATEGY,
+  SUPPORTED_TICK_SPACINGS,
+  WHIRLPOOLS_CONFIG_ADDRESS,
+  WHIRLPOOLS_CONFIG_EXTENSION_ADDRESS,
+} from "../src/config";
 import assert from "assert";
 import { createKeyPairSignerFromPrivateKeyBytes } from "@solana/web3.js";
 
 describe("Configuration", () => {
   it("Should be able to set whirlpool config", () => {
-    setWhirlpoolsConfig(DEFAULT_ADDRESS)
+    setWhirlpoolsConfig(DEFAULT_ADDRESS);
     assert.strictEqual(WHIRLPOOLS_CONFIG_ADDRESS, DEFAULT_ADDRESS);
     assert.strictEqual(WHIRLPOOLS_CONFIG_EXTENSION_ADDRESS, "");
   });
 
   it("Should be able to set supported tick spacings", () => {
-    setSupportedTickSpacings([10, 20])
+    setSupportedTickSpacings([10, 20]);
     assert.deepStrictEqual(SUPPORTED_TICK_SPACINGS, [10, 20]);
   });
 
@@ -31,4 +44,9 @@ describe("Configuration", () => {
     setDefaultSlippageTolerance(0.02);
     assert.strictEqual(DEFAULT_SLIPPAGE_TOLERANCE, 0.02);
   });
-})
+
+  it("Should be able to set the sol wrapping strategy", () => {
+    setSolWrappingStrategy("ata");
+    assert.strictEqual(SOL_WRAPPING_STRATEGY, "ata");
+  });
+});

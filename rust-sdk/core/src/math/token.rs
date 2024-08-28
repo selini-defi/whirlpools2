@@ -293,8 +293,11 @@ fn adjustment_numerator(adjust_type: AdjustmentType) -> u128 {
     match adjust_type {
         AdjustmentType::None => 0,
         AdjustmentType::SwapFee { fee_rate } => fee_rate.into(),
-         AdjustmentType::Slippage { slippage_tolerance } => slippage_tolerance.into(),
-        AdjustmentType::TransferFee { fee_bps, max_fee: _ } => fee_bps.into(),
+        AdjustmentType::Slippage { slippage_tolerance } => slippage_tolerance.into(),
+        AdjustmentType::TransferFee {
+            fee_bps,
+            max_fee: _,
+        } => fee_bps.into(),
     }
 }
 
@@ -307,7 +310,10 @@ fn adjustment_denominator(adjust_type: AdjustmentType) -> u128 {
 
 fn adjustment_max(adjust_type: AdjustmentType) -> u128 {
     match adjust_type {
-        AdjustmentType::TransferFee { fee_bps: _, max_fee } => max_fee.into(),
+        AdjustmentType::TransferFee {
+            fee_bps: _,
+            max_fee,
+        } => max_fee.into(),
         _ => u128::MAX,
     }
 }
@@ -355,27 +361,69 @@ mod tests {
     #[test]
     fn test_adjust_amount() {
         assert_eq!(
-            adjust_amount(10000, AdjustmentType::TransferFee { fee_bps: 1000, max_fee: 10000 }, true),
+            adjust_amount(
+                10000,
+                AdjustmentType::TransferFee {
+                    fee_bps: 1000,
+                    max_fee: 10000
+                },
+                true
+            ),
             11000
         );
         assert_eq!(
-            adjust_amount(10000, AdjustmentType::TransferFee { fee_bps: 1000, max_fee: 10000 }, false),
+            adjust_amount(
+                10000,
+                AdjustmentType::TransferFee {
+                    fee_bps: 1000,
+                    max_fee: 10000
+                },
+                false
+            ),
             9000
         );
         assert_eq!(
-            adjust_amount(10000, AdjustmentType::TransferFee { fee_bps: 1000, max_fee: 500 }, true),
+            adjust_amount(
+                10000,
+                AdjustmentType::TransferFee {
+                    fee_bps: 1000,
+                    max_fee: 500
+                },
+                true
+            ),
             10500
         );
         assert_eq!(
-            adjust_amount(10000, AdjustmentType::TransferFee { fee_bps: 1000, max_fee: 500 }, false),
+            adjust_amount(
+                10000,
+                AdjustmentType::TransferFee {
+                    fee_bps: 1000,
+                    max_fee: 500
+                },
+                false
+            ),
             9500
         );
         assert_eq!(
-            adjust_amount(10000, AdjustmentType::TransferFee { fee_bps: 0, max_fee: 10000 }, true),
+            adjust_amount(
+                10000,
+                AdjustmentType::TransferFee {
+                    fee_bps: 0,
+                    max_fee: 10000
+                },
+                true
+            ),
             10000
         );
         assert_eq!(
-            adjust_amount(10000, AdjustmentType::TransferFee { fee_bps: 0, max_fee: 10000 }, false),
+            adjust_amount(
+                10000,
+                AdjustmentType::TransferFee {
+                    fee_bps: 0,
+                    max_fee: 10000
+                },
+                false
+            ),
             10000
         );
 
@@ -397,19 +445,43 @@ mod tests {
         );
 
         assert_eq!(
-            adjust_amount(10000, AdjustmentType::Slippage { slippage_tolerance: 1000 }, true),
+            adjust_amount(
+                10000,
+                AdjustmentType::Slippage {
+                    slippage_tolerance: 1000
+                },
+                true
+            ),
             11000
         );
         assert_eq!(
-            adjust_amount(10000, AdjustmentType::Slippage { slippage_tolerance: 1000 }, false),
+            adjust_amount(
+                10000,
+                AdjustmentType::Slippage {
+                    slippage_tolerance: 1000
+                },
+                false
+            ),
             9000
         );
         assert_eq!(
-            adjust_amount(10000, AdjustmentType::Slippage { slippage_tolerance: 0 }, true),
+            adjust_amount(
+                10000,
+                AdjustmentType::Slippage {
+                    slippage_tolerance: 0
+                },
+                true
+            ),
             10000
         );
         assert_eq!(
-            adjust_amount(10000, AdjustmentType::Slippage { slippage_tolerance: 0 }, false),
+            adjust_amount(
+                10000,
+                AdjustmentType::Slippage {
+                    slippage_tolerance: 0
+                },
+                false
+            ),
             10000
         );
     }
@@ -417,27 +489,69 @@ mod tests {
     #[test]
     fn test_inverse_adjust_amount() {
         assert_eq!(
-            inverse_adjust_amount(11000, AdjustmentType::TransferFee { fee_bps: 1000, max_fee: 10000 }, true),
+            inverse_adjust_amount(
+                11000,
+                AdjustmentType::TransferFee {
+                    fee_bps: 1000,
+                    max_fee: 10000
+                },
+                true
+            ),
             10000
         );
         assert_eq!(
-            inverse_adjust_amount(9000, AdjustmentType::TransferFee { fee_bps: 1000, max_fee: 10000 }, false),
+            inverse_adjust_amount(
+                9000,
+                AdjustmentType::TransferFee {
+                    fee_bps: 1000,
+                    max_fee: 10000
+                },
+                false
+            ),
             10000
         );
         assert_eq!(
-            inverse_adjust_amount(10500, AdjustmentType::TransferFee { fee_bps: 1000, max_fee: 500 }, true),
+            inverse_adjust_amount(
+                10500,
+                AdjustmentType::TransferFee {
+                    fee_bps: 1000,
+                    max_fee: 500
+                },
+                true
+            ),
             10000
         );
         assert_eq!(
-            inverse_adjust_amount(9500, AdjustmentType::TransferFee { fee_bps: 1000, max_fee: 500 }, false),
+            inverse_adjust_amount(
+                9500,
+                AdjustmentType::TransferFee {
+                    fee_bps: 1000,
+                    max_fee: 500
+                },
+                false
+            ),
             10000
         );
         assert_eq!(
-            inverse_adjust_amount(10000, AdjustmentType::TransferFee { fee_bps: 0, max_fee: 10000 }, true),
+            inverse_adjust_amount(
+                10000,
+                AdjustmentType::TransferFee {
+                    fee_bps: 0,
+                    max_fee: 10000
+                },
+                true
+            ),
             10000
         );
         assert_eq!(
-            inverse_adjust_amount(10000, AdjustmentType::TransferFee { fee_bps: 0, max_fee: 10000 }, false),
+            inverse_adjust_amount(
+                10000,
+                AdjustmentType::TransferFee {
+                    fee_bps: 0,
+                    max_fee: 10000
+                },
+                false
+            ),
             10000
         );
 
@@ -459,19 +573,43 @@ mod tests {
         );
 
         assert_eq!(
-            inverse_adjust_amount(11000, AdjustmentType::Slippage { slippage_tolerance: 1000 }, true),
+            inverse_adjust_amount(
+                11000,
+                AdjustmentType::Slippage {
+                    slippage_tolerance: 1000
+                },
+                true
+            ),
             10000
         );
         assert_eq!(
-            inverse_adjust_amount(9000, AdjustmentType::Slippage { slippage_tolerance: 1000 }, false),
+            inverse_adjust_amount(
+                9000,
+                AdjustmentType::Slippage {
+                    slippage_tolerance: 1000
+                },
+                false
+            ),
             10000
         );
         assert_eq!(
-            inverse_adjust_amount(10000, AdjustmentType::Slippage { slippage_tolerance: 0 }, true),
+            inverse_adjust_amount(
+                10000,
+                AdjustmentType::Slippage {
+                    slippage_tolerance: 0
+                },
+                true
+            ),
             10000
         );
         assert_eq!(
-            inverse_adjust_amount(10000, AdjustmentType::Slippage { slippage_tolerance: 0 }, false),
+            inverse_adjust_amount(
+                10000,
+                AdjustmentType::Slippage {
+                    slippage_tolerance: 0
+                },
+                false
+            ),
             10000
         );
     }

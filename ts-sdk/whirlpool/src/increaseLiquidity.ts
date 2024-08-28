@@ -51,6 +51,7 @@ import {
   TOKEN_PROGRAM_ADDRESS,
 } from "@solana-program/token";
 import invariant from "tiny-invariant";
+import { prepareTokenAccountsInstructions } from "./token";
 
 type IncreaseLiquidityQuoteInput =
   | {
@@ -109,7 +110,11 @@ function getIncreaseLiquidityQuote(
 }
 
 export async function increaseLiquidityInstructions(
-  rpc: Rpc<GetAccountInfoApi>,
+  rpc: Rpc<
+    GetAccountInfoApi &
+      GetMultipleAccountsApi &
+      GetMinimumBalanceForRentExemptionApi
+  >,
   positionMint: Address,
   param: IncreaseLiquidityQuoteParam,
   authority: TransactionPartialSigner = DEFAULT_FUNDER,
@@ -134,35 +139,28 @@ export async function increaseLiquidityInstructions(
     whirlpool.data.tickSpacing,
   );
 
-  const [
-    positionTokenAccount,
-    tokenOwnerAccountA,
-    tokenOwnerAccountB,
-    tickArrayLower,
-    tickArrayUpper,
-  ] = await Promise.all([
-    findAssociatedTokenPda({
-      owner: authority.address,
-      mint: positionMint,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS,
-    }).then((x) => x[0]),
-    findAssociatedTokenPda({
-      owner: authority.address,
-      mint: whirlpool.data.tokenMintA,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS,
-    }).then((x) => x[0]),
-    findAssociatedTokenPda({
-      owner: authority.address,
-      mint: whirlpool.data.tokenMintB,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS,
-    }).then((x) => x[0]),
-    getTickArrayAddress(whirlpool.address, lowerTickArrayStartIndex).then(
-      (x) => x[0],
-    ),
-    getTickArrayAddress(whirlpool.address, upperTickArrayStartIndex).then(
-      (x) => x[0],
-    ),
-  ]);
+  const [positionTokenAccount, tickArrayLower, tickArrayUpper] =
+    await Promise.all([
+      findAssociatedTokenPda({
+        owner: authority.address,
+        mint: positionMint,
+        tokenProgram: TOKEN_PROGRAM_ADDRESS,
+      }).then((x) => x[0]),
+      getTickArrayAddress(whirlpool.address, lowerTickArrayStartIndex).then(
+        (x) => x[0],
+      ),
+      getTickArrayAddress(whirlpool.address, upperTickArrayStartIndex).then(
+        (x) => x[0],
+      ),
+    ]);
+
+  const { createInstructions, cleanupInstructions, tokenAccountAddresses } =
+    await prepareTokenAccountsInstructions(rpc, authority, {
+      [whirlpool.data.tokenMintA]: quote.tokenMaxA,
+      [whirlpool.data.tokenMintB]: quote.tokenMaxB,
+    });
+
+  instructions.push(...createInstructions);
 
   // Since position exists tick arrays must also already exist
 
@@ -172,8 +170,8 @@ export async function increaseLiquidityInstructions(
       positionAuthority: authority,
       position: position.address,
       positionTokenAccount,
-      tokenOwnerAccountA,
-      tokenOwnerAccountB,
+      tokenOwnerAccountA: tokenAccountAddresses[whirlpool.data.tokenMintA],
+      tokenOwnerAccountB: tokenAccountAddresses[whirlpool.data.tokenMintB],
       tokenVaultA: whirlpool.data.tokenVaultA,
       tokenVaultB: whirlpool.data.tokenVaultB,
       tickArrayLower,
@@ -183,6 +181,9 @@ export async function increaseLiquidityInstructions(
       tokenMaxB: quote.tokenMaxB,
     }),
   );
+
+  instructions.push(...cleanupInstructions);
+
   return { quote, instructions, initializationCost: lamports(0n) };
 }
 
@@ -238,8 +239,6 @@ async function internalOpenPositionInstructions(
     positionTokenAccount,
     lowerTickArrayAddress,
     upperTickArrayAddress,
-    tokenOwnerAccountA,
-    tokenOwnerAccountB,
   ] = await Promise.all([
     getPositionAddress(positionMint.address),
     findAssociatedTokenPda({
@@ -253,17 +252,15 @@ async function internalOpenPositionInstructions(
     getTickArrayAddress(whirlpool.address, upperTickArrayIndex).then(
       (x) => x[0],
     ),
-    findAssociatedTokenPda({
-      owner: funder.address,
-      mint: whirlpool.data.tokenMintA,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS,
-    }).then((x) => x[0]),
-    findAssociatedTokenPda({
-      owner: funder.address,
-      mint: whirlpool.data.tokenMintB,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS,
-    }).then((x) => x[0]),
   ]);
+
+  const { createInstructions, cleanupInstructions, tokenAccountAddresses } =
+    await prepareTokenAccountsInstructions(rpc, funder, {
+      [whirlpool.data.tokenMintA]: quote.tokenMaxA,
+      [whirlpool.data.tokenMintB]: quote.tokenMaxB,
+    });
+
+  instructions.push(...createInstructions);
 
   const [lowerTickArray, upperTickArray] = await fetchAllMaybeTickArray(rpc, [
     lowerTickArrayAddress,
@@ -316,8 +313,8 @@ async function internalOpenPositionInstructions(
       positionAuthority: funder,
       position: positionAddress[0],
       positionTokenAccount,
-      tokenOwnerAccountA,
-      tokenOwnerAccountB,
+      tokenOwnerAccountA: tokenAccountAddresses[whirlpool.data.tokenMintA],
+      tokenOwnerAccountB: tokenAccountAddresses[whirlpool.data.tokenMintB],
       tokenVaultA: whirlpool.data.tokenVaultA,
       tokenVaultB: whirlpool.data.tokenVaultB,
       tickArrayLower: lowerTickArrayAddress,
@@ -327,6 +324,8 @@ async function internalOpenPositionInstructions(
       tokenMaxB: quote.tokenMaxB,
     }),
   );
+
+  instructions.push(...cleanupInstructions);
 
   const nonRefundableRent = await rpc
     .getMinimumBalanceForRentExemption(BigInt(stateSpace))

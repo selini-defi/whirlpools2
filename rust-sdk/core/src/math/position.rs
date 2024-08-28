@@ -3,7 +3,7 @@ use crate::{PositionRatio, PositionStatus};
 #[cfg(feature = "wasm")]
 use wasm_bindgen::prelude::*;
 
-use super::tick_index_to_sqrt_price;
+use super::{order_tick_indexes, tick_index_to_sqrt_price};
 
 /// Check if a position is in range.
 /// When a position is in range it is earning fees and rewards
@@ -44,9 +44,12 @@ pub fn position_status(
     tick_lower_index: i32,
     tick_upper_index: i32,
 ) -> PositionStatus {
-    if tick_current_index < tick_lower_index {
+    let tick_range = order_tick_indexes(tick_lower_index, tick_upper_index);
+    if tick_range.tick_lower_index == tick_range.tick_upper_index {
+        PositionStatus::Invalid
+    } else if tick_current_index < tick_range.tick_lower_index {
         PositionStatus::BelowRange
-    } else if tick_current_index >= tick_upper_index {
+    } else if tick_current_index >= tick_range.tick_upper_index {
         PositionStatus::AboveRange
     } else {
         PositionStatus::InRange
@@ -70,6 +73,10 @@ pub fn position_ratio(
 ) -> PositionRatio {
     let position_status = position_status(tick_current_index, tick_lower_index, tick_upper_index);
     match position_status {
+        PositionStatus::Invalid => PositionRatio {
+            ratio_a: 0,
+            ratio_b: 0,
+        },
         PositionStatus::BelowRange => PositionRatio {
             ratio_a: 10000,
             ratio_b: 0,
@@ -79,9 +86,12 @@ pub fn position_ratio(
             ratio_b: 10000,
         },
         PositionStatus::InRange => {
+            let tick_range = order_tick_indexes(tick_lower_index, tick_upper_index);
             let current_sqrt_price: u128 = tick_index_to_sqrt_price(tick_current_index).into();
-            let lower_sqrt_price: u128 = tick_index_to_sqrt_price(tick_lower_index).into();
-            let upper_sqrt_price: u128 = tick_index_to_sqrt_price(tick_upper_index).into();
+            let lower_sqrt_price: u128 =
+                tick_index_to_sqrt_price(tick_range.tick_lower_index).into();
+            let upper_sqrt_price: u128 =
+                tick_index_to_sqrt_price(tick_range.tick_upper_index).into();
 
             let amount_b: u128 = current_sqrt_price - lower_sqrt_price;
             let amount_a = upper_sqrt_price - current_sqrt_price;
@@ -118,6 +128,7 @@ mod test {
         assert_eq!(position_status(95, 90, 100), PositionStatus::InRange);
         assert_eq!(position_status(100, 90, 100), PositionStatus::AboveRange);
         assert_eq!(position_status(105, 90, 100), PositionStatus::AboveRange);
+        assert_eq!(position_status(105, 90, 90), PositionStatus::Invalid);
     }
 
     #[test]
@@ -141,5 +152,9 @@ mod test {
         let ratio_5 = position_ratio(10, -10, 10);
         assert_eq!(ratio_5.ratio_a, 0);
         assert_eq!(ratio_5.ratio_b, 10000);
+
+        let ratio_6 = position_ratio(10, 10, 10);
+        assert_eq!(ratio_6.ratio_a, 0);
+        assert_eq!(ratio_6.ratio_b, 0);
     }
 }

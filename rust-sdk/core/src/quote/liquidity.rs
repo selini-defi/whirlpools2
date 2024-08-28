@@ -116,7 +116,7 @@ pub fn decrease_liquidity_quote_a(
             tick_range.tick_lower_index,
             tick_range.tick_upper_index,
         ),
-        PositionStatus::AboveRange => 0,
+        PositionStatus::Invalid | PositionStatus::AboveRange => 0,
         PositionStatus::InRange => get_liquidity_from_a(
             token_delta_a.into(),
             tick_current_index,
@@ -172,7 +172,7 @@ pub fn decrease_liquidity_quote_b(
     );
 
     let liquidity: u128 = match position_status {
-        PositionStatus::BelowRange => 0,
+        PositionStatus::Invalid | PositionStatus::BelowRange => 0,
         PositionStatus::AboveRange => get_liquidity_from_b(
             token_delta_b.into(),
             tick_range.tick_lower_index,
@@ -305,7 +305,7 @@ pub fn increase_liquidity_quote_a(
             tick_range.tick_lower_index,
             tick_range.tick_upper_index,
         ),
-        PositionStatus::AboveRange => 0,
+        PositionStatus::Invalid | PositionStatus::AboveRange => 0,
         PositionStatus::InRange => get_liquidity_from_a(
             token_delta_a.into(),
             tick_current_index,
@@ -361,7 +361,7 @@ pub fn increase_liquidity_quote_b(
     );
 
     let liquidity: u128 = match position_status {
-        PositionStatus::BelowRange => 0,
+        PositionStatus::Invalid | PositionStatus::BelowRange => 0,
         PositionStatus::AboveRange => get_liquidity_from_b(
             token_delta_b.into(),
             tick_range.tick_lower_index,
@@ -490,6 +490,7 @@ fn get_token_estimates_from_liquidity(
             );
             (0, token_b)
         }
+        PositionStatus::Invalid => (0, 0),
     }
 }
 

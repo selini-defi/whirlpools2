@@ -1,0 +1,34 @@
+import { describe, it } from "mocha";
+import { DEFAULT_ADDRESS, DEFAULT_FUNDER, DEFAULT_SLIPPAGE_TOLERANCE, setDefaultFunder, setDefaultSlippageTolerance, setSupportedTickSpacings, setWhirlpoolsConfig, SUPPORTED_TICK_SPACINGS, WHIRLPOOLS_CONFIG_ADDRESS, WHIRLPOOLS_CONFIG_EXTENSION_ADDRESS } from "../src/config";
+import assert from "assert";
+import { createKeyPairSignerFromPrivateKeyBytes } from "@solana/web3.js";
+
+describe("Configuration", () => {
+  it("Should be able to set whirlpool config", () => {
+    setWhirlpoolsConfig(DEFAULT_ADDRESS)
+    assert.strictEqual(WHIRLPOOLS_CONFIG_ADDRESS, DEFAULT_ADDRESS);
+    assert.strictEqual(WHIRLPOOLS_CONFIG_EXTENSION_ADDRESS, "");
+  });
+
+  it("Should be able to set supported tick spacings", () => {
+    setSupportedTickSpacings([10, 20])
+    assert.deepStrictEqual(SUPPORTED_TICK_SPACINGS, [10, 20]);
+  });
+
+  it("Should be able to set default funder to an address", () => {
+    setDefaultFunder(DEFAULT_ADDRESS);
+    assert.strictEqual(DEFAULT_FUNDER.address, DEFAULT_ADDRESS);
+  });
+
+  it("Should be able to set default funder to a signer", async () => {
+    const bytes = new Uint8Array(64);
+    const signer = await createKeyPairSignerFromPrivateKeyBytes(bytes);
+    setDefaultFunder(signer);
+    assert.strictEqual(DEFAULT_FUNDER.address, DEFAULT_ADDRESS);
+  });
+
+  it("Should be able to set the default slippage tolerance", () => {
+    setDefaultSlippageTolerance(0.02);
+    assert.strictEqual(DEFAULT_SLIPPAGE_TOLERANCE, 0.02);
+  });
+})

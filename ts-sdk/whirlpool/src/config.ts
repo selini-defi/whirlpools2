@@ -47,6 +47,23 @@ export function setDefaultSlippageTolerance(slippageTolerance: number): void {
   DEFAULT_SLIPPAGE_TOLERANCE = slippageTolerance;
 }
 
+/**
+ * Keypair:
+ * Create auxillary token account using keypair.
+ * Optionally add funds to account.
+ * Close account at the end of tx.
+ *
+ * Seed:
+ * Same as Keypair but then with a seed account.
+ *
+ * ATA:
+ * Create ata (if needed) for NATIVE_MINT
+ * Optionally add funds to ata.
+ * Close ata at the end of tx if it did not exist before the tx.
+ *
+ * None:
+ * Use/create ata and do not do any wrapping / unwrapping of SOL
+ */
 export type SolWrappingStrategy = "keypair" | "seed" | "ata" | "none";
 
 export let SOL_WRAPPING_STRATEGY: SolWrappingStrategy = "ata";

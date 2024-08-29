@@ -233,7 +233,6 @@ describe("Token Account Creation", () => {
     assert.strictEqual(Object.keys(result.tokenAccountAddresses).length, 3);
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_1], existingTokenAccount);
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_2], nonExistingTokenAccount);
-
     assert.notStrictEqual(result.tokenAccountAddresses[NATIVE_MINT], nativeMintTokenAccount);
     assert.strictEqual(result.createInstructions.length, 5);
     assertCreateAtaInstruction(result.createInstructions[0], { ata: nonExistingTokenAccount, owner: signer.address, mint: TOKEN_MINT_2 });

@@ -32,16 +32,8 @@ import {
   getTransferSolInstruction,
 } from "@solana-program/system";
 
+/** The public key for the native mint (SOL) */
 export const NATIVE_MINT = address("So11111111111111111111111111111111111111112");
-
-// Keypair:
-// * if tokenIn: wrap to an auxillary account, use that for swapping. Close account
-// * if tokenOut: open empty auxillary account, swap into that and then close
-// Seed: same as above but then with a seed account.
-// ATA:
-// * if tokenIn: wrap the missing amount to the ata (or create ata if not exist). Close ata
-// * if tokenOut: unwrap the full amount in the ata by closing
-// None: Use existing ata and do not do any wrapping / unwrapping
 
 type TokenAccountInstructions = {
   createInstructions: IInstruction[];
@@ -56,6 +48,19 @@ function mintFilter(x: Address) {
   return x != NATIVE_MINT;
 }
 
+/**
+ *
+ * Prepare token acounts required for a transaction. This will create
+ * ATAs for the supplied mints.
+ *
+ * The NATIVE_MINT is a special case where this function will optionally wrap/unwrap
+ * SOL based on the SOL_WRAPPING_STRATEGY.
+ *
+ * @param rpc
+ * @param owner the owner to create token accounts for
+ * @param spec the mints (and amounts) required in the token accounts
+ * @returns Instructions and addresses for the required token accounts
+ */
 export async function prepareTokenAccountsInstructions(
   rpc: Rpc<
     GetAccountInfoApi &

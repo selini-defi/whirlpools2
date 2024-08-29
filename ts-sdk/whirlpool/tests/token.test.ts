@@ -1,5 +1,5 @@
 import { describe, it } from "mocha";
-import { mockAccounts, rpc, TOKEN_MINT_1, TOKEN_MINT_2 } from "./mockRpc";
+import { mockAccounts, rpc, TOKEN_2022_MINT, TOKEN_MINT_1, TOKEN_MINT_2 } from "./mockRpc";
 import { AccountState, findAssociatedTokenPda, getTokenEncoder, TOKEN_PROGRAM_ADDRESS } from "@solana-program/token";
 import { DEFAULT_ADDRESS, resetConfiguration, setSolWrappingStrategy } from "../src/config";
 import { Address, createNoopSigner, generateKeyPairSigner, TransactionSigner } from "@solana/web3.js";
@@ -91,6 +91,22 @@ describe("Token Account Creation", () => {
     assertCreateAtaInstruction(result.createInstructions[0], { ata: nonExistingTokenAccount, owner: signer.address, mint: TOKEN_MINT_2 });
     assert.strictEqual(result.cleanupInstructions.length, 0);
   });
+
+  it("Token 2022 token", async () => {
+    const result = await prepareTokenAccountsInstructions(rpc, signer, [TOKEN_2022_MINT]);
+
+    const tokenAddress = await findAssociatedTokenPda({
+      owner: signer.address,
+      mint: TOKEN_2022_MINT,
+      tokenProgram: TOKEN_2022_PROGRAM_ADDRESS,
+    }).then(x => x[0]);
+
+    assert.strictEqual(Object.keys(result.tokenAccountAddresses).length, 1);
+    assert.strictEqual(result.tokenAccountAddresses[TOKEN_2022_MINT], tokenAddress);
+    assert.strictEqual(result.createInstructions.length, 1);
+    assertCreateAtaInstruction(result.createInstructions[0], { ata: tokenAddress, owner: signer.address, mint: TOKEN_MINT_2, tokenProgram: TOKEN_2022_PROGRAM_ADDRESS });
+    assert.strictEqual(result.cleanupInstructions.length, 0);
+  })
 
   it("Native mint and wrapping is none", async () => {
     setSolWrappingStrategy("none");

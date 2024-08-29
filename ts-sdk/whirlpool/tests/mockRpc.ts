@@ -65,7 +65,7 @@ export const mockAccounts: Record<Address, AccountData> = {
       isInitialized: true,
       freezeAuthority: null,
     }),
-    owner: TOKEN_PROGRAM_ADDRESS // TODO: <- token 2022 program
+    owner: TOKEN_2022_PROGRAM_ADDRESS
   },
   [TOKEN_2022_MINT_TRANSFER_FEE]: {
     bytes: getMintEncoder().encode({
@@ -76,7 +76,7 @@ export const mockAccounts: Record<Address, AccountData> = {
       freezeAuthority: null,
       // TODO: <- transfer fee config
     }),
-    owner: TOKEN_PROGRAM_ADDRESS // TODO: <- token 2022 program
+    owner: TOKEN_2022_PROGRAM_ADDRESS
   },
   [TOKEN_2022_MINT_TRANSFER_HOOK]: {
     bytes: getMintEncoder().encode({
@@ -87,7 +87,7 @@ export const mockAccounts: Record<Address, AccountData> = {
       freezeAuthority: null,
       // TODO: <- transfer hook config
     }),
-    owner: TOKEN_PROGRAM_ADDRESS // TODO: <- token 2022 program
+    owner: TOKEN_2022_PROGRAM_ADDRESS
   },
 };
 

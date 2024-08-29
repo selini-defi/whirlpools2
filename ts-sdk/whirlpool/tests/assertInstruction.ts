@@ -4,7 +4,7 @@ import { Address, IInstruction } from "@solana/web3.js";
 import assert from "assert";
 
 
-export function assertCreateAtaInstruction(instruction: IInstruction, checks: { ata: Address, idempotent?: boolean, owner: Address, mint: Address }) {
+export function assertCreateAtaInstruction(instruction: IInstruction, checks: { ata: Address, idempotent?: boolean, owner: Address, mint: Address, tokenProgram?: Address }) {
   assert.strictEqual(instruction.programAddress, ASSOCIATED_TOKEN_PROGRAM_ADDRESS);
 
   try {
@@ -19,6 +19,7 @@ export function assertCreateAtaInstruction(instruction: IInstruction, checks: { 
   assert.strictEqual(instruction.accounts?.[1], checks.ata);
   assert.strictEqual(instruction.accounts?.[2], checks.owner);
   assert.strictEqual(instruction.accounts?.[3], checks.mint);
+  assert.strictEqual(instruction.accounts?.[5], checks.tokenProgram ?? TOKEN_PROGRAM_ADDRESS)
 }
 
 export function assertCloseAccountInstruction(instruction: IInstruction, checks: { account: Address, owner: Address }) {

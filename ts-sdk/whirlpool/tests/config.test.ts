@@ -3,6 +3,7 @@ import {
   DEFAULT_ADDRESS,
   DEFAULT_FUNDER,
   DEFAULT_SLIPPAGE_TOLERANCE,
+  resetConfiguration,
   setDefaultFunder,
   setDefaultSlippageTolerance,
   setSolWrappingStrategy,
@@ -17,6 +18,11 @@ import assert from "assert";
 import { createKeyPairSignerFromPrivateKeyBytes } from "@solana/web3.js";
 
 describe("Configuration", () => {
+
+  afterEach(async () => {
+    await resetConfiguration();
+  });
+
   it("Should be able to set whirlpool config", () => {
     setWhirlpoolsConfig(DEFAULT_ADDRESS);
     assert.strictEqual(WHIRLPOOLS_CONFIG_ADDRESS, DEFAULT_ADDRESS);

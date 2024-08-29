@@ -1,13 +1,95 @@
-import type { VariableSizeDecoder } from "@solana/web3.js";
+import type { Address, ReadonlyUint8Array, VariableSizeDecoder } from "@solana/web3.js";
 import {
   createSolanaRpcFromTransport,
+  getAddressDecoder,
   getBase58Decoder,
   getBase64Decoder,
 } from "@solana/web3.js";
 import assert from "assert";
 import { DEFAULT_ADDRESS } from "../src/config";
+import { getMintEncoder, TOKEN_PROGRAM_ADDRESS } from "@solana-program/token";
+import { NATIVE_MINT } from "../src/token";
 
-const mockAccounts: Record<string, Uint8Array> = {};
+export const [
+  TOKEN_MINT_1,
+  TOKEN_MINT_2,
+  TOKEN_2022_MINT,
+  TOKEN_2022_MINT_TRANSFER_FEE,
+  TOKEN_2022_MINT_TRANSFER_HOOK,
+] = [...Array(25).keys()].map((i) => {
+  const bytes = Array.from({ length: 32 }, () => i);
+  return getAddressDecoder().decode(new Uint8Array(bytes));
+});
+
+type AccountData = {
+  bytes: ReadonlyUint8Array;
+  owner?: Address;
+}
+
+export const mockAccounts: Record<Address, AccountData> = {
+  [TOKEN_MINT_1]: {
+    bytes: getMintEncoder().encode({
+      mintAuthority: DEFAULT_ADDRESS,
+      supply: 1000000000,
+      decimals: 6,
+      isInitialized: true,
+      freezeAuthority: null,
+    }),
+    owner: TOKEN_PROGRAM_ADDRESS
+  },
+  [TOKEN_MINT_2]: {
+    bytes: getMintEncoder().encode({
+      mintAuthority: DEFAULT_ADDRESS,
+      supply: 1000000000,
+      decimals: 9,
+      isInitialized: true,
+      freezeAuthority: null,
+    }),
+    owner: TOKEN_PROGRAM_ADDRESS
+  },
+  [NATIVE_MINT]: {
+    bytes: getMintEncoder().encode({
+      mintAuthority: DEFAULT_ADDRESS,
+      supply: 1000000000,
+      decimals: 9,
+      isInitialized: true,
+      freezeAuthority: null,
+    }),
+    owner: TOKEN_PROGRAM_ADDRESS
+  },
+  [TOKEN_2022_MINT]: {
+    bytes: getMintEncoder().encode({
+      mintAuthority: DEFAULT_ADDRESS,
+      supply: 1000000000,
+      decimals: 9,
+      isInitialized: true,
+      freezeAuthority: null,
+    }),
+    owner: TOKEN_PROGRAM_ADDRESS // TODO: <- token 2022 program
+  },
+  [TOKEN_2022_MINT_TRANSFER_FEE]: {
+    bytes: getMintEncoder().encode({
+      mintAuthority: DEFAULT_ADDRESS,
+      supply: 1000000000,
+      decimals: 9,
+      isInitialized: true,
+      freezeAuthority: null,
+      // TODO: <- transfer fee config
+    }),
+    owner: TOKEN_PROGRAM_ADDRESS // TODO: <- token 2022 program
+  },
+  [TOKEN_2022_MINT_TRANSFER_HOOK]: {
+    bytes: getMintEncoder().encode({
+      mintAuthority: DEFAULT_ADDRESS,
+      supply: 1000000000,
+      decimals: 9,
+      isInitialized: true,
+      freezeAuthority: null,
+      // TODO: <- transfer hook config
+    }),
+    owner: TOKEN_PROGRAM_ADDRESS // TODO: <- token 2022 program
+  },
+};
 
 const decoders: Record<string, VariableSizeDecoder<string>> = {
   base58: getBase58Decoder(),
@@ -31,11 +113,10 @@ function getAccountData<T>(address: unknown, opts: unknown): unknown {
     throw new Error(`No mock account found for ${address}`);
   }
   return {
-    data: [decoder.decode(data), opts.encoding],
+    data: [decoder.decode(data.bytes), opts.encoding],
     executable: false,
     lamports: data.length * 10,
-    // Since no ownership checks are done in fetch code this doesn't really matter
-    owner: DEFAULT_ADDRESS,
+    owner: data.owner ?? DEFAULT_ADDRESS,
     rentEpoch: 0,
     space: data.length,
   } as T;

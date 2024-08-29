@@ -32,7 +32,7 @@ import {
   getTransferSolInstruction,
 } from "@solana-program/system";
 
-const NATIVE_MINT = address("So11111111111111111111111111111111111111112");
+export const NATIVE_MINT = address("So11111111111111111111111111111111111111112");
 
 // Keypair:
 // * if tokenIn: wrap to an auxillary account, use that for swapping. Close account

@@ -54,3 +54,11 @@ export let SOL_WRAPPING_STRATEGY: SolWrappingStrategy = "ata";
 export function setSolWrappingStrategy(strategy: SolWrappingStrategy): void {
   SOL_WRAPPING_STRATEGY = strategy;
 }
+
+export async function resetConfiguration(): Promise<void> {
+  setWhirlpoolsConfig(address("2LecshUwdy9xi7meFgHtFJQNSKk4KdTrcpvaB56dP2NQ"));
+  setSupportedTickSpacings(_SUPPORTED_TICK_SPACINGS());
+  setDefaultFunder(DEFAULT_ADDRESS);
+  setDefaultSlippageTolerance(0.01);
+  setSolWrappingStrategy("ata");
+}

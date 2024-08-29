@@ -5,9 +5,11 @@ import { DEFAULT_ADDRESS, resetConfiguration, setSolWrappingStrategy } from "../
 import { Address, createNoopSigner, generateKeyPairSigner, TransactionSigner } from "@solana/web3.js";
 import { NATIVE_MINT, prepareTokenAccountsInstructions } from "../src/token";
 import assert from "assert";
-
+import { assertCloseAccountInstruction, assertCreateAccountInstruction, assertCreateAccountWithSeedInstruction, assertCreateAtaInstruction, assertInitializeAccountInstruction, assertSolTransferInstruction, assertSyncNativeInstruction } from "./assertInstruction";
+import { SinonFakeTimers, useFakeTimers } from "sinon";
 
 describe("Token Account Creation", () => {
+  let clock = {} as SinonFakeTimers;
   let signer: TransactionSigner = createNoopSigner(DEFAULT_ADDRESS);
   let existingTokenAccount: Address = DEFAULT_ADDRESS;
   let nonExistingTokenAccount: Address = DEFAULT_ADDRESS;
@@ -30,6 +32,7 @@ describe("Token Account Creation", () => {
   }
 
   before(async () => {
+    clock = useFakeTimers();
     signer = await generateKeyPairSigner();
     [existingTokenAccount, nonExistingTokenAccount, nativeMintTokenAccount] = await Promise.all(
       [TOKEN_MINT_1, TOKEN_MINT_2, NATIVE_MINT].map((mint) =>
@@ -56,6 +59,7 @@ describe("Token Account Creation", () => {
   });
 
   after(async () => {
+    clock.restore();
     delete mockAccounts[existingTokenAccount];
   });
 
@@ -70,7 +74,7 @@ describe("Token Account Creation", () => {
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_1], existingTokenAccount);
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_2], nonExistingTokenAccount);
     assert.strictEqual(result.createInstructions.length, 1);
-    // TODO: check instruction?
+    assertCreateAtaInstruction(result.createInstructions[0], { ata: nonExistingTokenAccount, owner: signer.address, mint: TOKEN_MINT_2 });
     assert.strictEqual(result.cleanupInstructions.length, 0);
   });
 
@@ -84,7 +88,7 @@ describe("Token Account Creation", () => {
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_1], existingTokenAccount);
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_2], nonExistingTokenAccount);
     assert.strictEqual(result.createInstructions.length, 1);
-    // TODO: check instruction?
+    assertCreateAtaInstruction(result.createInstructions[0], { ata: nonExistingTokenAccount, owner: signer.address, mint: TOKEN_MINT_2 });
     assert.strictEqual(result.cleanupInstructions.length, 0);
   });
 
@@ -98,7 +102,8 @@ describe("Token Account Creation", () => {
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_2], nonExistingTokenAccount);
     assert.strictEqual(result.tokenAccountAddresses[NATIVE_MINT], nativeMintTokenAccount);
     assert.strictEqual(result.createInstructions.length, 2);
-    // TODO: check instruction?
+    assertCreateAtaInstruction(result.createInstructions[0], { ata: nonExistingTokenAccount, owner: signer.address, mint: TOKEN_MINT_2 });
+    assertCreateAtaInstruction(result.createInstructions[1], { ata: nativeMintTokenAccount, owner: signer.address, mint: NATIVE_MINT });
     assert.strictEqual(result.cleanupInstructions.length, 0);
   });
 
@@ -116,7 +121,8 @@ describe("Token Account Creation", () => {
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_2], nonExistingTokenAccount);
     assert.strictEqual(result.tokenAccountAddresses[NATIVE_MINT], nativeMintTokenAccount);
     assert.strictEqual(result.createInstructions.length, 2);
-    // TODO: check instruction?
+    assertCreateAtaInstruction(result.createInstructions[0], { ata: nonExistingTokenAccount, owner: signer.address, mint: TOKEN_MINT_2 });
+    assertCreateAtaInstruction(result.createInstructions[1], { ata: nativeMintTokenAccount, owner: signer.address, mint: NATIVE_MINT });
     assert.strictEqual(result.cleanupInstructions.length, 0);
   });
 
@@ -130,9 +136,10 @@ describe("Token Account Creation", () => {
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_2], nonExistingTokenAccount);
     assert.strictEqual(result.tokenAccountAddresses[NATIVE_MINT], nativeMintTokenAccount);
     assert.strictEqual(result.createInstructions.length, 2);
-    // TODO: check instruction?
+    assertCreateAtaInstruction(result.createInstructions[0], { ata: nonExistingTokenAccount, owner: signer.address, mint: TOKEN_MINT_2 });
+    assertCreateAtaInstruction(result.createInstructions[1], { ata: nativeMintTokenAccount, owner: signer.address, mint: NATIVE_MINT });
     assert.strictEqual(result.cleanupInstructions.length, 1);
-    // TODO: check instruction?
+    assertCloseAccountInstruction(result.cleanupInstructions[0], { account: nativeMintTokenAccount, owner: signer.address });
   });
 
   it("Native mint and wrapping is ata but already exists", async () => {
@@ -146,9 +153,8 @@ describe("Token Account Creation", () => {
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_2], nonExistingTokenAccount);
     assert.strictEqual(result.tokenAccountAddresses[NATIVE_MINT], nativeMintTokenAccount);
     assert.strictEqual(result.createInstructions.length, 1);
-    // TODO: check instruction?
+    assertCreateAtaInstruction(result.createInstructions[0], { ata: nonExistingTokenAccount, owner: signer.address, mint: TOKEN_MINT_2 });
     assert.strictEqual(result.cleanupInstructions.length, 0);
-    // TODO: check instruction?
 
     delete mockAccounts[nativeMintTokenAccount];
   });
@@ -167,9 +173,12 @@ describe("Token Account Creation", () => {
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_2], nonExistingTokenAccount);
     assert.strictEqual(result.tokenAccountAddresses[NATIVE_MINT], nativeMintTokenAccount);
     assert.strictEqual(result.createInstructions.length, 4);
-    // TODO: check instruction?
+    assertCreateAtaInstruction(result.createInstructions[0], { ata: nonExistingTokenAccount, owner: signer.address, mint: TOKEN_MINT_2 });
+    assertCreateAtaInstruction(result.createInstructions[1], { ata: nativeMintTokenAccount, owner: signer.address, mint: NATIVE_MINT });
+    assertSolTransferInstruction(result.createInstructions[2], { from: signer.address, to: result.tokenAccountAddresses[NATIVE_MINT], amount: 100n });
+    assertSyncNativeInstruction(result.createInstructions[3], { account: result.tokenAccountAddresses[NATIVE_MINT] });
     assert.strictEqual(result.cleanupInstructions.length, 1);
-    // TODO: check instruction?
+    assertCloseAccountInstruction(result.cleanupInstructions[0], { account: nativeMintTokenAccount, owner: signer.address });
   });
 
   it("Native mint and wrapping is ata but already exists with balances", async () => {
@@ -187,9 +196,10 @@ describe("Token Account Creation", () => {
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_2], nonExistingTokenAccount);
     assert.strictEqual(result.tokenAccountAddresses[NATIVE_MINT], nativeMintTokenAccount);
     assert.strictEqual(result.createInstructions.length, 3);
-    // TODO: check instruction?
+    assertCreateAtaInstruction(result.createInstructions[0], { ata: nonExistingTokenAccount, owner: signer.address, mint: TOKEN_MINT_2 });
+    assertSolTransferInstruction(result.createInstructions[1], { from: signer.address, to: result.tokenAccountAddresses[NATIVE_MINT], amount: 100n });
+    assertSyncNativeInstruction(result.createInstructions[2], { account: result.tokenAccountAddresses[NATIVE_MINT] });
     assert.strictEqual(result.cleanupInstructions.length, 0);
-    // TODO: check instruction?
 
     delete mockAccounts[nativeMintTokenAccount];
   });
@@ -202,12 +212,13 @@ describe("Token Account Creation", () => {
     assert.strictEqual(Object.keys(result.tokenAccountAddresses).length, 3);
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_1], existingTokenAccount);
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_2], nonExistingTokenAccount);
-    // TODO: Actual check of the address to see if it was seed?
     assert.notStrictEqual(result.tokenAccountAddresses[NATIVE_MINT], nativeMintTokenAccount);
-    assert.strictEqual(result.createInstructions.length, 2);
-    // TODO: check instruction?
+    assert.strictEqual(result.createInstructions.length, 3);
+    assertCreateAtaInstruction(result.createInstructions[0], { ata: nonExistingTokenAccount, owner: signer.address, mint: TOKEN_MINT_2 });
+    assertCreateAccountWithSeedInstruction(result.createInstructions[1], { account: result.tokenAccountAddresses[NATIVE_MINT], payer: signer.address, owner: TOKEN_PROGRAM_ADDRESS, seed: Date.now().toString() })
+    assertInitializeAccountInstruction(result.createInstructions[2], { account: result.tokenAccountAddresses[NATIVE_MINT], mint: NATIVE_MINT, owner: signer.address });
     assert.strictEqual(result.cleanupInstructions.length, 1);
-    // TODO: check instruction?
+    assertCloseAccountInstruction(result.cleanupInstructions[0], { account: result.tokenAccountAddresses[NATIVE_MINT], owner: signer.address });
   });
 
   it("Native mint and wrapping is seed with balances", async () => {
@@ -224,10 +235,14 @@ describe("Token Account Creation", () => {
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_2], nonExistingTokenAccount);
 
     assert.notStrictEqual(result.tokenAccountAddresses[NATIVE_MINT], nativeMintTokenAccount);
-    assert.strictEqual(result.createInstructions.length, 4);
-    // TODO: check instruction?
+    assert.strictEqual(result.createInstructions.length, 5);
+    assertCreateAtaInstruction(result.createInstructions[0], { ata: nonExistingTokenAccount, owner: signer.address, mint: TOKEN_MINT_2 });
+    assertCreateAccountWithSeedInstruction(result.createInstructions[1], { account: result.tokenAccountAddresses[NATIVE_MINT], payer: signer.address, owner: TOKEN_PROGRAM_ADDRESS, seed: Date.now().toString() })
+    assertInitializeAccountInstruction(result.createInstructions[2], { account: result.tokenAccountAddresses[NATIVE_MINT], mint: NATIVE_MINT, owner: signer.address });
+    assertSolTransferInstruction(result.createInstructions[3], { from: signer.address, to: result.tokenAccountAddresses[NATIVE_MINT], amount: 100n });
+    assertSyncNativeInstruction(result.createInstructions[4], { account: result.tokenAccountAddresses[NATIVE_MINT] });
     assert.strictEqual(result.cleanupInstructions.length, 1);
-    // TODO: check instruction?
+    assertCloseAccountInstruction(result.cleanupInstructions[0], { account: result.tokenAccountAddresses[NATIVE_MINT], owner: signer.address });
   });
 
   it("Native mint and wrapping is keypair", async () => {
@@ -239,10 +254,12 @@ describe("Token Account Creation", () => {
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_1], existingTokenAccount);
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_2], nonExistingTokenAccount);
     assert.notStrictEqual(result.tokenAccountAddresses[NATIVE_MINT], nativeMintTokenAccount);
-    assert.strictEqual(result.createInstructions.length, 2);
-    // TODO: check instruction?
+    assert.strictEqual(result.createInstructions.length, 3);
+    assertCreateAtaInstruction(result.createInstructions[0], { ata: nonExistingTokenAccount, owner: signer.address, mint: TOKEN_MINT_2 });
+    assertCreateAccountInstruction(result.createInstructions[1], { account: result.tokenAccountAddresses[NATIVE_MINT], payer: signer.address, owner: TOKEN_PROGRAM_ADDRESS })
+    assertInitializeAccountInstruction(result.createInstructions[2], { account: result.tokenAccountAddresses[NATIVE_MINT], mint: NATIVE_MINT, owner: signer.address });
     assert.strictEqual(result.cleanupInstructions.length, 1);
-    // TODO: check instruction?
+    assertCloseAccountInstruction(result.cleanupInstructions[0], { account: result.tokenAccountAddresses[NATIVE_MINT], owner: signer.address });
   });
 
   it("Native mint and wrapping is keypair with balances", async () => {
@@ -258,10 +275,14 @@ describe("Token Account Creation", () => {
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_1], existingTokenAccount);
     assert.strictEqual(result.tokenAccountAddresses[TOKEN_MINT_2], nonExistingTokenAccount);
     assert.notStrictEqual(result.tokenAccountAddresses[NATIVE_MINT], nativeMintTokenAccount);
-    assert.strictEqual(result.createInstructions.length, 4);
-    // TODO: check instruction?
+    assert.strictEqual(result.createInstructions.length, 5);
+    assertCreateAtaInstruction(result.createInstructions[0], { ata: nonExistingTokenAccount, owner: signer.address, mint: TOKEN_MINT_2 });
+    assertCreateAccountInstruction(result.createInstructions[1], { account: result.tokenAccountAddresses[NATIVE_MINT], payer: signer.address, owner: TOKEN_PROGRAM_ADDRESS })
+    assertInitializeAccountInstruction(result.createInstructions[2], { account: result.tokenAccountAddresses[NATIVE_MINT], mint: NATIVE_MINT, owner: signer.address });
+    assertSolTransferInstruction(result.createInstructions[3], { from: signer.address, to: result.tokenAccountAddresses[NATIVE_MINT], amount: 100n });
+    assertSyncNativeInstruction(result.createInstructions[4], { account: result.tokenAccountAddresses[NATIVE_MINT] });
     assert.strictEqual(result.cleanupInstructions.length, 1);
-    // TODO: check instruction?
+    assertCloseAccountInstruction(result.cleanupInstructions[0], { account: result.tokenAccountAddresses[NATIVE_MINT], owner: signer.address });
   });
 
 });

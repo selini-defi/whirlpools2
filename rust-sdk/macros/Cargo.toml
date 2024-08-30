@@ -1,6 +1,12 @@
 [package]
 name = "orca_whirlpools_macros"
 version = "0.1.0"
+description = "Orca's rust macro package."
+documentation = "https://orca-so.github.io/whirlpools/"
+homepage = "https://orca.so"
+repository = "https://github.com/orca-so/whirlpools"
+license = "Apache-2.0"
+keywords = ["solana", "crypto", "defi", "dex", "amm"]
 edition = "2021"
 
 [lib]

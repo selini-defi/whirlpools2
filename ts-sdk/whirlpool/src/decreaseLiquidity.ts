@@ -47,7 +47,11 @@ import {
 import invariant from "tiny-invariant";
 import { prepareTokenAccountsInstructions } from "./token";
 
-type DecreaseLiquidityQuoteInput =
+// TODO: allow specify number as well as bigint
+// TODO: transfer hook
+// TODO: transfer fee
+
+type DecreaseLiquidityQuoteParam =
   | {
       liquidity: bigint;
     }
@@ -58,10 +62,6 @@ type DecreaseLiquidityQuoteInput =
       tokenB: bigint;
     };
 
-type DecreaseLiquidityQuoteParam = DecreaseLiquidityQuoteInput & {
-  slippageTolerance?: number;
-};
-
 type DecreaseLiquidityInstructions = {
   quote: DecreaseLiquidityQuote;
   instructions: IInstruction[];
@@ -71,9 +71,8 @@ function getDecreaseLiquidityQuote(
   param: DecreaseLiquidityQuoteParam,
   pool: Whirlpool,
   tickRange: TickRange,
+  slippageTolerance: number,
 ): DecreaseLiquidityQuote {
-  const slippageTolerance =
-    param.slippageTolerance ?? DEFAULT_SLIPPAGE_TOLERANCE;
   const slippageToleranceBps = Math.floor(slippageTolerance * 10000);
   if ("liquidity" in param) {
     return decreaseLiquidityQuote(
@@ -110,6 +109,7 @@ export async function decreaseLiquidityInstructions(
   >,
   positionMint: Address,
   param: DecreaseLiquidityQuoteParam,
+  slippageTolerance: number = DEFAULT_SLIPPAGE_TOLERANCE,
   authority: TransactionPartialSigner = DEFAULT_FUNDER,
 ): Promise<DecreaseLiquidityInstructions> {
   invariant(
@@ -120,7 +120,7 @@ export async function decreaseLiquidityInstructions(
   const positionAddress = await getPositionAddress(positionMint);
   const position = await fetchPosition(rpc, positionAddress[0]);
   const whirlpool = await fetchWhirlpool(rpc, position.data.whirlpool);
-  const quote = getDecreaseLiquidityQuote(param, whirlpool.data, position.data);
+  const quote = getDecreaseLiquidityQuote(param, whirlpool.data, position.data, slippageTolerance);
   const instructions: IInstruction[] = [];
 
   const lowerTickArrayStartIndex = getTickArrayStartTickIndex(
@@ -191,6 +191,7 @@ export async function closePositionInstructions(
   >,
   positionMint: Address,
   param: DecreaseLiquidityQuoteParam,
+  slippageTolerance: number = DEFAULT_SLIPPAGE_TOLERANCE,
   authority: TransactionPartialSigner = DEFAULT_FUNDER,
 ): Promise<ClosePositionInstructions> {
   invariant(
@@ -202,7 +203,7 @@ export async function closePositionInstructions(
   const positionAddress = await getPositionAddress(positionMint);
   const position = await fetchPosition(rpc, positionAddress[0]);
   const whirlpool = await fetchWhirlpool(rpc, position.data.whirlpool);
-  const quote = getDecreaseLiquidityQuote(param, whirlpool.data, position.data);
+  const quote = getDecreaseLiquidityQuote(param, whirlpool.data, position.data, slippageTolerance);
 
   const lowerTickArrayStartIndex = getTickArrayStartTickIndex(
     position.data.tickLowerIndex,

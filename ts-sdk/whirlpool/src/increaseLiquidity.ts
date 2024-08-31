@@ -53,7 +53,11 @@ import {
 import invariant from "tiny-invariant";
 import { prepareTokenAccountsInstructions } from "./token";
 
-type IncreaseLiquidityQuoteInput =
+// TODO: allow specify number as well as bigint
+// TODO: transfer hook
+// TODO: transfer fee
+
+type IncreaseLiquidityQuoteParam =
   | {
       liquidity: bigint;
     }
@@ -63,10 +67,6 @@ type IncreaseLiquidityQuoteInput =
   | {
       tokenB: bigint;
     };
-
-type IncreaseLiquidityQuoteParam = IncreaseLiquidityQuoteInput & {
-  slippageTolerance?: number;
-};
 
 type IncreaseLiquidityInstructions = {
   quote: IncreaseLiquidityQuote;
@@ -78,9 +78,8 @@ function getIncreaseLiquidityQuote(
   param: IncreaseLiquidityQuoteParam,
   pool: Whirlpool,
   tickRange: TickRange,
+  slippageTolerance: number
 ): IncreaseLiquidityQuote {
-  const slippageTolerance =
-    param.slippageTolerance ?? DEFAULT_SLIPPAGE_TOLERANCE;
   const slippageToleranceBps = Math.floor(slippageTolerance * 10000);
   if ("liquidity" in param) {
     return increaseLiquidityQuote(
@@ -117,6 +116,7 @@ export async function increaseLiquidityInstructions(
   >,
   positionMint: Address,
   param: IncreaseLiquidityQuoteParam,
+  slippageTolerance: number = DEFAULT_SLIPPAGE_TOLERANCE,
   authority: TransactionPartialSigner = DEFAULT_FUNDER,
 ): Promise<IncreaseLiquidityInstructions> {
   invariant(
@@ -127,7 +127,7 @@ export async function increaseLiquidityInstructions(
   const positionAddress = await getPositionAddress(positionMint);
   const position = await fetchPosition(rpc, positionAddress[0]);
   const whirlpool = await fetchWhirlpool(rpc, position.data.whirlpool);
-  const quote = getIncreaseLiquidityQuote(param, whirlpool.data, position.data);
+  const quote = getIncreaseLiquidityQuote(param, whirlpool.data, position.data, slippageTolerance);
   const instructions: IInstruction[] = [];
 
   const lowerTickArrayStartIndex = getTickArrayStartTickIndex(
@@ -197,6 +197,7 @@ async function internalOpenPositionInstructions(
   param: IncreaseLiquidityQuoteParam,
   lowerTickIndex: number,
   upperTickIndex: number,
+  slippageTolerance: number = DEFAULT_SLIPPAGE_TOLERANCE,
   funder: TransactionPartialSigner = DEFAULT_FUNDER,
 ): Promise<IncreaseLiquidityInstructions> {
   invariant(
@@ -221,7 +222,7 @@ async function internalOpenPositionInstructions(
     initializableUpperTickIndex,
   );
 
-  const quote = getIncreaseLiquidityQuote(param, whirlpool.data, tickRange);
+  const quote = getIncreaseLiquidityQuote(param, whirlpool.data, tickRange, slippageTolerance);
 
   const positionMint = await generateKeyPairSigner();
 
@@ -347,6 +348,7 @@ export async function openFullRangePositionInstructions(
   >,
   poolAddress: Address,
   param: IncreaseLiquidityQuoteParam,
+  slippageTolerance: number = DEFAULT_SLIPPAGE_TOLERANCE,
   funder: TransactionPartialSigner = DEFAULT_FUNDER,
 ): Promise<IncreaseLiquidityInstructions> {
   const whirlpool = await fetchWhirlpool(rpc, poolAddress);
@@ -357,6 +359,7 @@ export async function openFullRangePositionInstructions(
     param,
     tickRange.tickLowerIndex,
     tickRange.tickUpperIndex,
+    slippageTolerance,
     funder,
   );
 }
@@ -369,9 +372,10 @@ export function openSplashPoolPositionInstructions(
   >,
   poolAddress: Address,
   param: IncreaseLiquidityQuoteParam,
+  slippageTolerance: number = DEFAULT_SLIPPAGE_TOLERANCE,
   funder: TransactionPartialSigner = DEFAULT_FUNDER,
 ): Promise<IncreaseLiquidityInstructions> {
-  return openFullRangePositionInstructions(rpc, poolAddress, param, funder);
+  return openFullRangePositionInstructions(rpc, poolAddress, param, slippageTolerance, funder);
 }
 
 export async function openPositionInstructions(
@@ -384,6 +388,7 @@ export async function openPositionInstructions(
   param: IncreaseLiquidityQuoteParam,
   lowerPrice: number,
   upperPrice: number,
+  slippageTolerance: number = DEFAULT_SLIPPAGE_TOLERANCE,
   funder: TransactionPartialSigner = DEFAULT_FUNDER,
 ): Promise<IncreaseLiquidityInstructions> {
   const whirlpool = await fetchWhirlpool(rpc, poolAddress);
@@ -401,6 +406,7 @@ export async function openPositionInstructions(
     param,
     lowerTickIndex,
     upperTickIndex,
+    slippageTolerance,
     funder,
   );
 }

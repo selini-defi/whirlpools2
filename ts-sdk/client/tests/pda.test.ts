@@ -1,6 +1,7 @@
 import { address } from "@solana/web3.js";
 import assert from "assert";
 import { getFeeTierAddress } from "../src/pda/feeTier";
+import { getOracleAddress } from "../src/pda/oracle";
 import { getPositionAddress } from "../src/pda/position";
 import { getPositionBundleAddress } from "../src/pda/positionBundle";
 import { getTickArrayAddress } from "../src/pda/tickArray";
@@ -30,6 +31,16 @@ describe("derive program accounts", () => {
     assert.strictEqual(
       address[0],
       "62dSkn5ktwY1PoKPNMArZA4bZsvyemuknWUnnQ2ATTuN",
+    );
+  });
+
+  it("Oracle", async () => {
+    const address = await getOracleAddress(
+      TEST_WHIRLPOOL_ADDRESS,
+    );
+    assert.strictEqual(
+      address[0],
+      "821SHenpVGYY7BCXUzNhs8Xi4grG557fqRw4wzgaPQcS",
     );
   });
 

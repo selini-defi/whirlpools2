@@ -1,4 +1,5 @@
 export * from "./feeTier";
+export * from "./oracle";
 export * from "./position";
 export * from "./positionBundle";
 export * from "./tickArray";

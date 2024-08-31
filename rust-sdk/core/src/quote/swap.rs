@@ -18,9 +18,11 @@ use wasm_bindgen::prelude::*;
 /// - `specified_token_a`: If `true`, the input token is token A. Otherwise, it is token B.
 /// - `slippage_tolerance`: The slippage tolerance in basis points.
 /// - `whirlpool`: The whirlpool state.
-/// - `tick_array_1`: The first tick array.
-/// - `tick_array_2`: The second tick array.
-/// - `tick_array_3`: The third tick array.
+/// - `tick_array_0`: The tick array at the current tick index.
+/// - `tick_array_plus_1`: The tick array at the current tick offset plus 1.
+/// - `tick_array_plus_2`: The tick array at the current tick offset plus 2.
+/// - `tick_array_minus_1`: The tick array at the current tick offset minus 1.
+/// - `tick_array_minus_2`: The tick array at the current tick offset minus 2.
 /// - `transfer_fee_a`: The transfer fee for token A.
 /// - `transfer_fee_b`: The transfer fee for token B.
 ///
@@ -33,9 +35,11 @@ pub fn swap_quote_by_input_token(
     specified_token_a: bool,
     slippage_tolerance: u16,
     whirlpool: WhirlpoolFacade,
-    tick_array_1: TickArrayFacade,
-    tick_array_2: TickArrayFacade,
-    tick_array_3: TickArrayFacade,
+    tick_array_0: TickArrayFacade,
+    tick_array_plus_1: TickArrayFacade,
+    tick_array_plus_2: TickArrayFacade,
+    tick_array_minus_1: TickArrayFacade,
+    tick_array_minus_2: TickArrayFacade,
     transfer_fee_a: Option<TransferFee>,
     transfer_fee_b: Option<TransferFee>,
 ) -> ExactInSwapQuote {
@@ -46,12 +50,13 @@ pub fn swap_quote_by_input_token(
     };
     let token_in_after_fee = adjust_amount(token_in.into(), transfer_fee_in.into(), false);
 
-    let tick_sequence = TickArraySequence::new(
-        tick_array_1,
-        tick_array_2,
-        tick_array_3,
-        whirlpool.tick_spacing,
-    );
+    let tick_sequence = TickArraySequence::new([
+        tick_array_minus_2,
+        tick_array_minus_1,
+        tick_array_0,
+        tick_array_plus_1,
+        tick_array_plus_2,
+    ], whirlpool.tick_spacing);
 
     let swap_result = compute_swap(
         token_in_after_fee.into(),
@@ -100,9 +105,11 @@ pub fn swap_quote_by_input_token(
 /// - `specified_token_a`: If `true`, the output token is token A. Otherwise, it is token B.
 /// - `slippage_tolerance`: The slippage tolerance in basis points.
 /// - `whirlpool`: The whirlpool state.
-/// - `tick_array_1`: The first tick array.
-/// - `tick_array_2`: The second tick array.
-/// - `tick_array_3`: The third tick array.
+/// - `tick_array_0`: The tick array at the current tick index.
+/// - `tick_array_plus_1`: The tick array at the current tick offset plus 1.
+/// - `tick_array_plus_2`: The tick array at the current tick offset plus 2.
+/// - `tick_array_minus_1`: The tick array at the current tick offset minus 1.
+/// - `tick_array_minus_2`: The tick array at the current tick offset minus 2.
 /// - `transfer_fee_a`: The transfer fee for token A.
 /// - `transfer_fee_b`: The transfer fee for token B.
 ///
@@ -115,9 +122,11 @@ pub fn swap_quote_by_output_token(
     specified_token_a: bool,
     slippage_tolerance: u16,
     whirlpool: WhirlpoolFacade,
-    tick_array_1: TickArrayFacade,
-    tick_array_2: TickArrayFacade,
-    tick_array_3: TickArrayFacade,
+    tick_array_0: TickArrayFacade,
+    tick_array_plus_1: TickArrayFacade,
+    tick_array_plus_2: TickArrayFacade,
+    tick_array_minus_1: TickArrayFacade,
+    tick_array_minus_2: TickArrayFacade,
     transfer_fee_a: Option<TransferFee>,
     transfer_fee_b: Option<TransferFee>,
 ) -> ExactOutSwapQuote {
@@ -129,12 +138,13 @@ pub fn swap_quote_by_output_token(
     let token_out_before_fee =
         inverse_adjust_amount(token_out.into(), transfer_fee_out.into(), false);
 
-    let tick_sequence = TickArraySequence::new(
-        tick_array_1,
-        tick_array_2,
-        tick_array_3,
-        whirlpool.tick_spacing,
-    );
+    let tick_sequence = TickArraySequence::new([
+        tick_array_minus_2,
+        tick_array_minus_1,
+        tick_array_0,
+        tick_array_plus_1,
+        tick_array_plus_2,
+    ], whirlpool.tick_spacing);
 
     let swap_result = compute_swap(
         token_out_before_fee.into(),
@@ -178,10 +188,10 @@ struct SwapResult {
     total_fee: u128,
 }
 
-fn compute_swap(
+fn compute_swap<const SIZE: usize>(
     token_amount: u128,
     whirlpool: WhirlpoolFacade,
-    tick_sequence: TickArraySequence,
+    tick_sequence: TickArraySequence<SIZE>,
     a_to_b: bool,
     specified_input: bool,
 ) -> SwapResult {
@@ -493,9 +503,7 @@ mod tests {
             true,
             1000,
             test_whirlpool(1 << 64, true),
-            test_tick_array(0),
-            test_tick_array(176),
-            test_tick_array(352),
+            [test_tick_array(-176), test_tick_array(0), test_tick_array(176)],
             None,
             None,
         );
@@ -512,9 +520,7 @@ mod tests {
             true,
             1000,
             test_whirlpool(1 << 64, false),
-            test_tick_array(0),
-            test_tick_array(176),
-            test_tick_array(352),
+            [test_tick_array(-176), test_tick_array(0), test_tick_array(176)],
             None,
             None,
         );
@@ -531,9 +537,7 @@ mod tests {
             false,
             1000,
             test_whirlpool(1 << 64, true),
-            test_tick_array(-176),
-            test_tick_array(0),
-            test_tick_array(176),
+            [test_tick_array(-176), test_tick_array(0), test_tick_array(176)],
             None,
             None,
         );
@@ -551,9 +555,7 @@ mod tests {
             false,
             1000,
             test_whirlpool(1 << 64, false),
-            test_tick_array(-176),
-            test_tick_array(0),
-            test_tick_array(176),
+            [test_tick_array(-176), test_tick_array(0), test_tick_array(176)],
             None,
             None,
         );
@@ -571,13 +573,10 @@ mod tests {
             false,
             1000,
             test_whirlpool(1 << 64, true),
-            test_tick_array(-176),
-            test_tick_array(0),
-            test_tick_array(176),
+            [test_tick_array(-176), test_tick_array(0), test_tick_array(176)],
             None,
             None,
         );
-        // FIXME: still has a round up issue somewhere
         assert_eq!(result.token_out, 1000);
         assert_eq!(result.token_est_in, 1005);
         assert_eq!(result.token_max_in, 1106);
@@ -591,13 +590,10 @@ mod tests {
             false,
             1000,
             test_whirlpool(1 << 64, false),
-            test_tick_array(-176),
-            test_tick_array(0),
-            test_tick_array(176),
+            [test_tick_array(-176), test_tick_array(0), test_tick_array(176)],
             None,
             None,
         );
-        // FIXME: still has a round up issue somewhere
         assert_eq!(result.token_out, 1000);
         assert_eq!(result.token_est_in, 1142);
         assert_eq!(result.token_max_in, 1257);
@@ -611,9 +607,7 @@ mod tests {
             true,
             1000,
             test_whirlpool(1 << 64, true),
-            test_tick_array(-176),
-            test_tick_array(0),
-            test_tick_array(176),
+            [test_tick_array(-176), test_tick_array(0), test_tick_array(176)],
             None,
             None,
         );
@@ -630,9 +624,7 @@ mod tests {
             true,
             1000,
             test_whirlpool(1 << 64, false),
-            test_tick_array(-176),
-            test_tick_array(0),
-            test_tick_array(176),
+            [test_tick_array(-176), test_tick_array(0), test_tick_array(176)],
             None,
             None,
         );

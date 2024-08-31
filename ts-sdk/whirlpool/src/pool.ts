@@ -1,6 +1,24 @@
-import { Whirlpool, getFeeTierAddress, getWhirlpoolAddress, fetchWhirlpoolsConfig, fetchFeeTier, fetchMaybeWhirlpool, fetchAllMaybeFeeTier, fetchAllMaybeWhirlpool } from "@orca-so/whirlpools-client";
-import { Rpc, GetAccountInfoApi, GetMultipleAccountsApi, Address } from "@solana/web3.js";
-import { SPLASH_POOL_TICK_SPACING, WHIRLPOOLS_CONFIG_ADDRESS, SUPPORTED_TICK_SPACINGS } from "./config";
+import type { Whirlpool } from "@orca-so/whirlpools-client";
+import {
+  getFeeTierAddress,
+  getWhirlpoolAddress,
+  fetchWhirlpoolsConfig,
+  fetchFeeTier,
+  fetchMaybeWhirlpool,
+  fetchAllMaybeFeeTier,
+  fetchAllMaybeWhirlpool,
+} from "@orca-so/whirlpools-client";
+import type {
+  Rpc,
+  GetAccountInfoApi,
+  GetMultipleAccountsApi,
+  Address,
+} from "@solana/web3.js";
+import {
+  SPLASH_POOL_TICK_SPACING,
+  WHIRLPOOLS_CONFIG_ADDRESS,
+  SUPPORTED_TICK_SPACINGS,
+} from "./config";
 
 type InitializablePool = {
   initialized: false;

@@ -120,7 +120,12 @@ export async function decreaseLiquidityInstructions(
   const positionAddress = await getPositionAddress(positionMint);
   const position = await fetchPosition(rpc, positionAddress[0]);
   const whirlpool = await fetchWhirlpool(rpc, position.data.whirlpool);
-  const quote = getDecreaseLiquidityQuote(param, whirlpool.data, position.data, slippageTolerance);
+  const quote = getDecreaseLiquidityQuote(
+    param,
+    whirlpool.data,
+    position.data,
+    slippageTolerance,
+  );
   const instructions: IInstruction[] = [];
 
   const lowerTickArrayStartIndex = getTickArrayStartTickIndex(
@@ -203,7 +208,12 @@ export async function closePositionInstructions(
   const positionAddress = await getPositionAddress(positionMint);
   const position = await fetchPosition(rpc, positionAddress[0]);
   const whirlpool = await fetchWhirlpool(rpc, position.data.whirlpool);
-  const quote = getDecreaseLiquidityQuote(param, whirlpool.data, position.data, slippageTolerance);
+  const quote = getDecreaseLiquidityQuote(
+    param,
+    whirlpool.data,
+    position.data,
+    slippageTolerance,
+  );
 
   const lowerTickArrayStartIndex = getTickArrayStartTickIndex(
     position.data.tickLowerIndex,

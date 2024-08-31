@@ -35,9 +35,7 @@ describe("derive program accounts", () => {
   });
 
   it("Oracle", async () => {
-    const address = await getOracleAddress(
-      TEST_WHIRLPOOL_ADDRESS,
-    );
+    const address = await getOracleAddress(TEST_WHIRLPOOL_ADDRESS);
     assert.strictEqual(
       address[0],
       "821SHenpVGYY7BCXUzNhs8Xi4grG557fqRw4wzgaPQcS",

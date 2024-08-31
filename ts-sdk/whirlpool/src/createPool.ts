@@ -1,10 +1,4 @@
-import type { Whirlpool } from "@orca-so/whirlpools-client";
 import {
-  fetchAllMaybeFeeTier,
-  fetchAllMaybeWhirlpool,
-  fetchFeeTier,
-  fetchMaybeWhirlpool,
-  fetchWhirlpoolsConfig,
   getFeeTierAddress,
   getInitializePoolV2Instruction,
   getInitializeTickArrayInstruction,
@@ -16,7 +10,6 @@ import {
 } from "@orca-so/whirlpools-client";
 import type {
   Address,
-  GetAccountInfoApi,
   GetMinimumBalanceForRentExemptionApi,
   GetMultipleAccountsApi,
   IInstruction,
@@ -29,7 +22,6 @@ import {
   DEFAULT_ADDRESS,
   DEFAULT_FUNDER,
   SPLASH_POOL_TICK_SPACING,
-  SUPPORTED_TICK_SPACINGS,
   WHIRLPOOLS_CONFIG_ADDRESS,
 } from "./config";
 import invariant from "tiny-invariant";

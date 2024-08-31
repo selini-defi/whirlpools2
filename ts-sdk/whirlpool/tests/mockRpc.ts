@@ -1,4 +1,8 @@
-import type { Address, ReadonlyUint8Array, VariableSizeDecoder } from "@solana/web3.js";
+import type {
+  Address,
+  ReadonlyUint8Array,
+  VariableSizeDecoder,
+} from "@solana/web3.js";
 import {
   createSolanaRpcFromTransport,
   getAddressDecoder,
@@ -24,7 +28,7 @@ export const [
 type AccountData = {
   bytes: ReadonlyUint8Array;
   owner?: Address;
-}
+};
 
 export const mockAccounts: Record<Address, AccountData> = {
   [TOKEN_MINT_1]: {
@@ -35,7 +39,7 @@ export const mockAccounts: Record<Address, AccountData> = {
       isInitialized: true,
       freezeAuthority: null,
     }),
-    owner: TOKEN_PROGRAM_ADDRESS
+    owner: TOKEN_PROGRAM_ADDRESS,
   },
   [TOKEN_MINT_2]: {
     bytes: getMintEncoder().encode({
@@ -45,7 +49,7 @@ export const mockAccounts: Record<Address, AccountData> = {
       isInitialized: true,
       freezeAuthority: null,
     }),
-    owner: TOKEN_PROGRAM_ADDRESS
+    owner: TOKEN_PROGRAM_ADDRESS,
   },
   [NATIVE_MINT]: {
     bytes: getMintEncoder().encode({
@@ -55,7 +59,7 @@ export const mockAccounts: Record<Address, AccountData> = {
       isInitialized: true,
       freezeAuthority: null,
     }),
-    owner: TOKEN_PROGRAM_ADDRESS
+    owner: TOKEN_PROGRAM_ADDRESS,
   },
   [TOKEN_2022_MINT]: {
     bytes: getMintEncoder().encode({
@@ -65,7 +69,7 @@ export const mockAccounts: Record<Address, AccountData> = {
       isInitialized: true,
       freezeAuthority: null,
     }),
-    owner: TOKEN_2022_PROGRAM_ADDRESS
+    owner: TOKEN_2022_PROGRAM_ADDRESS,
   },
   [TOKEN_2022_MINT_TRANSFER_FEE]: {
     bytes: getMintEncoder().encode({
@@ -76,7 +80,7 @@ export const mockAccounts: Record<Address, AccountData> = {
       freezeAuthority: null,
       // TODO: <- transfer fee config
     }),
-    owner: TOKEN_2022_PROGRAM_ADDRESS
+    owner: TOKEN_2022_PROGRAM_ADDRESS,
   },
   [TOKEN_2022_MINT_TRANSFER_HOOK]: {
     bytes: getMintEncoder().encode({
@@ -87,7 +91,7 @@ export const mockAccounts: Record<Address, AccountData> = {
       freezeAuthority: null,
       // TODO: <- transfer hook config
     }),
-    owner: TOKEN_2022_PROGRAM_ADDRESS
+    owner: TOKEN_2022_PROGRAM_ADDRESS,
   },
 };
 

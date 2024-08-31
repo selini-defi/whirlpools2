@@ -33,7 +33,9 @@ import {
 } from "@solana-program/system";
 
 /** The public key for the native mint (SOL) */
-export const NATIVE_MINT = address("So11111111111111111111111111111111111111112");
+export const NATIVE_MINT = address(
+  "So11111111111111111111111111111111111111112",
+);
 
 type TokenAccountInstructions = {
   createInstructions: IInstruction[];

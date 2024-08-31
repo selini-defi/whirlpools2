@@ -78,7 +78,7 @@ function getIncreaseLiquidityQuote(
   param: IncreaseLiquidityQuoteParam,
   pool: Whirlpool,
   tickRange: TickRange,
-  slippageTolerance: number
+  slippageTolerance: number,
 ): IncreaseLiquidityQuote {
   const slippageToleranceBps = Math.floor(slippageTolerance * 10000);
   if ("liquidity" in param) {
@@ -127,7 +127,12 @@ export async function increaseLiquidityInstructions(
   const positionAddress = await getPositionAddress(positionMint);
   const position = await fetchPosition(rpc, positionAddress[0]);
   const whirlpool = await fetchWhirlpool(rpc, position.data.whirlpool);
-  const quote = getIncreaseLiquidityQuote(param, whirlpool.data, position.data, slippageTolerance);
+  const quote = getIncreaseLiquidityQuote(
+    param,
+    whirlpool.data,
+    position.data,
+    slippageTolerance,
+  );
   const instructions: IInstruction[] = [];
 
   const lowerTickArrayStartIndex = getTickArrayStartTickIndex(
@@ -222,7 +227,12 @@ async function internalOpenPositionInstructions(
     initializableUpperTickIndex,
   );
 
-  const quote = getIncreaseLiquidityQuote(param, whirlpool.data, tickRange, slippageTolerance);
+  const quote = getIncreaseLiquidityQuote(
+    param,
+    whirlpool.data,
+    tickRange,
+    slippageTolerance,
+  );
 
   const positionMint = await generateKeyPairSigner();
 
@@ -375,7 +385,13 @@ export function openSplashPoolPositionInstructions(
   slippageTolerance: number = DEFAULT_SLIPPAGE_TOLERANCE,
   funder: TransactionPartialSigner = DEFAULT_FUNDER,
 ): Promise<IncreaseLiquidityInstructions> {
-  return openFullRangePositionInstructions(rpc, poolAddress, param, slippageTolerance, funder);
+  return openFullRangePositionInstructions(
+    rpc,
+    poolAddress,
+    param,
+    slippageTolerance,
+    funder,
+  );
 }
 
 export async function openPositionInstructions(

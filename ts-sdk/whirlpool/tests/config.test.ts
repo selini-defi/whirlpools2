@@ -18,7 +18,6 @@ import assert from "assert";
 import { createKeyPairSignerFromPrivateKeyBytes } from "@solana/web3.js";
 
 describe("Configuration", () => {
-
   afterEach(async () => {
     await resetConfiguration();
   });

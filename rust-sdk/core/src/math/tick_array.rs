@@ -1,28 +1,31 @@
 use crate::{TickArrayFacade, TickFacade, TICK_ARRAY_SIZE};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct TickArraySequence {
-    tick_arrays: [TickArrayFacade; 3],
+pub struct TickArraySequence<const SIZE: usize> {
+    tick_arrays: [TickArrayFacade; SIZE],
     tick_spacing: u16,
 }
 
-impl TickArraySequence {
+impl <const SIZE: usize> TickArraySequence<SIZE> {
     pub fn new(
-        one: TickArrayFacade,
-        two: TickArrayFacade,
-        three: TickArrayFacade,
+        tick_arrays: [TickArrayFacade; SIZE],
         tick_spacing: u16,
     ) -> Self {
-        let (first, second, third) = order_tick_arrays(one, two, three);
+        let mut tick_arrays = tick_arrays;
+        tick_arrays.sort_by(|a, b| a.start_tick_index.cmp(&b.start_tick_index));
 
-        let first_second_diff = (second.start_tick_index - first.start_tick_index).unsigned_abs();
-        let second_thrid_diff = (third.start_tick_index - second.start_tick_index).unsigned_abs();
-        let required_diff: u32 = TICK_ARRAY_SIZE as u32 * tick_spacing as u32;
-        if first_second_diff != required_diff || second_thrid_diff != required_diff {
-            panic!("tick arrays are not evenly spaced");
+        let required_tick_array_spacing: u32 = TICK_ARRAY_SIZE as u32 * tick_spacing as u32;
+        for (i, tick_array) in tick_arrays.iter().enumerate() {
+            let next_tick_array = tick_arrays.get(i + 1);
+            if let Some(next_tick_array) = next_tick_array {
+                let first_second_diff = (next_tick_array.start_tick_index - tick_array.start_tick_index).unsigned_abs();
+                if first_second_diff != required_tick_array_spacing {
+                    panic!("tick arrays are not evenly spaced");
+                }
+            }
         }
         Self {
-            tick_arrays: [first, second, third],
+            tick_arrays,
             tick_spacing,
         }
     }
@@ -73,37 +76,11 @@ impl TickArraySequence {
     }
 }
 
-fn order_tick_arrays(
-    one: TickArrayFacade,
-    two: TickArrayFacade,
-    three: TickArrayFacade,
-) -> (TickArrayFacade, TickArrayFacade, TickArrayFacade) {
-    let first_start_index = one.start_tick_index;
-    let second_start_index = two.start_tick_index;
-    let third_start_index = three.start_tick_index;
-
-    if first_start_index < second_start_index {
-        if second_start_index < third_start_index {
-            (one, two, three)
-        } else if first_start_index < third_start_index {
-            (one, three, two)
-        } else {
-            (three, one, two)
-        }
-    } else if first_start_index < third_start_index {
-        (two, one, three)
-    } else if second_start_index < third_start_index {
-        (two, three, one)
-    } else {
-        (three, two, one)
-    }
-}
-
 #[cfg(all(test, not(feature = "wasm")))]
 mod tests {
     use super::*;
 
-    fn test_sequence() -> TickArraySequence {
+    fn test_sequence() -> TickArraySequence<3> {
         let ticks: [TickFacade; TICK_ARRAY_SIZE] = (0..TICK_ARRAY_SIZE)
             .map(|x| TickFacade {
                 initialized: x & 1 == 1,
@@ -125,7 +102,7 @@ mod tests {
             start_tick_index: TICK_ARRAY_SIZE as i32 * 16 * 2,
             ticks,
         };
-        TickArraySequence::new(one, two, three, 16)
+        TickArraySequence::new([one, two, three], 16)
     }
 
     #[test]

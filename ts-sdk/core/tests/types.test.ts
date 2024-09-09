@@ -8,20 +8,19 @@ import type {
 
 // Since these tests are only for type checking, nothing actually happens at runtime.
 
-// FIXME: check if tests actually fail compiling if the types don't match (or if it just passes silently)
-
 describe("WASM exported types match Kinobi types", () => {
-  it("Whirlpool", async () => {
+
+  it("Whirlpool", () => {
     const fauxWhirlpool = {} as Whirlpool;
     fauxWhirlpool satisfies WhirlpoolFacade;
   });
 
-  it("Position", async () => {
+  it("Position", () => {
     const fauxPosition = {} as Position;
     fauxPosition satisfies PositionFacade;
   });
 
-  it("TickArray", async () => {
+  it("TickArray", () => {
     const fauxTickArray = {} as TickArray;
     fauxTickArray satisfies TickArrayFacade;
   });

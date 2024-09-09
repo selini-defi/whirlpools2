@@ -41,6 +41,7 @@ pub struct PositionFacade {
     pub fee_growth_checkpoint_b: u128,
     #[cfg_attr(feature = "wasm", tsify(type = "bigint"))]
     pub fee_owed_b: u64,
+    #[cfg_attr(feature = "wasm", tsify(type = "PositionRewardInfoFacade[]"))]
     pub reward_infos: [PositionRewardInfoFacade; 3],
 }
 
@@ -51,6 +52,7 @@ pub struct PositionFacade {
 #[cfg_attr(feature = "wasm", tsify(from_wasm_abi))]
 pub struct PositionRewardInfoFacade {
     pub growth_inside_checkpoint: u128,
+    #[cfg_attr(feature = "wasm", tsify(type = "bigint"))]
     pub amount_owed: u64,
 }
 

@@ -1,5 +1,4 @@
 import { getWhirlpoolsConfigExtensionAddress } from "@orca-so/whirlpools-client";
-import { _SUPPORTED_TICK_SPACINGS } from "@orca-so/whirlpools-core";
 import type { Address, TransactionPartialSigner } from "@solana/web3.js";
 import { address, createNoopSigner } from "@solana/web3.js";
 
@@ -18,12 +17,6 @@ export async function setWhirlpoolsConfig(
   WHIRLPOOLS_CONFIG_ADDRESS = configAddress;
   WHIRLPOOLS_CONFIG_EXTENSION_ADDRESS =
     await getWhirlpoolsConfigExtensionAddress(configAddress).then((x) => x[0]);
-}
-
-export let SUPPORTED_TICK_SPACINGS: number[] = _SUPPORTED_TICK_SPACINGS();
-
-export function setSupportedTickSpacings(tickSpacings: number[]): void {
-  SUPPORTED_TICK_SPACINGS = tickSpacings;
 }
 
 export const SPLASH_POOL_TICK_SPACING = 32896;
@@ -74,7 +67,6 @@ export function setSolWrappingStrategy(strategy: SolWrappingStrategy): void {
 
 export async function resetConfiguration(): Promise<void> {
   setWhirlpoolsConfig(address("2LecshUwdy9xi7meFgHtFJQNSKk4KdTrcpvaB56dP2NQ"));
-  setSupportedTickSpacings(_SUPPORTED_TICK_SPACINGS());
   setDefaultFunder(DEFAULT_ADDRESS);
   setDefaultSlippageTolerance(0.01);
   setSolWrappingStrategy("ata");

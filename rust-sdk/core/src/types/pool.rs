@@ -21,6 +21,7 @@ pub struct WhirlpoolFacade {
     pub fee_growth_global_b: u128,
     #[cfg_attr(feature = "wasm", tsify(type = "bigint"))]
     pub reward_last_updated_timestamp: u64,
+    #[cfg_attr(feature = "wasm", tsify(type = "WhirlpoolRewardInfoFacade[]"))]
     pub reward_infos: [WhirlpoolRewardInfoFacade; 3],
 }
 

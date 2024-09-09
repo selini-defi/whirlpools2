@@ -5,19 +5,20 @@ import {
   fetchWhirlpoolsConfig,
   fetchFeeTier,
   fetchMaybeWhirlpool,
-  fetchAllMaybeFeeTier,
   fetchAllMaybeWhirlpool,
+  fetchAllFeeTierWithFilter,
+  feeTierWhirlpoolsConfigFilter,
 } from "@orca-so/whirlpools-client";
 import type {
   Rpc,
   GetAccountInfoApi,
   GetMultipleAccountsApi,
   Address,
+  GetProgramAccountsApi,
 } from "@solana/web3.js";
 import {
   SPLASH_POOL_TICK_SPACING,
   WHIRLPOOLS_CONFIG_ADDRESS,
-  SUPPORTED_TICK_SPACINGS,
 } from "./config";
 
 type InitializablePool = {
@@ -95,7 +96,7 @@ export async function fetchPool(
 }
 
 export async function fetchPools(
-  rpc: Rpc<GetAccountInfoApi & GetMultipleAccountsApi>,
+  rpc: Rpc<GetAccountInfoApi & GetMultipleAccountsApi & GetProgramAccountsApi>,
   tokenMintOne: Address,
   tokenMintTwo: Address,
 ): Promise<PoolInfo[]> {
@@ -104,14 +105,12 @@ export async function fetchPools(
       ? [tokenMintOne, tokenMintTwo]
       : [tokenMintTwo, tokenMintOne];
 
-  const feeTierAddressesPromise = Promise.all(
-    SUPPORTED_TICK_SPACINGS.map((x) =>
-      getFeeTierAddress(WHIRLPOOLS_CONFIG_ADDRESS, x).then((x) => x[0]),
-    ),
-  );
+  const feeTierAccounts = await fetchAllFeeTierWithFilter(rpc, feeTierWhirlpoolsConfigFilter(WHIRLPOOLS_CONFIG_ADDRESS));
 
-  const poolAddressesPromise = Promise.all(
-    SUPPORTED_TICK_SPACINGS.map((x) =>
+  const supportedTickSpacings = feeTierAccounts.map((x) => x.data.tickSpacing);
+
+  const poolAddresses = await Promise.all(
+    supportedTickSpacings.map((x) =>
       getWhirlpoolAddress(
         WHIRLPOOLS_CONFIG_ADDRESS,
         tokenMintA,
@@ -121,28 +120,18 @@ export async function fetchPools(
     ),
   );
 
-  const [feeTierAddresses, poolAddresses] = await Promise.all([
-    feeTierAddressesPromise,
-    poolAddressesPromise,
-  ]);
-
   // TODO: this is multiple rpc calls. Can we do it in one?
-  const [configAccount, feeTierAccounts, poolAccounts] = await Promise.all([
+  const [configAccount, poolAccounts] = await Promise.all([
     fetchWhirlpoolsConfig(rpc, WHIRLPOOLS_CONFIG_ADDRESS),
-    fetchAllMaybeFeeTier(rpc, feeTierAddresses),
     fetchAllMaybeWhirlpool(rpc, poolAddresses),
   ]);
 
   const pools: PoolInfo[] = [];
-  for (let i = 0; i < SUPPORTED_TICK_SPACINGS.length; i++) {
-    const tickSpacing = SUPPORTED_TICK_SPACINGS[i];
+  for (let i = 0; i < supportedTickSpacings.length; i++) {
+    const tickSpacing = supportedTickSpacings[i];
     const feeTierAccount = feeTierAccounts[i];
     const poolAccount = poolAccounts[i];
     const poolAddress = poolAddresses[i];
-
-    if (!feeTierAccount.exists) {
-      continue;
-    }
 
     if (poolAccount.exists) {
       pools.push({
